@@ -103,10 +103,40 @@ const enhanceSearchInputs = () => {
     }
 };
 
+const connectFieldErrors = () => {
+    document.querySelectorAll('form p.text-red-700, form [data-field-error]').forEach((message, index) => {
+        if (!(message instanceof HTMLElement)) {
+            return;
+        }
+
+        const container = message.parentElement;
+        const field = container?.querySelector('input, select, textarea');
+
+        if (!(field instanceof HTMLElement)) {
+            return;
+        }
+
+        const errorId = message.id || `field-error-${field.id || index}`;
+        message.id = errorId;
+        field.setAttribute('aria-invalid', 'true');
+
+        const describedBy = (field.getAttribute('aria-describedby') || '')
+            .split(/\s+/)
+            .filter(Boolean);
+
+        if (!describedBy.includes(errorId)) {
+            describedBy.push(errorId);
+            field.setAttribute('aria-describedby', describedBy.join(' '));
+        }
+    });
+};
+
 const enhanceForms = () => {
     document.querySelectorAll('input.border-red-300, select.border-red-300, textarea.border-red-300').forEach((field) => {
         field.setAttribute('aria-invalid', 'true');
     });
+
+    connectFieldErrors();
 
     const errorSummary = document.querySelector('main [data-error-summary], main [role="alert"]');
 
@@ -178,9 +208,94 @@ const returnFocusFromHeaderPanel = (target) => {
     return false;
 };
 
+const getAdminDrawer = () => document.getElementById('admin-mobile-navigation');
+
+const getAdminDrawerFocusable = () => {
+    const drawer = getAdminDrawer();
+
+    if (!(drawer instanceof HTMLElement) || !isVisible(drawer)) {
+        return [];
+    }
+
+    return Array.from(
+        drawer.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+    ).filter((element) => element instanceof HTMLElement && isVisible(element));
+};
+
+const trapAdminDrawerFocus = (event) => {
+    if (event.key !== 'Tab') {
+        return false;
+    }
+
+    const focusable = getAdminDrawerFocusable();
+
+    if (focusable.length === 0) {
+        return false;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+
+    if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+        return true;
+    }
+
+    if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+        return true;
+    }
+
+    if (!(active instanceof HTMLElement) || !getAdminDrawer()?.contains(active)) {
+        event.preventDefault();
+        first.focus();
+        return true;
+    }
+
+    return false;
+};
+
+const enhanceAdminShell = () => {
+    const shell = document.querySelector('[data-admin-shell]');
+
+    if (!(shell instanceof HTMLElement)) {
+        return;
+    }
+
+    const trigger = document.querySelector('[aria-controls="admin-mobile-navigation"]');
+    const closeButton = document.querySelector('#admin-mobile-navigation [aria-label="Close admin navigation"]');
+
+    if (trigger instanceof HTMLElement) {
+        trigger.setAttribute('aria-haspopup', 'true');
+    }
+
+    if (closeButton instanceof HTMLElement) {
+        closeButton.addEventListener('click', () => {
+            requestAnimationFrame(() => {
+                if (trigger instanceof HTMLElement && isVisible(trigger)) {
+                    trigger.focus();
+                }
+            });
+        });
+    }
+
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    desktopQuery.addEventListener('change', (event) => {
+        if (event.matches && closeButton instanceof HTMLElement) {
+            closeButton.click();
+        }
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     enhanceSearchInputs();
     enhanceForms();
+    enhanceAdminShell();
 });
 
 document.addEventListener('keydown', (event) => {
@@ -188,6 +303,10 @@ document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
     const isSlashShortcut = event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey;
     const isCommandSearch = key === 'k' && (event.ctrlKey || event.metaKey) && !event.altKey;
+
+    if (trapAdminDrawerFocus(event)) {
+        return;
+    }
 
     if ((isSlashShortcut || isCommandSearch) && !isEditableTarget(target)) {
         event.preventDefault();
