@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+
+@theme {
+    /* SignGyaan Brand */
+    --color-sign-primary: #145886;
+    --color-sign-dark: #103F60;
+    --color-sign-cyan: #34B1DE;
+    --color-sign-cyan-dark: #2098C4;
+    --color-sign-light: #D9F2FA;
+    --color-sign-soft: #F2FAFD;
+
+    /* Neutral */
+    --color-sign-text: #1F2937;
+    --color-sign-muted: #667085;
+    --color-sign-border: #E5E7EB;
+
+    /* Fonts */
+    --font-heading: "Lora", serif;
+    --font-sans: "Noto Sans", sans-serif;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+    font-family: var(--font-sans);
+    background: #ffffff;
+    color: var(--color-sign-text);
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+}
+
+
+[x-cloak] {
+    display: none !important;
+}
