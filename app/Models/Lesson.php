@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lesson extends Model
 {
@@ -38,6 +39,13 @@ class Lesson extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function practiceResources(): HasMany
+    {
+        return $this->hasMany(PracticeResource::class)
+            ->orderBy('sort_order')
+            ->orderBy('title');
     }
 
     public function scopePublished(Builder $query): Builder
