@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\SubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,10 +14,8 @@ Route::middleware(['auth', 'admin'])
         Route::resource('subjects', SubjectController::class)
             ->except('show');
 
-        Route::view('/courses', 'admin.placeholder', [
-            'title' => 'Courses',
-            'description' => 'Manage courses inside each subject, including learning level, publishing and course structure.',
-        ])->name('courses.index');
+        Route::resource('courses', CourseController::class)
+            ->except('show');
 
         Route::view('/units', 'admin.placeholder', [
             'title' => 'Units',
