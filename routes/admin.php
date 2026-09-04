@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
@@ -33,10 +34,9 @@ Route::middleware(['auth', 'admin'])
         Route::put('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'update'])->name('practice.update');
         Route::delete('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'destroy'])->name('practice.destroy');
 
-        Route::view('/media', 'admin.placeholder', [
-            'title' => 'Media',
-            'description' => 'Organise learning images, ISL videos and other media used throughout SignGyaan.',
-        ])->name('media.index');
+        Route::resource('media', MediaController::class)
+            ->parameters(['media' => 'mediaAsset'])
+            ->except('show');
 
         Route::view('/users', 'admin.placeholder', [
             'title' => 'Users',
