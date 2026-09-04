@@ -128,6 +128,8 @@ class MediaController extends Controller
                 $this->ensureUploadMatchesType($file, $validated['media_type']);
                 $this->deleteStoredFile($mediaAsset);
                 $validated = array_merge($validated, $this->storeUploadedFile($file, $validated['media_type']));
+            } else {
+                $this->ensureExistingUploadMatchesType($mediaAsset, $validated['media_type']);
             }
         }
 
@@ -184,6 +186,28 @@ class MediaController extends Controller
         if (! in_array($extension, self::UPLOAD_EXTENSIONS[$mediaType], true)) {
             throw ValidationException::withMessages([
                 'file' => 'The uploaded file does not match the selected media type.',
+            ]);
+        }
+    }
+
+    private function ensureExistingUploadMatchesType(MediaAsset $mediaAsset, string $mediaType): void
+    {
+        if (! $mediaAsset->file_path) {
+            return;
+        }
+
+        if ($mediaType === 'link' || ! isset(self::UPLOAD_EXTENSIONS[$mediaType])) {
+            throw ValidationException::withMessages([
+                'media_type' => 'Uploaded files must use Image, Video, Document or Audio as the media type.',
+            ]);
+        }
+
+        $filename = $mediaAsset->original_name ?: $mediaAsset->file_path;
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, self::UPLOAD_EXTENSIONS[$mediaType], true)) {
+            throw ValidationException::withMessages([
+                'media_type' => 'Choose a media type that matches the current uploaded file, or upload a replacement file.',
             ]);
         }
     }
