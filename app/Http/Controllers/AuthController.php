@@ -36,7 +36,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('learn'));
+        return redirect()->intended(route('dashboard'));
     }
 
     public function showRegister(): View
@@ -61,7 +61,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('learn');
+        return redirect()->route('dashboard');
     }
 
     public function logout(Request $request): RedirectResponse
