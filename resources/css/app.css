@@ -83,7 +83,7 @@ input,
 select,
 textarea,
 button {
-    font: inherit;
+    font-family: inherit;
 }
 
 input:disabled,
@@ -253,10 +253,6 @@ textarea[aria-invalid="true"]:focus {
         outline-width: 4px;
     }
 
-    input,
-    select,
-    textarea,
-    button,
     a {
         text-decoration-thickness: max(1px, 0.08em);
     }
