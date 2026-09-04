@@ -180,6 +180,70 @@ textarea[aria-invalid="true"]:focus {
     font-size: 1rem;
 }
 
+/* Admin console responsive and accessibility polish */
+[data-admin-shell] {
+    background: var(--color-sign-soft);
+}
+
+[data-admin-shell] [data-admin-main] {
+    overflow-x: clip;
+}
+
+[data-admin-shell] input,
+[data-admin-shell] select,
+[data-admin-shell] textarea {
+    font-size: 1rem;
+}
+
+[data-admin-shell] input:not([type="checkbox"]):not([type="radio"]),
+[data-admin-shell] select,
+[data-admin-shell] textarea,
+[data-admin-shell] main button,
+[data-admin-shell] main a {
+    min-height: 2.75rem;
+}
+
+[data-admin-shell] textarea {
+    resize: vertical;
+}
+
+[data-admin-shell] table {
+    border-collapse: collapse;
+}
+
+[data-admin-shell] table th {
+    white-space: nowrap;
+}
+
+[data-admin-shell] [role="alert"],
+[data-admin-shell] [role="status"],
+[data-admin-shell] [data-error-summary] {
+    scroll-margin-top: 6rem;
+}
+
+[data-admin-shell] form :is(input, select, textarea):focus-visible {
+    outline-offset: 1px;
+}
+
+[data-admin-shell] form :is(input, select, textarea)[aria-invalid="true"] {
+    border-color: #dc2626;
+}
+
+[data-admin-shell] .overflow-x-auto {
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+}
+
+html.admin-nav-open,
+html.admin-nav-open body {
+    overflow: hidden;
+}
+
+#admin-mobile-navigation {
+    overscroll-behavior: contain;
+}
+
 @media (max-width: 639px) {
     html {
         scroll-padding-top: 5rem;
@@ -235,6 +299,16 @@ textarea[aria-invalid="true"]:focus {
     aside[aria-label="Search filters summary"] {
         border-radius: 1.25rem;
     }
+
+    [data-admin-shell] [data-admin-main] > section {
+        padding-top: 1.25rem;
+        padding-bottom: 1.75rem;
+    }
+
+    [data-admin-shell] [data-admin-main] form button[type="submit"],
+    [data-admin-shell] [data-admin-main] form a {
+        max-width: 100%;
+    }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
@@ -248,6 +322,13 @@ textarea[aria-invalid="true"]:focus {
     }
 }
 
+@media (min-width: 1024px) {
+    html.admin-nav-open,
+    html.admin-nav-open body {
+        overflow: auto;
+    }
+}
+
 @media (prefers-contrast: more) {
     :focus-visible {
         outline-width: 4px;
@@ -255,6 +336,11 @@ textarea[aria-invalid="true"]:focus {
 
     a {
         text-decoration-thickness: max(1px, 0.08em);
+    }
+
+    [data-admin-shell] [aria-current="page"] {
+        outline: 2px solid currentColor;
+        outline-offset: -2px;
     }
 }
 
@@ -266,6 +352,10 @@ textarea[aria-invalid="true"]:focus {
     [role="progressbar"] > div {
         forced-color-adjust: none;
         background: Highlight;
+    }
+
+    [data-admin-shell] [aria-current="page"] {
+        border: 2px solid Highlight;
     }
 }
 
