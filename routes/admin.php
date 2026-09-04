@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SubjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])
@@ -9,10 +10,8 @@ Route::middleware(['auth', 'admin'])
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
 
-        Route::view('/subjects', 'admin.placeholder', [
-            'title' => 'Subjects',
-            'description' => 'Create, organise and publish the main learning subject categories used across SignGyaan.',
-        ])->name('subjects.index');
+        Route::resource('subjects', SubjectController::class)
+            ->except('show');
 
         Route::view('/courses', 'admin.placeholder', [
             'title' => 'Courses',
