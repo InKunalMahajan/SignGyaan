@@ -37,6 +37,7 @@
                 @include('partials.home.how-it-works')
                 @include('partials.home.isl-learning')
                 @include('partials.home.popular-topics')
+                @include('partials.home.final-cta')
             @endif
         </main>
 
