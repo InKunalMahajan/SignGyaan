@@ -13,6 +13,8 @@
         content="@yield('description', 'SignGyaan - Accessible visual learning through Indian Sign Language.')"
     >
 
+    <meta name="theme-color" content="#145886">
+
     <title>
         @yield('title', 'SignGyaan')
     </title>
@@ -23,14 +25,22 @@
     ])
 
     @livewireStyles
+    @stack('head')
 </head>
 
 <body class="min-h-screen bg-white font-sans text-sign-text antialiased">
-    <div class="min-h-screen flex flex-col">
+    <a
+        href="#main-content"
+        class="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-sign-dark px-4 py-3 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
+    >
+        Skip to main content
+    </a>
+
+    <div class="flex min-h-screen flex-col">
 
         @include('partials.header')
 
-        <main class="flex-1">
+        <main id="main-content" tabindex="-1" class="flex-1">
             @yield('content')
 
             @if (request()->routeIs('home'))
@@ -46,6 +56,6 @@
     </div>
 
     @livewireScripts
-
+    @stack('scripts')
 </body>
 </html>
