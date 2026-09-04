@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-
 @theme {
     /* SignGyaan Brand */
     --color-sign-primary: #145886;
@@ -21,18 +20,21 @@
     --font-sans: "Noto Sans", sans-serif;
 }
 
+:root {
+    color-scheme: light;
+}
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
 }
-
 
 body {
     font-family: var(--font-sans);
     background: #ffffff;
     color: var(--color-sign-text);
+    overflow-wrap: anywhere;
 }
-
 
 h1,
 h2,
@@ -41,9 +43,43 @@ h4,
 h5,
 h6 {
     font-family: var(--font-heading);
+    text-wrap: balance;
 }
 
+p {
+    text-wrap: pretty;
+}
+
+a,
+button {
+    touch-action: manipulation;
+}
+
+::selection {
+    background: var(--color-sign-light);
+    color: var(--color-sign-dark);
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-sign-cyan);
+    outline-offset: 3px;
+}
 
 [x-cloak] {
     display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }
