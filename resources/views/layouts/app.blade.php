@@ -43,6 +43,7 @@
         <main id="main-content" tabindex="-1" class="flex-1">
             @if (request()->routeIs('courses.show') && request()->filled('lesson'))
                 @include('partials.course.lesson')
+                @include('partials.course.progress-actions')
             @else
                 @yield('content')
 
