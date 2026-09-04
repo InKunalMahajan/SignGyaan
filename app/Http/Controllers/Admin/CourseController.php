@@ -15,7 +15,7 @@ class CourseController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Course::query()->with('subject');
+        $query = Course::query()->with('subject')->withCount('units');
 
         if ($request->filled('q')) {
             $search = trim((string) $request->input('q'));
@@ -111,6 +111,12 @@ class CourseController extends Controller
 
     public function destroy(Course $course): RedirectResponse
     {
+        if ($course->units()->exists()) {
+            return redirect()
+                ->route('admin.courses.index')
+                ->with('status', 'This course cannot be deleted while it still contains units. Move or delete its units first.');
+        }
+
         $course->delete();
 
         return redirect()
