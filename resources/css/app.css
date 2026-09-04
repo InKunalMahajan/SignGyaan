@@ -36,6 +36,10 @@ body {
     overflow-wrap: anywhere;
 }
 
+main {
+    min-width: 0;
+}
+
 h1,
 h2,
 h3,
@@ -89,9 +93,77 @@ textarea {
     display: none !important;
 }
 
+/* Explore + Search horizontal filter strips */
+[aria-label="Explore categories"],
+[aria-label="Filter by result type"] {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+[aria-label="Explore categories"]::-webkit-scrollbar,
+[aria-label="Filter by result type"]::-webkit-scrollbar {
+    display: none;
+}
+
+[aria-label="Explore categories"] > div > a,
+[aria-label="Filter by result type"] > div > a {
+    scroll-snap-align: start;
+}
+
+#desktop-global-search,
+#mobile-navigation {
+    overscroll-behavior: contain;
+}
+
+/* Keep search fields comfortable on touch devices and prevent mobile zoom. */
+#explore-search,
+#search-page-input,
+#desktop-search-input,
+#mobile-search-input,
+#search-type,
+#search-subject {
+    font-size: 1rem;
+}
+
 @media (max-width: 639px) {
     html {
         scroll-padding-top: 5rem;
+    }
+
+    h1 {
+        line-height: 1.12;
+    }
+
+    h2 {
+        line-height: 1.18;
+    }
+
+    /* Main Explore search button becomes a clear full-width touch target. */
+    form:has(#explore-search) > div > button[type="submit"] {
+        width: 100%;
+    }
+
+    /* Dedicated Search page primary submit button. */
+    form:has(#search-page-input) > div:first-of-type > button[type="submit"] {
+        width: 100%;
+    }
+
+    [aria-label="Explore categories"],
+    [aria-label="Filter by result type"] {
+        scroll-snap-type: x proximity;
+    }
+
+    aside[aria-label="Search filters summary"] {
+        border-radius: 1.25rem;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    #explore-search,
+    #search-page-input {
+        min-width: 0;
     }
 }
 
