@@ -49,7 +49,7 @@
 
     <section class="bg-white py-10 sm:py-14 lg:py-16">
         <x-container>
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-3" aria-label="Learning overview">
                 <div class="rounded-2xl border border-sign-border p-5 sm:rounded-3xl sm:p-6">
                     <p class="text-sm font-semibold text-sign-muted">Courses in progress</p>
                     <p class="mt-3 font-heading text-3xl font-semibold text-sign-primary">{{ $activeCourses->count() }}</p>
@@ -63,7 +63,9 @@
                 <div class="rounded-2xl border border-sign-border p-5 sm:rounded-3xl sm:p-6">
                     <p class="text-sm font-semibold text-sign-muted">Overall progress</p>
                     <p class="mt-3 font-heading text-3xl font-semibold text-sign-primary">{{ $overallProgress }}%</p>
-                    <div class="mt-3 h-2 overflow-hidden rounded-full bg-sign-soft"><div class="h-full rounded-full bg-sign-primary" style="width: {{ $overallProgress }}%"></div></div>
+                    <div class="mt-3 h-2 overflow-hidden rounded-full bg-sign-soft" role="progressbar" aria-label="Overall learning progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $overallProgress }}">
+                        <div class="h-full rounded-full bg-sign-primary" style="width: {{ $overallProgress }}%"></div>
+                    </div>
                 </div>
             </div>
 
@@ -88,7 +90,9 @@
                                         </div>
                                         <h3 class="mt-4 font-heading text-xl font-semibold text-sign-primary">{{ $progress->course_title }}</h3>
                                         <p class="mt-2 text-sm text-sign-muted">{{ $progress->completedLessonsCount() }} of {{ $progress->total_lessons }} lessons completed</p>
-                                        <div class="mt-4 h-2 overflow-hidden rounded-full bg-sign-soft"><div class="h-full rounded-full bg-sign-primary" style="width: {{ $progress->progressPercent() }}%"></div></div>
+                                        <div class="mt-4 h-2 overflow-hidden rounded-full bg-sign-soft" role="progressbar" aria-label="{{ $progress->course_title }} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $progress->progressPercent() }}">
+                                            <div class="h-full rounded-full bg-sign-primary" style="width: {{ $progress->progressPercent() }}%"></div>
+                                        </div>
                                         <a href="{{ route('courses.show', ['subject' => $progress->subject_slug, 'course' => $progress->course_slug, 'lesson' => $progress->current_lesson_key]) }}" class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Continue Course</a>
                                     </article>
                                 @endforeach
@@ -138,9 +142,9 @@
                     <div class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Quick actions</p>
                         <nav class="mt-4 space-y-2">
-                            <a href="{{ route('my-learning') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>My Learning</span><span>→</span></a>
-                            <a href="{{ route('subjects') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>Browse Subjects</span><span>→</span></a>
-                            <a href="{{ route('explore') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>Explore Learning</span><span>→</span></a>
+                            <a href="{{ route('my-learning') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>My Learning</span><span aria-hidden="true">→</span></a>
+                            <a href="{{ route('subjects') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>Browse Subjects</span><span aria-hidden="true">→</span></a>
+                            <a href="{{ route('explore') }}" class="flex min-h-11 items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary hover:bg-sign-light"><span>Explore Learning</span><span aria-hidden="true">→</span></a>
                         </nav>
                     </div>
 
@@ -148,6 +152,7 @@
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Account</p>
                         <p class="mt-3 font-semibold text-sign-primary">{{ $user->name }}</p>
                         <p class="mt-1 break-all text-sm text-sign-muted">{{ $user->email }}</p>
+                        <a href="{{ route('profile') }}" class="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">Manage account →</a>
                     </div>
                 </aside>
             </div>
