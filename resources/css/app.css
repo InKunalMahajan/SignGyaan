@@ -50,9 +50,29 @@ p {
     text-wrap: pretty;
 }
 
+img,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+}
+
+video,
+iframe {
+    width: 100%;
+}
+
 a,
 button {
     touch-action: manipulation;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
@@ -67,6 +87,12 @@ button {
 
 [x-cloak] {
     display: none !important;
+}
+
+@media (max-width: 639px) {
+    html {
+        scroll-padding-top: 5rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
