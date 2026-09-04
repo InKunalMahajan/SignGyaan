@@ -118,4 +118,140 @@
         </x-container>
     </section>
 
+    {{-- Subject Categories --}}
+    <section class="border-y border-sign-border bg-sign-soft py-16 sm:py-20">
+        <x-container>
+
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                <x-section-heading
+                    title="What do you want to learn?"
+                    description="Choose a subject and start learning through clear, visual and structured lessons."
+                />
+
+                <a
+                    href="{{ route('subjects') }}"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-sign-primary transition hover:text-sign-cyan-dark"
+                >
+                    View all subjects
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                {{-- English --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25A8.966 8.966 0 0 1 18 3.75c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">English</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Build vocabulary, grammar, reading and communication skills.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+                {{-- Mathematics --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h6v6H3v-6Zm12 0h6v6h-6v-6ZM3 16.5h6m6 0h6m-3-3v6" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">Mathematics</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Understand numbers, calculations and problem solving step by step.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+                {{-- Science --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3v5.25L4.5 17.25A2.25 2.25 0 0 0 6.45 20.625h11.1a2.25 2.25 0 0 0 1.95-3.375l-5.25-9V3m-4.5 0h4.5m-6 10.5h7.5" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">Science</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Explore scientific ideas through visual examples and simple explanations.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+                {{-- Digital Skills --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17 9 20l-1 1h8l-1-1-.75-3M3 13.5h18M5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v7.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 14.25v-7.5A2.25 2.25 0 0 1 5.25 4.5Z" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">Digital Skills</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Learn computers, internet tools and practical digital skills.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+                {{-- General Knowledge --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.25-2.25 3.375-5.25 3.375-9S14.25 5.25 12 3m0 18c-2.25-2.25-3.375-5.25-3.375-9S9.75 5.25 12 3M3.75 9h16.5m-16.5 6h16.5" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">General Knowledge</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Discover useful knowledge about society, places, events and the world.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+                {{-- Life Skills --}}
+                <a
+                    href="{{ route('subjects') }}"
+                    class="group rounded-2xl border border-sign-border bg-white p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sign-cyan hover:shadow-md"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sign-light text-sign-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6c0-3.75-3-6.75-6-9.75-3 3-6 6-6 9.75a6 6 0 0 0 6 6Zm0 0v2.25" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-5 font-heading text-xl font-semibold text-sign-primary">Life Skills</h3>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Develop everyday communication, confidence and practical life skills.</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                        Explore subject
+                        <span class="transition group-hover:translate-x-1">→</span>
+                    </span>
+                </a>
+
+            </div>
+
+        </x-container>
+    </section>
+
 @endsection
