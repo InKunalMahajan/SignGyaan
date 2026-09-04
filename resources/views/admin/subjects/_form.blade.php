@@ -92,6 +92,7 @@
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl">
             <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Publishing</p>
 
+            <input type="hidden" name="is_published" value="0">
             <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-sign-soft p-4">
                 <input
                     type="checkbox"
