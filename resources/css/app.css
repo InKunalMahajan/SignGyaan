@@ -79,6 +79,34 @@ textarea {
     -webkit-tap-highlight-color: transparent;
 }
 
+input,
+select,
+textarea,
+button {
+    font: inherit;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: #fca5a5;
+}
+
+input[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 4px #fee2e2;
+}
+
 ::selection {
     background: var(--color-sign-light);
     color: var(--color-sign-dark);
@@ -91,6 +119,26 @@ textarea {
 
 [x-cloak] {
     display: none !important;
+}
+
+/* Authentication and account forms */
+[data-auth-page] input,
+[data-auth-page] button,
+[data-account-page] input,
+[data-account-page] button {
+    min-height: 3rem;
+}
+
+[data-auth-page] [role="alert"],
+[data-account-page] [role="alert"] {
+    scroll-margin-top: 6rem;
+}
+
+[data-auth-page] input:-webkit-autofill,
+[data-account-page] input:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-sign-text);
+    box-shadow: 0 0 0 1000px #ffffff inset;
+    transition: background-color 9999s ease-out;
 }
 
 /* Explore + Search horizontal filter strips */
@@ -113,17 +161,22 @@ textarea {
 }
 
 #desktop-global-search,
+#desktop-account-menu,
 #mobile-navigation {
     overscroll-behavior: contain;
 }
 
-/* Keep search fields comfortable on touch devices and prevent mobile zoom. */
+/* Keep search and account fields comfortable on touch devices and prevent mobile zoom. */
 #explore-search,
 #search-page-input,
 #desktop-search-input,
 #mobile-search-input,
 #search-type,
-#search-subject {
+#search-subject,
+[data-auth-page] input,
+[data-account-page] input,
+[data-account-page] select,
+[data-account-page] textarea {
     font-size: 1rem;
 }
 
@@ -138,6 +191,30 @@ textarea {
 
     h2 {
         line-height: 1.18;
+    }
+
+    /* Keep authentication pages focused and compact on phones. */
+    [data-auth-page] {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    [data-auth-page] [data-auth-visual] {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    [data-auth-page] [data-auth-benefits] {
+        display: none;
+    }
+
+    [data-auth-page] [data-auth-form] {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    [data-account-page] {
+        overflow-x: clip;
     }
 
     /* Main Explore search button becomes a clear full-width touch target. */
@@ -164,6 +241,35 @@ textarea {
     #explore-search,
     #search-page-input {
         min-width: 0;
+    }
+
+    [data-auth-page] [data-auth-benefits] {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-contrast: more) {
+    :focus-visible {
+        outline-width: 4px;
+    }
+
+    input,
+    select,
+    textarea,
+    button,
+    a {
+        text-decoration-thickness: max(1px, 0.08em);
+    }
+}
+
+@media (forced-colors: active) {
+    :focus-visible {
+        outline: 3px solid Highlight;
+    }
+
+    [role="progressbar"] > div {
+        forced-color-adjust: none;
+        background: Highlight;
     }
 }
 
