@@ -1,6 +1,6 @@
 <header
-    x-data="{ mobileMenuOpen: false, searchOpen: false }"
-    @keydown.escape.window="mobileMenuOpen = false; searchOpen = false"
+    x-data="{ mobileMenuOpen: false, searchOpen: false, accountOpen: false }"
+    @keydown.escape.window="mobileMenuOpen = false; searchOpen = false; accountOpen = false"
     class="sticky top-0 z-50 border-b border-sign-border bg-white/95 backdrop-blur"
 >
     <x-container>
@@ -83,7 +83,7 @@
 
                 <button
                     type="button"
-                    @click="searchOpen = ! searchOpen; mobileMenuOpen = false; if (searchOpen) { $nextTick(() => $refs.desktopSearch.focus()) }"
+                    @click="searchOpen = ! searchOpen; accountOpen = false; mobileMenuOpen = false; if (searchOpen) { $nextTick(() => $refs.desktopSearch.focus()) }"
                     @class([
                         'inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition xl:px-4',
                         'bg-sign-soft text-sign-primary' => request()->routeIs('search'),
@@ -98,12 +98,135 @@
                     Search
                 </button>
 
-                <a
-                    href="#"
-                    class="inline-flex min-h-11 items-center justify-center rounded-lg border border-sign-primary px-3 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft xl:px-4"
-                >
-                    Sign In
-                </a>
+                @guest
+                    <a
+                        href="{{ route('login') }}"
+                        @class([
+                            'inline-flex min-h-11 items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-semibold transition xl:px-4',
+                            'border-sign-primary bg-sign-soft text-sign-primary' => request()->routeIs('login'),
+                            'border-sign-primary text-sign-primary hover:bg-sign-soft' => ! request()->routeIs('login'),
+                        ])
+                    >
+                        Sign In
+                    </a>
+
+                    <a
+                        href="{{ route('register') }}"
+                        class="hidden min-h-11 items-center justify-center rounded-lg bg-sign-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sign-dark xl:inline-flex"
+                    >
+                        Create Account
+                    </a>
+                @endguest
+
+                @auth
+                    @php
+                        $headerUser = auth()->user();
+                        $headerInitial = strtoupper(substr(trim($headerUser->name), 0, 1));
+                    @endphp
+
+                    <div class="relative">
+                        <button
+                            x-ref="accountButton"
+                            type="button"
+                            @click="accountOpen = ! accountOpen; searchOpen = false; mobileMenuOpen = false"
+                            @class([
+                                'inline-flex min-h-11 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm font-semibold transition xl:px-3',
+                                'border-sign-primary bg-sign-soft text-sign-primary' => request()->routeIs('dashboard', 'my-learning', 'profile'),
+                                'border-sign-border bg-white text-sign-primary hover:border-sign-cyan hover:bg-sign-soft' => ! request()->routeIs('dashboard', 'my-learning', 'profile'),
+                            ])
+                            :aria-expanded="accountOpen"
+                            aria-controls="desktop-account-menu"
+                            aria-label="Open account menu"
+                        >
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sign-primary font-heading text-sm font-semibold text-white" aria-hidden="true">
+                                {{ $headerInitial }}
+                            </span>
+                            <span class="hidden max-w-28 truncate xl:inline">{{ $headerUser->name }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4 shrink-0 transition" :class="accountOpen ? 'rotate-180' : ''" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+
+                        <div
+                            id="desktop-account-menu"
+                            x-show="accountOpen"
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-1"
+                            @click.outside="accountOpen = false"
+                            class="absolute right-0 top-full mt-3 w-72 overflow-hidden rounded-2xl border border-sign-border bg-white shadow-xl"
+                        >
+                            <div class="border-b border-sign-border bg-sign-soft px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sign-primary font-heading text-base font-semibold text-white" aria-hidden="true">
+                                        {{ $headerInitial }}
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-semibold text-sign-primary">{{ $headerUser->name }}</p>
+                                        <p class="mt-0.5 truncate text-xs text-sign-muted">{{ $headerUser->email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <nav class="p-2" aria-label="Account navigation">
+                                <a
+                                    href="{{ route('dashboard') }}"
+                                    @class([
+                                        'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                        'bg-sign-soft text-sign-primary' => request()->routeIs('dashboard'),
+                                        'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('dashboard'),
+                                    ])
+                                    @if (request()->routeIs('dashboard')) aria-current="page" @endif
+                                >
+                                    <span>Dashboard</span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                                <a
+                                    href="{{ route('my-learning') }}"
+                                    @class([
+                                        'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                        'bg-sign-soft text-sign-primary' => request()->routeIs('my-learning'),
+                                        'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('my-learning'),
+                                    ])
+                                    @if (request()->routeIs('my-learning')) aria-current="page" @endif
+                                >
+                                    <span>My Learning</span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                                <a
+                                    href="{{ route('profile') }}"
+                                    @class([
+                                        'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                        'bg-sign-soft text-sign-primary' => request()->routeIs('profile'),
+                                        'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('profile'),
+                                    ])
+                                    @if (request()->routeIs('profile')) aria-current="page" @endif
+                                >
+                                    <span>Profile & Account</span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            </nav>
+
+                            <div class="border-t border-sign-border p-2">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-sign-muted transition hover:bg-sign-soft hover:text-sign-primary">
+                                        <span>Sign Out</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3H9m9.75 0-3-3m3 3-3 3" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endauth
 
                 {{-- Desktop Global Search --}}
                 <div
@@ -164,7 +287,7 @@
             {{-- Mobile Menu Button --}}
             <button
                 type="button"
-                @click="mobileMenuOpen = ! mobileMenuOpen; searchOpen = false"
+                @click="mobileMenuOpen = ! mobileMenuOpen; searchOpen = false; accountOpen = false"
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft lg:hidden"
                 aria-label="Toggle navigation"
                 aria-controls="mobile-navigation"
@@ -180,11 +303,7 @@
                     class="h-6 w-6"
                     aria-hidden="true"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M4 6h16M4 12h16M4 18h16"
-                    />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
 
                 <svg
@@ -198,11 +317,7 @@
                     class="h-6 w-6"
                     aria-hidden="true"
                 >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18 18 6M6 6l12 12"
-                    />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
             </button>
 
@@ -233,9 +348,7 @@
                         'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('learn'),
                     ])
                     @if (request()->routeIs('learn')) aria-current="page" @endif
-                >
-                    Learn
-                </a>
+                >Learn</a>
 
                 <a
                     href="{{ route('subjects') }}"
@@ -246,9 +359,7 @@
                         'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('subjects', 'subjects.show', 'courses.show'),
                     ])
                     @if (request()->routeIs('subjects', 'subjects.show', 'courses.show')) aria-current="page" @endif
-                >
-                    Subjects
-                </a>
+                >Subjects</a>
 
                 <a
                     href="{{ route('explore') }}"
@@ -259,9 +370,7 @@
                         'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('explore'),
                     ])
                     @if (request()->routeIs('explore')) aria-current="page" @endif
-                >
-                    Explore
-                </a>
+                >Explore</a>
 
                 <a
                     href="{{ route('about') }}"
@@ -272,9 +381,7 @@
                         'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('about'),
                     ])
                     @if (request()->routeIs('about')) aria-current="page" @endif
-                >
-                    About
-                </a>
+                >About</a>
 
                 <div class="my-3 border-t border-sign-border"></div>
 
@@ -309,12 +416,88 @@
                     </div>
                 </form>
 
-                <a
-                    href="#"
-                    class="inline-flex min-h-11 items-center rounded-lg px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
-                >
-                    Sign In
-                </a>
+                @guest
+                    <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                        <a
+                            href="{{ route('login') }}"
+                            @click="mobileMenuOpen = false"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-primary px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
+                        >
+                            Sign In
+                        </a>
+                        <a
+                            href="{{ route('register') }}"
+                            @click="mobileMenuOpen = false"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
+                        >
+                            Create Account
+                        </a>
+                    </div>
+                @endguest
+
+                @auth
+                    @php
+                        $mobileUser = auth()->user();
+                        $mobileInitial = strtoupper(substr(trim($mobileUser->name), 0, 1));
+                    @endphp
+
+                    <div class="mt-2 rounded-2xl border border-sign-border bg-sign-soft p-3">
+                        <div class="flex items-center gap-3 px-2 py-2">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sign-primary font-heading text-base font-semibold text-white" aria-hidden="true">
+                                {{ $mobileInitial }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-sign-primary">{{ $mobileUser->name }}</p>
+                                <p class="mt-0.5 truncate text-xs text-sign-muted">{{ $mobileUser->email }}</p>
+                            </div>
+                        </div>
+
+                        <nav class="mt-2 space-y-1" aria-label="Mobile account navigation">
+                            <a
+                                href="{{ route('dashboard') }}"
+                                @click="mobileMenuOpen = false"
+                                @class([
+                                    'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                    'bg-white text-sign-primary' => request()->routeIs('dashboard'),
+                                    'text-sign-text hover:bg-white hover:text-sign-primary' => ! request()->routeIs('dashboard'),
+                                ])
+                                @if (request()->routeIs('dashboard')) aria-current="page" @endif
+                            ><span>Dashboard</span><span aria-hidden="true">→</span></a>
+
+                            <a
+                                href="{{ route('my-learning') }}"
+                                @click="mobileMenuOpen = false"
+                                @class([
+                                    'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                    'bg-white text-sign-primary' => request()->routeIs('my-learning'),
+                                    'text-sign-text hover:bg-white hover:text-sign-primary' => ! request()->routeIs('my-learning'),
+                                ])
+                                @if (request()->routeIs('my-learning')) aria-current="page" @endif
+                            ><span>My Learning</span><span aria-hidden="true">→</span></a>
+
+                            <a
+                                href="{{ route('profile') }}"
+                                @click="mobileMenuOpen = false"
+                                @class([
+                                    'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                    'bg-white text-sign-primary' => request()->routeIs('profile'),
+                                    'text-sign-text hover:bg-white hover:text-sign-primary' => ! request()->routeIs('profile'),
+                                ])
+                                @if (request()->routeIs('profile')) aria-current="page" @endif
+                            ><span>Profile & Account</span><span aria-hidden="true">→</span></a>
+                        </nav>
+
+                        <form method="POST" action="{{ route('logout') }}" class="mt-2 border-t border-sign-border pt-2">
+                            @csrf
+                            <button type="submit" class="flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-sign-muted transition hover:bg-white hover:text-sign-primary">
+                                <span>Sign Out</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3H9m9.75 0-3-3m3 3-3 3" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                @endauth
 
             </nav>
         </div>
