@@ -26,7 +26,6 @@ return new class extends Migration
 
             $table->index(['media_type', 'is_published']);
             $table->index(['source', 'is_published']);
-            $table->index('uploaded_by');
         });
     }
 
