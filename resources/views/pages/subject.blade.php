@@ -56,8 +56,8 @@
                             <p class="mt-1 text-xs text-sign-muted">Lessons</p>
                         </div>
                     </div>
-                    <a href="{{ route('learn') }}" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
-                        Start this subject
+                    <a href="{{ route('courses.show', ['subject' => $slug, 'course' => \Illuminate\Support\Str::slug($subject['featured_course'])]) }}" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
+                        Start featured course
                     </a>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                                 <span>{{ $course['lessons'] }} Lessons</span>
                             </div>
 
-                            <a href="{{ route('learn') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                            <a href="{{ route('courses.show', ['subject' => $slug, 'course' => \Illuminate\Support\Str::slug($course['title'])]) }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
                                 View course
                                 <span class="transition group-hover:translate-x-1" aria-hidden="true">→</span>
                             </a>
@@ -156,7 +156,7 @@
                 </div>
 
                 <div class="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-0">
-                    <a href="{{ route('learn') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Start Learning</a>
+                    <a href="{{ route('courses.show', ['subject' => $slug, 'course' => \Illuminate\Support\Str::slug($subject['featured_course'])]) }}" class="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Start Learning</a>
                     <a href="{{ route('subjects') }}" class="inline-flex items-center justify-center rounded-xl border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">All Subjects</a>
                 </div>
             </div>
