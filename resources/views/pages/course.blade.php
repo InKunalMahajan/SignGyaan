@@ -40,7 +40,7 @@
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                         <a
-                            href="#course-overview"
+                            href="#course-curriculum"
                             class="inline-flex items-center justify-center rounded-xl bg-sign-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
                         >
                             Start Course
@@ -164,33 +164,8 @@
         </x-container>
     </section>
 
-    {{-- Course Structure Preview --}}
-    <section class="bg-white py-14 sm:py-16 lg:py-20">
-        <x-container>
-            <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-                <x-section-heading
-                    title="Course structure"
-                    description="The next step will show the complete unit and lesson list for this course."
-                />
-
-                <div class="rounded-2xl bg-sign-soft px-5 py-4 text-sm text-sign-muted">
-                    <span class="font-semibold text-sign-primary">{{ $course['units'] }} units</span>
-                    <span aria-hidden="true"> • </span>
-                    <span>{{ $course['lessons'] }} lessons</span>
-                </div>
-            </div>
-
-            <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                @for ($unit = 1; $unit <= min($course['units'], 4); $unit++)
-                    <div class="rounded-2xl border border-sign-border bg-white p-5">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-sign-cyan-dark">Unit {{ $unit }}</span>
-                        <h3 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Learning unit {{ $unit }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-sign-muted">Structured lessons and practice for this part of the course.</p>
-                    </div>
-                @endfor
-            </div>
-        </x-container>
-    </section>
+    {{-- Unit & Lesson List --}}
+    @include('partials.course.curriculum')
 
     {{-- CTA --}}
     <section class="border-t border-sign-border bg-sign-soft py-14 sm:py-16 lg:py-20">
@@ -202,8 +177,8 @@
                     <p class="mt-4 text-sm leading-7 text-white/75 sm:text-base">Move through each unit, revisit lessons when needed and practise until the concept is clear.</p>
                 </div>
 
-                <a href="#course-overview" class="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft lg:mt-0">
-                    Start Course
+                <a href="#course-curriculum" class="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft lg:mt-0">
+                    View Lessons
                 </a>
             </div>
         </x-container>
