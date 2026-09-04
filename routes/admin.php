@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])
@@ -38,10 +39,8 @@ Route::middleware(['auth', 'admin'])
             ->parameters(['media' => 'mediaAsset'])
             ->except('show');
 
-        Route::view('/users', 'admin.placeholder', [
-            'title' => 'Users',
-            'description' => 'Review learner accounts, administrators and platform learning activity.',
-        ])->name('users.index');
+        Route::resource('users', UserController::class)
+            ->only(['index', 'edit', 'update', 'destroy']);
 
         Route::view('/settings', 'admin.placeholder', [
             'title' => 'Settings',
