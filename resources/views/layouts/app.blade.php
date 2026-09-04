@@ -41,13 +41,17 @@
         @include('partials.header')
 
         <main id="main-content" tabindex="-1" class="flex-1">
-            @yield('content')
+            @if (request()->routeIs('courses.show') && request()->filled('lesson'))
+                @include('partials.course.lesson')
+            @else
+                @yield('content')
 
-            @if (request()->routeIs('home'))
-                @include('partials.home.how-it-works')
-                @include('partials.home.isl-learning')
-                @include('partials.home.popular-topics')
-                @include('partials.home.final-cta')
+                @if (request()->routeIs('home'))
+                    @include('partials.home.how-it-works')
+                    @include('partials.home.isl-learning')
+                    @include('partials.home.popular-topics')
+                    @include('partials.home.final-cta')
+                @endif
             @endif
         </main>
 
