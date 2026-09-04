@@ -10,7 +10,7 @@
             {{-- Brand --}}
             <a
                 href="{{ route('home') }}"
-                class="flex items-center gap-2.5 rounded-lg sm:gap-3"
+                class="flex shrink-0 items-center gap-2.5 rounded-lg sm:gap-3"
                 aria-label="SignGyaan home"
             >
                 <div
@@ -26,7 +26,7 @@
             </a>
 
             {{-- Desktop Navigation --}}
-            <nav class="hidden items-center gap-7 lg:flex" aria-label="Primary navigation">
+            <nav class="hidden items-center gap-5 lg:flex xl:gap-7" aria-label="Primary navigation">
 
                 <a
                     href="{{ route('learn') }}"
@@ -79,13 +79,13 @@
             </nav>
 
             {{-- Desktop Actions --}}
-            <div class="relative hidden items-center gap-3 lg:flex">
+            <div class="relative hidden items-center gap-2 lg:flex xl:gap-3">
 
                 <button
                     type="button"
                     @click="searchOpen = ! searchOpen; mobileMenuOpen = false; if (searchOpen) { $nextTick(() => $refs.desktopSearch.focus()) }"
                     @class([
-                        'inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition',
+                        'inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition xl:px-4',
                         'bg-sign-soft text-sign-primary' => request()->routeIs('search'),
                         'text-sign-primary hover:bg-sign-soft' => ! request()->routeIs('search'),
                     ])
@@ -100,7 +100,7 @@
 
                 <a
                     href="#"
-                    class="inline-flex min-h-11 items-center justify-center rounded-lg border border-sign-primary px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
+                    class="inline-flex min-h-11 items-center justify-center rounded-lg border border-sign-primary px-3 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft xl:px-4"
                 >
                     Sign In
                 </a>
@@ -117,7 +117,7 @@
                     x-transition:leave-start="opacity-100 translate-y-0"
                     x-transition:leave-end="opacity-0 translate-y-1"
                     @click.outside="searchOpen = false"
-                    class="absolute right-0 top-full mt-3 w-[32rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-sign-border bg-white p-4 shadow-xl"
+                    class="absolute right-0 top-full mt-3 max-h-[calc(100vh-7rem)] w-[32rem] max-w-[calc(100vw-2rem)] overflow-y-auto overscroll-contain rounded-2xl border border-sign-border bg-white p-4 shadow-xl"
                 >
                     <form method="GET" action="{{ route('search') }}" role="search">
                         <label for="desktop-search-input" class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">
@@ -138,7 +138,7 @@
                                     value="{{ request()->routeIs('search') ? request('q') : '' }}"
                                     placeholder="Search subjects, courses, lessons..."
                                     autocomplete="off"
-                                    class="min-h-11 w-full border-0 bg-transparent text-sm text-sign-text outline-none placeholder:text-sign-muted/70"
+                                    class="min-h-11 w-full min-w-0 border-0 bg-transparent text-sm text-sign-text outline-none placeholder:text-sign-muted/70"
                                 >
                             </div>
 
@@ -165,7 +165,7 @@
             <button
                 type="button"
                 @click="mobileMenuOpen = ! mobileMenuOpen; searchOpen = false"
-                class="flex h-11 w-11 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft lg:hidden"
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft lg:hidden"
                 aria-label="Toggle navigation"
                 aria-controls="mobile-navigation"
                 :aria-expanded="mobileMenuOpen"
@@ -220,7 +220,7 @@
             x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-2"
             @click.outside="mobileMenuOpen = false"
-            class="border-t border-sign-border py-4 lg:hidden"
+            class="max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain border-t border-sign-border py-4 lg:hidden"
         >
             <nav class="flex flex-col gap-1" aria-label="Mobile navigation">
 
@@ -279,7 +279,7 @@
                 <div class="my-3 border-t border-sign-border"></div>
 
                 {{-- Mobile Global Search --}}
-                <form method="GET" action="{{ route('search') }}" role="search" class="px-1 pb-2">
+                <form method="GET" action="{{ route('search') }}" role="search" class="min-w-0 px-1 pb-2">
                     <label for="mobile-search-input" class="sr-only">Search SignGyaan</label>
                     <div class="flex items-center gap-2 rounded-xl border border-sign-border bg-sign-soft p-2 focus-within:border-sign-cyan">
                         <div class="flex min-w-0 flex-1 items-center gap-2 px-2">
