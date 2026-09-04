@@ -103,6 +103,25 @@ const enhanceSearchInputs = () => {
     }
 };
 
+const enhanceForms = () => {
+    document.querySelectorAll('input.border-red-300, select.border-red-300, textarea.border-red-300').forEach((field) => {
+        field.setAttribute('aria-invalid', 'true');
+    });
+
+    const errorSummary = document.querySelector('main [data-error-summary], main [role="alert"]');
+
+    if (errorSummary instanceof HTMLElement) {
+        if (!errorSummary.hasAttribute('tabindex')) {
+            errorSummary.setAttribute('tabindex', '-1');
+        }
+
+        requestAnimationFrame(() => {
+            errorSummary.focus({ preventScroll: true });
+            errorSummary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+};
+
 const returnFocusFromHeaderSearch = (input) => {
     const isDesktopSearch = input.id === 'desktop-search-input';
     const isMobileSearch = input.id === 'mobile-search-input';
@@ -126,7 +145,38 @@ const returnFocusFromHeaderSearch = (input) => {
     return true;
 };
 
-document.addEventListener('DOMContentLoaded', enhanceSearchInputs);
+const returnFocusFromHeaderPanel = (target) => {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    if (target.closest('#desktop-account-menu')) {
+        requestAnimationFrame(() => {
+            const trigger = document.querySelector('[aria-controls="desktop-account-menu"]');
+            if (trigger instanceof HTMLElement && isVisible(trigger)) {
+                trigger.focus();
+            }
+        });
+        return true;
+    }
+
+    if (target.closest('#mobile-navigation')) {
+        requestAnimationFrame(() => {
+            const trigger = document.querySelector('[aria-controls="mobile-navigation"]');
+            if (trigger instanceof HTMLElement && isVisible(trigger)) {
+                trigger.focus();
+            }
+        });
+        return true;
+    }
+
+    return false;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    enhanceSearchInputs();
+    enhanceForms();
+});
 
 document.addEventListener('keydown', (event) => {
     const target = event.target;
@@ -140,13 +190,18 @@ document.addEventListener('keydown', (event) => {
         return;
     }
 
-    if (event.key === 'Escape' && target instanceof HTMLInputElement && target.type === 'search') {
-        if (returnFocusFromHeaderSearch(target)) {
-            return;
+    if (event.key === 'Escape') {
+        if (target instanceof HTMLInputElement && target.type === 'search') {
+            if (returnFocusFromHeaderSearch(target)) {
+                return;
+            }
+
+            if (target.value === '') {
+                target.blur();
+                return;
+            }
         }
 
-        if (target.value === '') {
-            target.blur();
-        }
+        returnFocusFromHeaderPanel(target);
     }
 });
