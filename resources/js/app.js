@@ -99,7 +99,31 @@ const enhanceSearchInputs = () => {
 
     if (searchTrigger instanceof HTMLElement) {
         searchTrigger.setAttribute('aria-keyshortcuts', '/ Control+K Meta+K');
+        searchTrigger.setAttribute('title', 'Search — press / or Ctrl+K');
     }
+};
+
+const returnFocusFromHeaderSearch = (input) => {
+    const isDesktopSearch = input.id === 'desktop-search-input';
+    const isMobileSearch = input.id === 'mobile-search-input';
+
+    if (!isDesktopSearch && !isMobileSearch) {
+        return false;
+    }
+
+    input.blur();
+
+    requestAnimationFrame(() => {
+        const trigger = isDesktopSearch
+            ? document.querySelector('[aria-controls="desktop-global-search"]')
+            : document.querySelector('[aria-controls="mobile-navigation"]');
+
+        if (trigger instanceof HTMLElement && isVisible(trigger)) {
+            trigger.focus();
+        }
+    });
+
+    return true;
 };
 
 document.addEventListener('DOMContentLoaded', enhanceSearchInputs);
@@ -117,6 +141,10 @@ document.addEventListener('keydown', (event) => {
     }
 
     if (event.key === 'Escape' && target instanceof HTMLInputElement && target.type === 'search') {
+        if (returnFocusFromHeaderSearch(target)) {
+            return;
+        }
+
         if (target.value === '') {
             target.blur();
         }
