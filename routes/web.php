@@ -150,7 +150,7 @@ Route::get('/subjects/{subject}/courses/{course}', function (string $subject, st
         'general-knowledge' => [
             'subject' => ['name' => 'General Knowledge', 'code' => 'GK'],
             'courses' => [
-                'india-world' => ['title' => 'India & the World', 'level' => 'Beginner', 'description' => 'Learn important places, people, symbols and facts about India and the world.', 'units' => 4, 'lessons' => 18, 'outcomes' => ['Recognise important places', 'Know major national symbols', 'Build world awareness', 'Connect facts using visual summaries']],
+                'india-the-world' => ['title' => 'India & the World', 'level' => 'Beginner', 'description' => 'Learn important places, people, symbols and facts about India and the world.', 'units' => 4, 'lessons' => 18, 'outcomes' => ['Recognise important places', 'Know major national symbols', 'Build world awareness', 'Connect facts using visual summaries']],
                 'everyday-awareness' => ['title' => 'Everyday Awareness', 'level' => 'Beginner', 'description' => 'Build useful awareness about society, services, environment and daily life.', 'units' => 3, 'lessons' => 15, 'outcomes' => ['Understand common public services', 'Build social awareness', 'Recognise environmental issues', 'Use knowledge in everyday decisions']],
                 'people-places-events' => ['title' => 'People, Places & Events', 'level' => 'Intermediate', 'description' => 'Explore important people, locations and events through visual summaries.', 'units' => 4, 'lessons' => 20, 'outcomes' => ['Identify notable people', 'Recognise important places', 'Understand key events', 'Connect people, places and time']],
             ],
