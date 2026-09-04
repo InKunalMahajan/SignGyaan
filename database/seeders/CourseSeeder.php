@@ -10,8 +10,6 @@ class CourseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(SubjectSeeder::class);
-
         $catalogue = [
             'english' => [
                 ['English Foundations', 'english-foundations', 'Beginner', 'Build vocabulary, grammar and simple sentence understanding for everyday use.', true],
