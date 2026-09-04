@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningProgressController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -20,6 +21,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [LearningController::class, 'dashboard'])->name('dashboard');
     Route::get('/my-learning', [LearningController::class, 'index'])->name('my-learning');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->middleware('throttle:20,1')
+        ->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:10,1')
+        ->name('profile.password.update');
 
     Route::post('/learning-progress', [LearningProgressController::class, 'store'])
         ->middleware('throttle:30,1')
