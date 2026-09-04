@@ -17,43 +17,43 @@
     $extraLessons = $lessonCount % $unitCount;
 @endphp
 
-<section id="course-curriculum" class="scroll-mt-24 bg-white py-14 sm:py-16 lg:py-20">
+<section id="course-curriculum" class="scroll-mt-24 bg-white py-10 sm:py-14 lg:py-20">
     <x-container>
-        <div class="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div class="grid gap-6 md:grid-cols-[1fr_auto] md:items-end lg:gap-8">
             <x-section-heading
                 title="Units & lessons"
                 description="Follow the course in order, open each unit, and select any lesson to start learning."
             />
 
-            <div class="flex flex-wrap gap-3 text-sm">
-                <span class="rounded-full bg-sign-soft px-4 py-2 font-semibold text-sign-primary">{{ $course['units'] }} Units</span>
-                <span class="rounded-full bg-sign-soft px-4 py-2 font-semibold text-sign-primary">{{ $course['lessons'] }} Lessons</span>
+            <div class="flex flex-wrap gap-2 text-xs sm:gap-3 sm:text-sm md:justify-end">
+                <span class="rounded-full bg-sign-soft px-3 py-2 font-semibold text-sign-primary sm:px-4">{{ $course['units'] }} Units</span>
+                <span class="rounded-full bg-sign-soft px-3 py-2 font-semibold text-sign-primary sm:px-4">{{ $course['lessons'] }} Lessons</span>
             </div>
         </div>
 
-        <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_18rem] lg:items-start">
-            <div class="space-y-4">
+        <div class="mt-8 grid gap-6 sm:mt-10 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-8">
+            <div class="min-w-0 space-y-3 sm:space-y-4">
                 @for ($unit = 1; $unit <= $unitCount; $unit++)
                     @php
                         $lessonsInUnit = $baseLessons + ($unit <= $extraLessons ? 1 : 0);
                         $unitTitle = $unitTitles[$unit - 1] ?? 'Learning Unit ' . $unit;
                     @endphp
 
-                    <div x-data="{ open: {{ $unit === 1 ? 'true' : 'false' }} }" class="overflow-hidden rounded-3xl border border-sign-border bg-white">
+                    <div x-data="{ open: {{ $unit === 1 ? 'true' : 'false' }} }" class="overflow-hidden rounded-2xl border border-sign-border bg-white sm:rounded-3xl">
                         <button
                             type="button"
                             @click="open = ! open"
-                            class="flex w-full items-center gap-4 px-5 py-5 text-left transition hover:bg-sign-soft sm:px-6"
+                            class="flex min-h-16 w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-sign-soft sm:gap-4 sm:px-6 sm:py-5"
                             :aria-expanded="open"
                         >
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sign-light text-sm font-bold text-sign-primary">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sign-light text-xs font-bold text-sign-primary sm:h-11 sm:w-11 sm:rounded-2xl sm:text-sm">
                                 {{ str_pad((string) $unit, 2, '0', STR_PAD_LEFT) }}
                             </div>
 
                             <div class="min-w-0 flex-1">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Unit {{ $unit }}</p>
-                                <h3 class="mt-1 font-heading text-lg font-semibold text-sign-primary sm:text-xl">{{ $unitTitle }}</h3>
-                                <p class="mt-1 text-sm text-sign-muted">{{ $lessonsInUnit }} {{ $lessonsInUnit === 1 ? 'lesson' : 'lessons' }}</p>
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-sign-cyan-dark sm:text-xs">Unit {{ $unit }}</p>
+                                <h3 class="mt-1 font-heading text-base font-semibold leading-snug text-sign-primary sm:text-xl">{{ $unitTitle }}</h3>
+                                <p class="mt-1 text-xs text-sign-muted sm:text-sm">{{ $lessonsInUnit }} {{ $lessonsInUnit === 1 ? 'lesson' : 'lessons' }}</p>
                             </div>
 
                             <svg
@@ -92,8 +92,8 @@
                                         ]);
                                     @endphp
 
-                                    <a href="{{ $lessonUrl }}" class="group flex gap-4 px-5 py-4 transition hover:bg-sign-soft sm:px-6">
-                                        <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sign-soft text-sign-primary transition group-hover:bg-white">
+                                    <a href="{{ $lessonUrl }}" class="group flex min-h-14 gap-3 px-4 py-4 transition hover:bg-sign-soft sm:gap-4 sm:px-6">
+                                        <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sign-soft text-sign-primary transition group-hover:bg-white sm:h-9 sm:w-9 sm:rounded-xl">
                                             @if ($lesson === $lessonsInUnit)
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -106,21 +106,21 @@
                                         </div>
 
                                         <div class="min-w-0 flex-1">
-                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                                <div>
-                                                    <p class="text-xs font-semibold uppercase tracking-wide text-sign-muted">Lesson {{ $lesson }}</p>
-                                                    <h4 class="mt-1 font-semibold text-sign-primary transition group-hover:text-sign-cyan-dark">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                                                <div class="min-w-0">
+                                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-sign-muted sm:text-xs">Lesson {{ $lesson }}</p>
+                                                    <h4 class="mt-1 text-sm font-semibold leading-6 text-sign-primary transition group-hover:text-sign-cyan-dark sm:text-base">
                                                         {{ $lessonName }}: {{ $unitTitle }}
                                                     </h4>
                                                 </div>
 
-                                                <div class="flex flex-wrap items-center gap-2">
+                                                <div class="flex shrink-0 flex-wrap items-center gap-1.5 sm:gap-2">
                                                     @if ($lesson % 2 === 1)
-                                                        <span class="rounded-full bg-sign-light px-2.5 py-1 text-[11px] font-semibold text-sign-primary">ISL</span>
+                                                        <span class="rounded-full bg-sign-light px-2.5 py-1 text-[10px] font-semibold text-sign-primary sm:text-[11px]">ISL</span>
                                                     @endif
-                                                    <span class="rounded-full bg-sign-soft px-2.5 py-1 text-[11px] font-semibold text-sign-muted">Notes</span>
+                                                    <span class="rounded-full bg-sign-soft px-2.5 py-1 text-[10px] font-semibold text-sign-muted sm:text-[11px]">Notes</span>
                                                     @if ($lesson === $lessonsInUnit)
-                                                        <span class="rounded-full bg-sign-soft px-2.5 py-1 text-[11px] font-semibold text-sign-muted">Practice</span>
+                                                        <span class="rounded-full bg-sign-soft px-2.5 py-1 text-[10px] font-semibold text-sign-muted sm:text-[11px]">Practice</span>
                                                     @endif
                                                     <span class="ml-1 text-sign-primary transition group-hover:translate-x-1" aria-hidden="true">→</span>
                                                 </div>
@@ -134,12 +134,12 @@
                 @endfor
             </div>
 
-            <aside class="rounded-3xl border border-sign-border bg-sign-soft p-5 lg:sticky lg:top-28" aria-label="Course roadmap">
+            <aside class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl xl:sticky xl:top-28" aria-label="Course roadmap">
                 <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Course roadmap</p>
                 <h3 class="mt-2 font-heading text-xl font-semibold text-sign-primary">Learn in sequence</h3>
                 <p class="mt-3 text-sm leading-6 text-sign-muted">Choose any lesson or begin with Unit 1. Previous and Next controls will guide you through the whole course.</p>
 
-                <div class="mt-5 space-y-3">
+                <div class="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
                     <div class="flex items-center gap-3 rounded-2xl bg-white p-3">
                         <div class="h-2.5 w-2.5 rounded-full bg-sign-cyan"></div>
                         <span class="text-sm font-semibold text-sign-primary">Watch the concept</span>
@@ -154,7 +154,7 @@
                     </div>
                 </div>
 
-                <a href="{{ route('courses.show', ['subject' => $subjectSlug, 'course' => $courseSlug, 'lesson' => 'unit-1-lesson-1']) }}" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
+                <a href="{{ route('courses.show', ['subject' => $subjectSlug, 'course' => $courseSlug, 'lesson' => 'unit-1-lesson-1']) }}" class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
                     Start first lesson
                 </a>
             </aside>
