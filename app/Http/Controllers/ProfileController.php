@@ -1,0 +1,70 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
+
+class ProfileController extends Controller
+{
+    public function show(Request $request): View
+    {
+        $user = $request->user();
+        $learningProgress = $user->learningProgress()
+            ->latest('last_accessed_at')
+            ->get();
+
+        return view('profile', [
+            'user' => $user,
+            'learningProgress' => $learningProgress,
+            'coursesStarted' => $learningProgress->count(),
+            'completedCourses' => $learningProgress->whereNotNull('completed_at')->count(),
+            'completedLessons' => $learningProgress->sum(fn ($progress) => $progress->completedLessonsCount()),
+        ]);
+    }
+
+    public function update(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validateWithBag('profile', [
+            'name' => ['required', 'string', 'max:100'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+        ]);
+
+        $newEmail = strtolower(trim($validated['email']));
+
+        if ($newEmail !== strtolower($user->email)) {
+            $user->email_verified_at = null;
+        }
+
+        $user->name = trim($validated['name']);
+        $user->email = $newEmail;
+        $user->save();
+
+        return back()->with('profile_status', 'Your profile details were updated successfully.');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validateWithBag('password', [
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return back()->with('password_status', 'Your password was changed successfully.');
+    }
+}
