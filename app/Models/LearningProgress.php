@@ -10,6 +10,8 @@ class LearningProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'learning_progress';
+
     protected $fillable = [
         'user_id',
         'subject_slug',
