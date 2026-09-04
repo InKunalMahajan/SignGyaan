@@ -1,9 +1,5 @@
 @php
-    $lessonKey = request('lesson', 'unit-1-lesson-1');
-    preg_match('/unit-(\d+)-lesson-(\d+)/', $lessonKey, $lessonMatch);
-
-    $unitNumber = isset($lessonMatch[1]) ? max(1, (int) $lessonMatch[1]) : 1;
-    $lessonNumber = isset($lessonMatch[2]) ? max(1, (int) $lessonMatch[2]) : 1;
+    $requestedLessonKey = request('lesson', 'unit-1-lesson-1');
 
     $unitTitlesBySubject = [
         'english' => ['Getting Started', 'Vocabulary & Meaning', 'Grammar & Sentences', 'Reading & Communication', 'Review & Practice'],
@@ -16,9 +12,59 @@
 
     $lessonNames = ['Introduction', 'Key Ideas', 'Visual Explanation', 'Examples', 'Guided Practice', 'Quick Check', 'Review'];
     $unitTitles = $unitTitlesBySubject[$subjectSlug] ?? ['Getting Started', 'Core Concepts', 'Practical Learning', 'Review & Practice', 'Next Steps'];
-    $unitTitle = $unitTitles[$unitNumber - 1] ?? 'Learning Unit ' . $unitNumber;
-    $lessonName = $lessonNames[($lessonNumber - 1) % count($lessonNames)];
-    $lessonTitle = $lessonName . ': ' . $unitTitle;
+
+    $unitCount = max(1, (int) $course['units']);
+    $lessonCount = max($unitCount, (int) $course['lessons']);
+    $baseLessons = intdiv($lessonCount, $unitCount);
+    $extraLessons = $lessonCount % $unitCount;
+
+    $lessonMap = [];
+
+    for ($unit = 1; $unit <= $unitCount; $unit++) {
+        $lessonsInUnit = $baseLessons + ($unit <= $extraLessons ? 1 : 0);
+        $unitTitleForMap = $unitTitles[$unit - 1] ?? 'Learning Unit ' . $unit;
+
+        for ($lesson = 1; $lesson <= $lessonsInUnit; $lesson++) {
+            $lessonNameForMap = $lessonNames[($lesson - 1) % count($lessonNames)];
+
+            $lessonMap[] = [
+                'key' => 'unit-' . $unit . '-lesson-' . $lesson,
+                'unit' => $unit,
+                'lesson' => $lesson,
+                'unitTitle' => $unitTitleForMap,
+                'lessonName' => $lessonNameForMap,
+                'title' => $lessonNameForMap . ': ' . $unitTitleForMap,
+            ];
+        }
+    }
+
+    $lessonKeys = array_column($lessonMap, 'key');
+    $currentIndex = array_search($requestedLessonKey, $lessonKeys, true);
+
+    if ($currentIndex === false) {
+        $currentIndex = 0;
+    }
+
+    $currentLesson = $lessonMap[$currentIndex];
+    $previousLesson = $currentIndex > 0 ? $lessonMap[$currentIndex - 1] : null;
+    $nextLesson = $currentIndex < count($lessonMap) - 1 ? $lessonMap[$currentIndex + 1] : null;
+
+    $unitNumber = $currentLesson['unit'];
+    $lessonNumber = $currentLesson['lesson'];
+    $unitTitle = $currentLesson['unitTitle'];
+    $lessonTitle = $currentLesson['title'];
+    $currentPosition = $currentIndex + 1;
+    $totalLessons = count($lessonMap);
+    $progressPercent = (int) round(($currentPosition / max(1, $totalLessons)) * 100);
+
+    $courseRouteParameters = ['subject' => $subjectSlug, 'course' => $courseSlug];
+    $previousUrl = $previousLesson
+        ? route('courses.show', $courseRouteParameters + ['lesson' => $previousLesson['key']])
+        : null;
+    $nextUrl = $nextLesson
+        ? route('courses.show', $courseRouteParameters + ['lesson' => $nextLesson['key']])
+        : null;
+    $courseUrl = route('courses.show', $courseRouteParameters);
 @endphp
 
 <section class="border-b border-sign-border bg-sign-soft py-8 sm:py-10">
@@ -28,12 +74,12 @@
             <span aria-hidden="true">/</span>
             <a href="{{ route('subjects.show', $subjectSlug) }}" class="transition hover:text-sign-primary">{{ $subject['name'] }}</a>
             <span aria-hidden="true">/</span>
-            <a href="{{ route('courses.show', ['subject' => $subjectSlug, 'course' => $courseSlug]) }}" class="transition hover:text-sign-primary">{{ $course['title'] }}</a>
+            <a href="{{ $courseUrl }}" class="transition hover:text-sign-primary">{{ $course['title'] }}</a>
             <span aria-hidden="true">/</span>
-            <span class="font-semibold text-sign-primary">Lesson {{ $lessonNumber }}</span>
+            <span class="font-semibold text-sign-primary">Lesson {{ $currentPosition }}</span>
         </nav>
 
-        <div class="mt-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
             <div class="max-w-3xl">
                 <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
                     <span class="rounded-full bg-white px-3 py-1.5 text-sign-primary ring-1 ring-sign-border">Unit {{ $unitNumber }}</span>
@@ -50,12 +96,16 @@
                 </p>
             </div>
 
-            <a
-                href="{{ route('courses.show', ['subject' => $subjectSlug, 'course' => $courseSlug]) }}#course-curriculum"
-                class="inline-flex shrink-0 items-center justify-center rounded-xl border border-sign-primary px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-white"
-            >
-                Back to all lessons
-            </a>
+            <div class="rounded-2xl border border-sign-border bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between gap-4 text-sm">
+                    <span class="font-semibold text-sign-primary">Course progress</span>
+                    <span class="font-semibold text-sign-cyan-dark">{{ $progressPercent }}%</span>
+                </div>
+                <div class="mt-3 h-2 overflow-hidden rounded-full bg-sign-light" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $progressPercent }}">
+                    <div class="h-full rounded-full bg-sign-primary transition-all" style="width: {{ $progressPercent }}%"></div>
+                </div>
+                <p class="mt-2 text-xs text-sign-muted">Lesson {{ $currentPosition }} of {{ $totalLessons }}</p>
+            </div>
         </div>
     </x-container>
 </section>
@@ -82,7 +132,7 @@
                     <div class="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                         <div>
                             <p class="text-sm font-semibold text-sign-primary">Visual explanation</p>
-                            <p class="mt-1 text-sm text-sign-muted">Video area ready for the lesson's Indian Sign Language content.</p>
+                            <p class="mt-1 text-sm text-sign-muted">Video area ready for this lesson's Indian Sign Language content.</p>
                         </div>
                         <span class="inline-flex w-fit rounded-full bg-sign-soft px-3 py-1.5 text-xs font-semibold text-sign-primary">ISL supported</span>
                     </div>
@@ -181,9 +231,51 @@
                         </div>
                     </div>
                 </section>
+
+                {{-- Previous / Next Navigation --}}
+                <nav class="grid gap-4 border-t border-sign-border pt-8 sm:grid-cols-2" aria-label="Lesson sequence">
+                    @if ($previousLesson)
+                        <a href="{{ $previousUrl }}" class="group rounded-2xl border border-sign-border bg-white p-5 transition hover:border-sign-cyan hover:shadow-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sign-muted">← Previous lesson</p>
+                            <p class="mt-2 font-heading text-lg font-semibold text-sign-primary group-hover:text-sign-cyan-dark">{{ $previousLesson['title'] }}</p>
+                            <p class="mt-1 text-sm text-sign-muted">Unit {{ $previousLesson['unit'] }} · Lesson {{ $previousLesson['lesson'] }}</p>
+                        </a>
+                    @else
+                        <div class="rounded-2xl border border-dashed border-sign-border bg-sign-soft p-5">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sign-muted">Start of course</p>
+                            <p class="mt-2 font-heading text-lg font-semibold text-sign-primary">You are on the first lesson.</p>
+                        </div>
+                    @endif
+
+                    @if ($nextLesson)
+                        <a href="{{ $nextUrl }}" class="group rounded-2xl border border-sign-primary bg-sign-primary p-5 text-white transition hover:bg-sign-dark">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Next lesson →</p>
+                            <p class="mt-2 font-heading text-lg font-semibold">{{ $nextLesson['title'] }}</p>
+                            <p class="mt-1 text-sm text-white/70">Unit {{ $nextLesson['unit'] }} · Lesson {{ $nextLesson['lesson'] }}</p>
+                        </a>
+                    @else
+                        <a href="{{ $courseUrl }}#course-curriculum" class="rounded-2xl border border-sign-primary bg-sign-primary p-5 text-white transition hover:bg-sign-dark">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-white/70">Course complete</p>
+                            <p class="mt-2 font-heading text-lg font-semibold">Return to course curriculum</p>
+                            <p class="mt-1 text-sm text-white/70">Review any unit or lesson again.</p>
+                        </a>
+                    @endif
+                </nav>
             </main>
 
             <aside class="space-y-5 lg:sticky lg:top-24" aria-label="Lesson navigation">
+                <div class="rounded-3xl border border-sign-border bg-sign-soft p-5">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Your position</p>
+                        <span class="text-xs font-semibold text-sign-primary">{{ $progressPercent }}%</span>
+                    </div>
+                    <div class="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                        <div class="h-full rounded-full bg-sign-primary" style="width: {{ $progressPercent }}%"></div>
+                    </div>
+                    <p class="mt-3 text-sm font-semibold text-sign-primary">Lesson {{ $currentPosition }} of {{ $totalLessons }}</p>
+                    <p class="mt-1 text-xs leading-5 text-sign-muted">Unit {{ $unitNumber }} · {{ $unitTitle }}</p>
+                </div>
+
                 <div class="rounded-3xl border border-sign-border bg-white p-5 shadow-sm">
                     <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Lesson contents</p>
                     <nav class="mt-4 space-y-1 text-sm">
@@ -199,12 +291,9 @@
                 <div class="rounded-3xl bg-sign-dark p-5 text-white">
                     <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan">Course</p>
                     <h2 class="mt-2 font-heading text-xl font-semibold">{{ $course['title'] }}</h2>
-                    <p class="mt-2 text-sm leading-6 text-white/70">Unit {{ $unitNumber }} · Lesson {{ $lessonNumber }}</p>
-                    <a
-                        href="{{ route('courses.show', ['subject' => $subjectSlug, 'course' => $courseSlug]) }}#course-curriculum"
-                        class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
-                    >
-                        Course curriculum
+                    <p class="mt-2 text-sm leading-6 text-white/70">{{ $course['units'] }} units · {{ $course['lessons'] }} lessons</p>
+                    <a href="{{ $courseUrl }}#course-curriculum" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">
+                        All lessons
                     </a>
                 </div>
             </aside>
