@@ -32,6 +32,10 @@
 
         <main class="flex-1">
             @yield('content')
+
+            @if (request()->routeIs('home'))
+                @include('partials.home.how-it-works')
+            @endif
         </main>
 
         @include('partials.footer')
