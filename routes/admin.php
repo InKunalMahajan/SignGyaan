@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -21,10 +22,8 @@ Route::middleware(['auth', 'admin'])
         Route::resource('units', UnitController::class)
             ->except('show');
 
-        Route::view('/lessons', 'admin.placeholder', [
-            'title' => 'Lessons',
-            'description' => 'Manage lesson content, ISL video, notes, examples, practice and lesson ordering.',
-        ])->name('lessons.index');
+        Route::resource('lessons', LessonController::class)
+            ->except('show');
 
         Route::view('/practice-resources', 'admin.placeholder', [
             'title' => 'Practice & Resources',
