@@ -121,6 +121,12 @@ class CourseController extends Controller
     private function validateCourse(Request $request, ?Course $course = null): array
     {
         $subjectId = $request->integer('subject_id');
+        $uniqueSlug = Rule::unique('courses', 'slug')
+            ->where(fn ($query) => $query->where('subject_id', $subjectId));
+
+        if ($course) {
+            $uniqueSlug->ignore($course->id);
+        }
 
         return $request->validate([
             'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')],
@@ -130,9 +136,7 @@ class CourseController extends Controller
                 'string',
                 'max:180',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('courses', 'slug')
-                    ->where(fn ($query) => $query->where('subject_id', $subjectId))
-                    ->ignore($course?->id),
+                $uniqueSlug,
             ],
             'level' => ['required', Rule::in(['Beginner', 'Intermediate', 'Advanced'])],
             'short_description' => ['nullable', 'string', 'max:255'],
