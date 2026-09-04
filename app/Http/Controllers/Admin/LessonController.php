@@ -124,6 +124,12 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson): RedirectResponse
     {
+        if ($lesson->practiceResources()->exists()) {
+            return redirect()
+                ->route('admin.lessons.index')
+                ->with('status', 'This lesson cannot be deleted while it still contains practice or resource items. Move or delete those items first.');
+        }
+
         $lesson->delete();
 
         return redirect()
