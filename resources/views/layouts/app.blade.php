@@ -35,6 +35,7 @@
 
             @if (request()->routeIs('home'))
                 @include('partials.home.how-it-works')
+                @include('partials.home.isl-learning')
             @endif
         </main>
 
