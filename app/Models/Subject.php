@@ -30,9 +30,7 @@ class Subject extends Model
 
     public function courses(): HasMany
     {
-        return $this->hasMany(Course::class)
-            ->orderBy('sort_order')
-            ->orderBy('title');
+        return $this->hasMany(Course::class);
     }
 
     public function scopePublished(Builder $query): Builder
