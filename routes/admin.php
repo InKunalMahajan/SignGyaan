@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])
@@ -17,10 +18,8 @@ Route::middleware(['auth', 'admin'])
         Route::resource('courses', CourseController::class)
             ->except('show');
 
-        Route::view('/units', 'admin.placeholder', [
-            'title' => 'Units',
-            'description' => 'Organise courses into ordered units that guide learners through a clear learning sequence.',
-        ])->name('units.index');
+        Route::resource('units', UnitController::class)
+            ->except('show');
 
         Route::view('/lessons', 'admin.placeholder', [
             'title' => 'Lessons',
