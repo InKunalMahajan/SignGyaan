@@ -254,4 +254,137 @@
         </x-container>
     </section>
 
+    {{-- Featured Learning Paths --}}
+    <section class="bg-white py-16 sm:py-20 lg:py-24">
+        <x-container>
+
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                <x-section-heading
+                    title="Featured learning paths"
+                    description="Follow a structured path from the basics to practical understanding, one lesson at a time."
+                />
+
+                <a
+                    href="{{ route('learn') }}"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-sign-primary transition hover:text-sign-cyan-dark"
+                >
+                    Explore all learning
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="mt-10 grid gap-6 lg:grid-cols-3">
+
+                {{-- English Foundations --}}
+                <article class="group overflow-hidden rounded-3xl border border-sign-border bg-white transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="bg-sign-soft p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-sign-primary shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25A8.966 8.966 0 0 1 18 3.75c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                                </svg>
+                            </div>
+                            <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sign-primary shadow-sm">Beginner</span>
+                        </div>
+
+                        <div class="mt-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sign-cyan-dark">
+                            English
+                        </div>
+
+                        <h3 class="mt-2 font-heading text-2xl font-semibold text-sign-primary">English Foundations</h3>
+                    </div>
+
+                    <div class="p-6">
+                        <p class="text-sm leading-6 text-sign-muted">Build everyday vocabulary, basic grammar, reading and simple communication step by step.</p>
+
+                        <div class="mt-6 flex flex-wrap gap-4 text-sm text-sign-muted">
+                            <span>4 Units</span>
+                            <span>•</span>
+                            <span>18 Lessons</span>
+                        </div>
+
+                        <a href="{{ route('learn') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                            Start learning
+                            <span class="transition group-hover:translate-x-1">→</span>
+                        </a>
+                    </div>
+                </article>
+
+                {{-- Computer Basics --}}
+                <article class="group overflow-hidden rounded-3xl border border-sign-border bg-white transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="bg-sign-soft p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-sign-primary shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17 9 20l-1 1h8l-1-1-.75-3M3 13.5h18M5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v7.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 14.25v-7.5A2.25 2.25 0 0 1 5.25 4.5Z" />
+                                </svg>
+                            </div>
+                            <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sign-primary shadow-sm">Beginner</span>
+                        </div>
+
+                        <div class="mt-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sign-cyan-dark">
+                            Digital Skills
+                        </div>
+
+                        <h3 class="mt-2 font-heading text-2xl font-semibold text-sign-primary">Computer Basics</h3>
+                    </div>
+
+                    <div class="p-6">
+                        <p class="text-sm leading-6 text-sign-muted">Understand computer parts, files, software, internet basics and everyday digital tasks.</p>
+
+                        <div class="mt-6 flex flex-wrap gap-4 text-sm text-sign-muted">
+                            <span>5 Units</span>
+                            <span>•</span>
+                            <span>24 Lessons</span>
+                        </div>
+
+                        <a href="{{ route('learn') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                            Start learning
+                            <span class="transition group-hover:translate-x-1">→</span>
+                        </a>
+                    </div>
+                </article>
+
+                {{-- Everyday Mathematics --}}
+                <article class="group overflow-hidden rounded-3xl border border-sign-border bg-white transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="bg-sign-soft p-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-sign-primary shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6.75h6m-3-3v6m6.75-3h5.25m-5.25 7.5h5.25m-5.25 4.5h5.25M4.5 16.5l6 6m0-6-6 6" />
+                                </svg>
+                            </div>
+                            <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-sign-primary shadow-sm">Beginner</span>
+                        </div>
+
+                        <div class="mt-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sign-cyan-dark">
+                            Mathematics
+                        </div>
+
+                        <h3 class="mt-2 font-heading text-2xl font-semibold text-sign-primary">Everyday Mathematics</h3>
+                    </div>
+
+                    <div class="p-6">
+                        <p class="text-sm leading-6 text-sign-muted">Practice numbers, money, percentages, measurements and useful everyday calculations.</p>
+
+                        <div class="mt-6 flex flex-wrap gap-4 text-sm text-sign-muted">
+                            <span>4 Units</span>
+                            <span>•</span>
+                            <span>20 Lessons</span>
+                        </div>
+
+                        <a href="{{ route('learn') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-sign-primary">
+                            Start learning
+                            <span class="transition group-hover:translate-x-1">→</span>
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+
+        </x-container>
+    </section>
+
 @endsection
