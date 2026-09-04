@@ -109,6 +109,12 @@ class UnitController extends Controller
 
     public function destroy(Unit $unit): RedirectResponse
     {
+        if ($unit->lessons()->exists()) {
+            return redirect()
+                ->route('admin.units.index')
+                ->with('status', 'This unit cannot be deleted while it still contains lessons. Move or delete its lessons first.');
+        }
+
         $unit->delete();
 
         return redirect()
