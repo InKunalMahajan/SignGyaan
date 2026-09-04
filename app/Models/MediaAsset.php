@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class MediaAsset extends Model
 {
@@ -52,7 +51,7 @@ class MediaAsset extends Model
         }
 
         return $this->file_path
-            ? Storage::disk('public')->url($this->file_path)
+            ? url('storage/'.ltrim($this->file_path, '/'))
             : null;
     }
 
