@@ -115,9 +115,14 @@ const enhanceForms = () => {
             errorSummary.setAttribute('tabindex', '-1');
         }
 
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
         requestAnimationFrame(() => {
             errorSummary.focus({ preventScroll: true });
-            errorSummary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorSummary.scrollIntoView({
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
+                block: 'center',
+            });
         });
     }
 };
