@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LearningController;
+use App\Http\Controllers\LearningProgressController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -16,8 +18,12 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
-    Route::view('/my-learning', 'my-learning')->name('my-learning');
+    Route::get('/dashboard', [LearningController::class, 'dashboard'])->name('dashboard');
+    Route::get('/my-learning', [LearningController::class, 'index'])->name('my-learning');
+
+    Route::post('/learning-progress', [LearningProgressController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('learning-progress.store');
 
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
