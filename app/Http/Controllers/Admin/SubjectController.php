@@ -36,6 +36,7 @@ class SubjectController extends Controller
 
         return view('admin.subjects.index', [
             'subjects' => $query
+                ->withCount('courses')
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->paginate(20)
@@ -110,6 +111,12 @@ class SubjectController extends Controller
 
     public function destroy(Subject $subject): RedirectResponse
     {
+        if ($subject->courses()->exists()) {
+            return redirect()
+                ->route('admin.subjects.index')
+                ->with('status', 'This subject cannot be deleted while it still contains courses. Move or delete its courses first.');
+        }
+
         $subject->delete();
 
         return redirect()
