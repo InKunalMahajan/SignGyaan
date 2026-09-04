@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
+use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -25,10 +26,12 @@ Route::middleware(['auth', 'admin'])
         Route::resource('lessons', LessonController::class)
             ->except('show');
 
-        Route::view('/practice-resources', 'admin.placeholder', [
-            'title' => 'Practice & Resources',
-            'description' => 'Manage practice questions, downloadable resources and supporting learning material.',
-        ])->name('practice.index');
+        Route::get('/practice-resources', [PracticeResourceController::class, 'index'])->name('practice.index');
+        Route::get('/practice-resources/create', [PracticeResourceController::class, 'create'])->name('practice.create');
+        Route::post('/practice-resources', [PracticeResourceController::class, 'store'])->name('practice.store');
+        Route::get('/practice-resources/{practiceResource}/edit', [PracticeResourceController::class, 'edit'])->name('practice.edit');
+        Route::put('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'update'])->name('practice.update');
+        Route::delete('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'destroy'])->name('practice.destroy');
 
         Route::view('/media', 'admin.placeholder', [
             'title' => 'Media',
