@@ -134,7 +134,16 @@
                             </svg>
                         </button>
 
-                        <div x-show="open" x-collapse class="border-t border-sign-border">
+                        <div
+                            x-show="open"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            class="border-t border-sign-border"
+                        >
                             <div class="divide-y divide-sign-border">
                                 @for ($lesson = 1; $lesson <= $lessonsInUnit; $lesson++)
                                     @php
