@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
@@ -25,6 +26,13 @@ class Subject extends Model
             'sort_order' => 'integer',
             'is_published' => 'boolean',
         ];
+    }
+
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class)
+            ->orderBy('sort_order')
+            ->orderBy('title');
     }
 
     public function scopePublished(Builder $query): Builder
