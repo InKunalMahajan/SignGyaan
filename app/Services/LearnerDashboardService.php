@@ -9,8 +9,10 @@ use Illuminate\Support\Collection;
 
 class LearnerDashboardService
 {
-    public function __construct(private LearningProgressCatalog $catalog)
-    {
+    public function __construct(
+        private LearningProgressCatalog $catalog,
+        private LearnerActivityService $activity,
+    ) {
     }
 
     public function build(User $user): array
@@ -30,6 +32,7 @@ class LearnerDashboardService
         $latestProgress = $activeCourses->first() ?? $progressRecords->first();
         $activeAssessment = $assessmentAttempts->firstWhere('status', 'in-progress');
         $continueLearning = $this->continueLearning($activeCourses);
+        $activitySummary = $this->activity->summary($user);
 
         return [
             'progressRecords' => $progressRecords,
@@ -45,12 +48,14 @@ class LearnerDashboardService
             'activeAssessment' => $activeAssessment,
             'continueLearning' => $continueLearning,
             'primaryContinueLearning' => $continueLearning->first(),
+            'activitySummary' => $activitySummary,
             'dashboardSummary' => [
                 'courses_in_progress' => $activeCourses->count(),
                 'courses_completed' => $completedCourses->count(),
                 'lessons_completed' => $completedLessons,
                 'overall_progress' => $overallProgress,
                 'assessment_attempts' => $assessmentSummary['total_attempts'],
+                'current_streak' => $activitySummary['current_streak'],
             ],
         ];
     }
@@ -87,9 +92,7 @@ class LearnerDashboardService
             ->map(function ($progress) {
                 $lessonKey = (string) $progress->current_lesson_key;
                 $videoProgress = is_array($progress->video_progress) ? $progress->video_progress : [];
-                $video = is_array($videoProgress[$lessonKey] ?? null)
-                    ? $videoProgress[$lessonKey]
-                    : [];
+                $video = is_array($videoProgress[$lessonKey] ?? null) ? $videoProgress[$lessonKey] : [];
 
                 return [
                     'subject' => $progress->subject_name,
@@ -102,9 +105,7 @@ class LearnerDashboardService
                     'completed_lessons' => $progress->completedLessonsCount(),
                     'total_lessons' => (int) $progress->total_lessons,
                     'progress_percent' => $progress->progressPercent(),
-                    'video_watched_percent' => isset($video['watched_percent'])
-                        ? (int) $video['watched_percent']
-                        : null,
+                    'video_watched_percent' => isset($video['watched_percent']) ? (int) $video['watched_percent'] : null,
                     'last_accessed_at' => $progress->last_accessed_at,
                     'resume_url' => route('courses.show', [
                         'subject' => $progress->subject_slug,
@@ -150,12 +151,8 @@ class LearnerDashboardService
             'submitted' => $submitted->count(),
             'passed' => $passed->count(),
             'in_progress' => $inProgress->count(),
-            'best_score' => $submitted->isEmpty()
-                ? null
-                : round((float) $submitted->max(fn ($attempt) => (float) $attempt->percentage), 2),
-            'average_score' => $submitted->isEmpty()
-                ? null
-                : round((float) $submitted->avg(fn ($attempt) => (float) $attempt->percentage), 2),
+            'best_score' => $submitted->isEmpty() ? null : round((float) $submitted->max(fn ($attempt) => (float) $attempt->percentage), 2),
+            'average_score' => $submitted->isEmpty() ? null : round((float) $submitted->avg(fn ($attempt) => (float) $attempt->percentage), 2),
         ];
     }
 
@@ -164,30 +161,15 @@ class LearnerDashboardService
         return Course::query()
             ->published()
             ->whereHas('subject', fn ($query) => $query->published())
-            ->whereHas('units', fn ($unitQuery) => $unitQuery
-                ->published()
-                ->whereHas('lessons', fn ($lessonQuery) => $lessonQuery->published()))
-            ->with([
-                'subject',
-                'units' => fn ($unitQuery) => $unitQuery
-                    ->published()
-                    ->with(['lessons' => fn ($lessonQuery) => $lessonQuery->published()]),
-            ])
+            ->whereHas('units', fn ($unitQuery) => $unitQuery->published()->whereHas('lessons', fn ($lessonQuery) => $lessonQuery->published()))
+            ->with(['subject', 'units' => fn ($unitQuery) => $unitQuery->published()->with(['lessons' => fn ($lessonQuery) => $lessonQuery->published()])])
             ->withCount([
                 'units as units_count' => fn ($unitQuery) => $unitQuery->published(),
-                'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery
-                    ->published()
-                    ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+                'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery->published()->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
             ])
-            ->orderByDesc('is_featured')
-            ->orderBy('sort_order')
-            ->orderBy('title')
-            ->limit(3)
-            ->get()
+            ->orderByDesc('is_featured')->orderBy('sort_order')->orderBy('title')->limit(3)->get()
             ->map(function (Course $course) {
-                $firstLesson = $course->units
-                    ->flatMap(fn ($unit) => $unit->lessons)
-                    ->first();
+                $firstLesson = $course->units->flatMap(fn ($unit) => $unit->lessons)->first();
 
                 return [
                     'title' => $course->title,
