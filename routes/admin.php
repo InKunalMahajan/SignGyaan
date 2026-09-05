@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
 use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserAcademicProfileController;
 use App\Http\Controllers\Admin\UserController;
@@ -65,6 +66,11 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
 
     Route::get('/media-picker', MediaPickerController::class)->middleware('throttle:120,1')->name('media.picker');
     Route::resource('media', MediaController::class)->parameters(['media' => 'mediaAsset'])->except('show');
+
+    Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+    Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
+    Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])->middleware('throttle:30,1')->name('teachers.update');
+
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
         ->middleware('throttle:30,1')
         ->name('users.status.update');
