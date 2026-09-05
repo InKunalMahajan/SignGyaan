@@ -34,7 +34,23 @@ class AuthController extends Controller
             ]);
         }
 
+        /** @var User $user */
+        $user = $request->user();
+
+        if (! $user->isActive()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => $user->isSuspended()
+                    ? 'Your SignGyaan account is suspended. Please contact an administrator for assistance.'
+                    : 'Your SignGyaan account is disabled. Please contact an administrator for assistance.',
+            ]);
+        }
+
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
 
         return redirect()->intended(route('dashboard'));
     }
@@ -60,6 +76,7 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
 
         return redirect()->route('dashboard');
     }
