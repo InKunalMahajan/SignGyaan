@@ -111,6 +111,10 @@ class PublicAssessmentController extends Controller
         $assessmentModel = $this->publishedAssessment($assessment);
         $this->authorizeAttempt($assessmentModel, $attempt, $request->user()->id);
 
+        if ($attempt->status === 'submitted') {
+            return redirect()->route('assessment-attempts.result', [$assessmentModel, $attempt]);
+        }
+
         if ($attempt->status === 'in-progress' && $attempt->expires_at && $attempt->expires_at->isPast()) {
             $attempt->update(['status' => 'expired']);
 
@@ -225,6 +229,10 @@ class PublicAssessmentController extends Controller
         $this->authorizeAttempt($assessmentModel, $attempt, $request->user()->id);
 
         if ($attempt->status !== 'in-progress') {
+            if ($attempt->status === 'submitted') {
+                return redirect()->route('assessment-attempts.result', [$assessmentModel, $attempt]);
+            }
+
             return redirect()
                 ->route('assessments.show', $assessmentModel)
                 ->withErrors(['assessment' => 'This assessment attempt is no longer open for submission.']);
@@ -330,16 +338,69 @@ class PublicAssessmentController extends Controller
         }
 
         if ($result['state'] === 'closed') {
+            $attempt->refresh();
+
+            if ($attempt->status === 'submitted') {
+                return redirect()->route('assessment-attempts.result', [$assessmentModel, $attempt]);
+            }
+
             return redirect()
                 ->route('assessments.show', $assessmentModel)
                 ->withErrors(['assessment' => 'This assessment attempt has already been closed.']);
         }
 
-        $outcome = $result['passed'] ? 'Passed' : 'Not passed yet';
-
         return redirect()
-            ->route('assessments.show', $assessmentModel)
-            ->with('status', 'Assessment submitted. Score: '.number_format($result['percentage'], 2).'% · '.$outcome.'.');
+            ->route('assessment-attempts.result', [$assessmentModel, $attempt])
+            ->with('status', $result['passed']
+                ? 'Assessment submitted successfully. You passed this attempt.'
+                : 'Assessment submitted successfully. Review your result below.');
+    }
+
+    public function result(Request $request, int $assessment, AssessmentAttempt $attempt): View|RedirectResponse
+    {
+        $assessmentModel = $this->publishedAssessment($assessment);
+        $this->authorizeAttempt($assessmentModel, $attempt, $request->user()->id);
+
+        if ($attempt->status === 'in-progress') {
+            return redirect()->route('assessment-attempts.show', [$assessmentModel, $attempt]);
+        }
+
+        abort_unless($attempt->status === 'submitted', 404);
+
+        $answers = $attempt->answers()
+            ->with(['question.options'])
+            ->orderBy('id')
+            ->get();
+
+        $answerByQuestion = $answers->keyBy('assessment_question_id');
+
+        $questions = $assessmentModel->questions()
+            ->with('options')
+            ->get()
+            ->filter(fn (AssessmentQuestion $question) => $answerByQuestion->has($question->id))
+            ->values();
+
+        $practice = $assessmentModel->practiceResource;
+        $lesson = $practice->lesson;
+        $course = $lesson->unit->course;
+        $subject = $course->subject;
+
+        $correctCount = $answers->where('is_correct', true)->count();
+        $answeredCount = $answers->count();
+
+        return view('pages.assessments.result', [
+            'assessment' => $assessmentModel,
+            'attempt' => $attempt,
+            'questions' => $questions,
+            'answers' => $answerByQuestion,
+            'correctCount' => $correctCount,
+            'answeredCount' => $answeredCount,
+            'lessonUrl' => route('courses.show', [
+                'subject' => $subject->slug,
+                'course' => $course->slug,
+                'lesson' => 'lesson-'.$lesson->id,
+            ]),
+        ]);
     }
 
     private function publishedAssessment(int $assessmentId): Assessment
