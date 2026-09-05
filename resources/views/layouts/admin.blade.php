@@ -76,5 +76,6 @@
     <script src="{{ asset('js/admin-media-picker.js') }}" defer></script>
     <script src="{{ asset('js/admin-course-builder-duplicate.js') }}" defer></script>
     <script src="{{ asset('js/admin-authoring-accessibility.js') }}" defer></script>
+    <script src="{{ asset('js/admin-user-management-accessibility.js') }}" defer></script>
 </body>
 </html>
