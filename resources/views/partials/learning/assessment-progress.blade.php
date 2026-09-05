@@ -19,9 +19,14 @@
             <h2 id="assessment-progress-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary sm:text-3xl">Assessment progress</h2>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Continue open attempts and review scores from completed quizzes and exercises.</p>
         </div>
-        @if (($assessmentSummary['submitted'] ?? 0) > 0)
-            <div class="text-sm text-sign-muted">Best score: <strong class="text-sign-primary">{{ number_format((float) $assessmentSummary['best_score'], 2) }}%</strong></div>
-        @endif
+        <div class="flex flex-col items-start gap-2 sm:items-end">
+            @if (($assessmentSummary['submitted'] ?? 0) > 0)
+                <div class="text-sm text-sign-muted">Best score: <strong class="text-sign-primary">{{ number_format((float) $assessmentSummary['best_score'], 2) }}%</strong></div>
+            @endif
+            @auth
+                <a href="{{ route('assessment-performance') }}" class="inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">View Performance →</a>
+            @endauth
+        </div>
     </div>
 
     <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Assessment summary">
