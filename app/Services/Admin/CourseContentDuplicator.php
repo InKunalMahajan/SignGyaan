@@ -38,7 +38,7 @@ class CourseContentDuplicator
             ]);
 
             $copy = $course->replicate();
-            $copy->title = $this->copyTitle($course->title);
+            $copy->title = $this->copyTitle($course->title, 160);
             $copy->slug = $this->uniqueCourseSlug($course->subject_id, Str::slug($copy->title) ?: 'course-copy');
             $copy->sort_order = ((int) Course::query()->where('subject_id', $course->subject_id)->max('sort_order')) + 1;
             $copy->is_featured = false;
@@ -73,7 +73,7 @@ class CourseContentDuplicator
 
         $copy = $unit->replicate();
         $copy->course_id = $targetCourse->id;
-        $copy->title = $markAsCopy ? $this->copyTitle($unit->title) : $unit->title;
+        $copy->title = $markAsCopy ? $this->copyTitle($unit->title, 160) : $unit->title;
         $copy->slug = $this->uniqueUnitSlug($targetCourse->id, Str::slug($copy->title) ?: 'unit-copy');
         $copy->sort_order = ((int) Unit::query()->where('course_id', $targetCourse->id)->max('sort_order')) + 1;
         $copy->is_published = false;
@@ -96,7 +96,7 @@ class CourseContentDuplicator
 
         $copy = $lesson->replicate();
         $copy->unit_id = $targetUnit->id;
-        $copy->title = $markAsCopy ? $this->copyTitle($lesson->title) : $lesson->title;
+        $copy->title = $markAsCopy ? $this->copyTitle($lesson->title, 180) : $lesson->title;
         $copy->slug = $this->uniqueLessonSlug($targetUnit->id, Str::slug($copy->title) ?: 'lesson-copy');
         $copy->sort_order = ((int) Lesson::query()->where('unit_id', $targetUnit->id)->max('sort_order')) + 1;
         $copy->is_published = false;
@@ -159,9 +159,9 @@ class CourseContentDuplicator
         }
     }
 
-    private function copyTitle(string $title): string
+    private function copyTitle(string $title, int $maxLength): string
     {
-        return Str::limit('Copy of '.$title, 180, '');
+        return Str::limit('Copy of '.$title, $maxLength, '');
     }
 
     private function uniqueCourseSlug(int $subjectId, string $base): string
@@ -171,7 +171,7 @@ class CourseContentDuplicator
 
     private function uniqueUnitSlug(int $courseId, string $base): string
     {
-        return $this->uniqueSlug($base, 200, fn (string $slug) => Unit::query()->where('course_id', $courseId)->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 180, fn (string $slug) => Unit::query()->where('course_id', $courseId)->where('slug', $slug)->exists());
     }
 
     private function uniqueLessonSlug(int $unitId, string $base): string
