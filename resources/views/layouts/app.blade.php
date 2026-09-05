@@ -31,7 +31,7 @@
             width: 220px;
             height: 54px;
             flex-shrink: 0;
-            background-image: url("{{ asset('images/signgyaan-header-logo.svg') }}");
+            background-image: url("{{ asset('images/signgyaan-logo.png') }}");
             background-repeat: no-repeat;
             background-position: left center;
             background-size: contain;
