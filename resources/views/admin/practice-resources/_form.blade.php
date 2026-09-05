@@ -2,6 +2,7 @@
     $editing = isset($item);
     $currentKind = old('kind', $item->kind ?? 'practice');
     $currentType = old('resource_type', $item->resource_type ?? 'exercise');
+    $selectedMediaAsset = old('media_asset_id', $item->media_asset_id ?? null);
 @endphp
 
 @if ($errors->any())
@@ -101,7 +102,7 @@
                 <div>
                     <label for="answer_key" class="mb-2 block text-sm font-semibold text-sign-primary">Answer key / Teacher notes</label>
                     <textarea id="answer_key" name="answer_key" rows="6" maxlength="100000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="Optional answers or reference notes.">{{ old('answer_key', $item->answer_key ?? '') }}</textarea>
-                    <p class="mt-2 text-xs leading-5 text-sign-muted">This is stored separately so learner visibility can be controlled later.</p>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Stored separately and not shown on the public learner lesson page.</p>
                     @error('answer_key')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -110,17 +111,33 @@
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="practice-link-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h2 id="practice-link-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Linked resource</h2>
-                    <p class="mt-2 text-sm leading-6 text-sign-muted">Link a reusable file or media item from the Media Library, or use another valid resource URL.</p>
+                    <h2 id="practice-link-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Linked media or resource</h2>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Select a reusable Media Library item. A direct URL can remain as a fallback.</p>
                 </div>
                 <a href="{{ route('admin.media.index') }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light">Open Media Library</a>
             </div>
 
-            <div class="mt-6">
-                <label for="resource_url" class="mb-2 block text-sm font-semibold text-sign-primary">Resource URL</label>
-                <input id="resource_url" name="resource_url" type="url" value="{{ old('resource_url', $item->resource_url ?? '') }}" maxlength="2048" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
-                <p class="mt-2 text-xs leading-5 text-sign-muted">Open a Media Library item, copy its reusable URL, then paste it here.</p>
-                @error('resource_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+            <div class="mt-6 grid gap-5">
+                <div>
+                    <label for="media_asset_id" class="mb-2 block text-sm font-semibold text-sign-primary">Media Library item</label>
+                    <select id="media_asset_id" name="media_asset_id" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                        <option value="">No Media Library item selected</option>
+                        @foreach ($mediaAssets as $asset)
+                            <option value="{{ $asset->id }}" @selected((string) $selectedMediaAsset === (string) $asset->id)>
+                                {{ ucfirst($asset->media_type) }} — {{ $asset->title }} — {{ $asset->is_published ? 'Published' : 'Draft' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">On the learner page, a published linked Media Library item takes priority over the fallback URL.</p>
+                    @error('media_asset_id')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="resource_url" class="mb-2 block text-sm font-semibold text-sign-primary">Fallback / external resource URL</label>
+                    <input id="resource_url" name="resource_url" type="url" value="{{ old('resource_url', $item->resource_url ?? '') }}" maxlength="2048" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Used when no published Media Library item is linked.</p>
+                    @error('resource_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
             </div>
         </section>
     </div>
