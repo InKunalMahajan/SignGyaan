@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\AssessmentAttempt;
+use App\Services\AchievementNotificationService;
 use App\Services\AssessmentNotificationService;
 
 class AssessmentAttemptObserver
@@ -14,5 +15,6 @@ class AssessmentAttemptObserver
         }
 
         app(AssessmentNotificationService::class)->submitted($attempt);
+        app(AchievementNotificationService::class)->assessmentSubmitted($attempt);
     }
 }
