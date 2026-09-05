@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LearningProgress;
+use App\Services\AchievementNotificationService;
 use App\Services\LearnerActivityService;
 use App\Services\LearningProgressCatalog;
 use App\Services\LearningProgressNotificationService;
@@ -19,6 +20,7 @@ class LearningProgressController extends Controller
         LearningProgressCatalog $catalog,
         LearnerActivityService $activity,
         LearningProgressNotificationService $progressNotifications,
+        AchievementNotificationService $achievements,
     ): RedirectResponse {
         $validated = $request->validate([
             'subject_slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
@@ -59,6 +61,7 @@ class LearningProgressController extends Controller
         $completedLessons = collect(
             $catalog->normalizeCompleted($progress->completed_lessons ?? [], $state['entries'])
         );
+        $wasAlreadyCompleted = $completedLessons->contains($currentEntry['stable_key']);
 
         if ($validated['action'] === 'complete') {
             $completedLessons->push($currentEntry['stable_key']);
@@ -109,6 +112,10 @@ class LearningProgressController extends Controller
                 $currentEntry,
                 $nextEntry,
             );
+
+            if (! $wasAlreadyCompleted) {
+                $achievements->lessonCompleted($request->user());
+            }
         } else {
             $progressNotifications->saved(
                 $request->user(),
