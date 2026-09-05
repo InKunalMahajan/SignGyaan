@@ -21,6 +21,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [LearningController::class, 'dashboard'])->name('dashboard');
     Route::get('/my-learning', [LearningController::class, 'index'])->name('my-learning');
+    Route::get('/my-courses', [LearningController::class, 'myCourses'])->name('my-courses');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::patch('/profile', [ProfileController::class, 'update'])
