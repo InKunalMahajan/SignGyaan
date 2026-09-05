@@ -53,6 +53,28 @@ class PracticeResource extends Model
         return $this->hasOne(Assessment::class);
     }
 
+    public function getResourceUrlAttribute(?string $value): ?string
+    {
+        if (
+            ! app()->runningInConsole()
+            && request()->routeIs('courses.show')
+            && $this->kind === 'practice'
+            && in_array($this->resource_type, ['quiz', 'exercise'], true)
+        ) {
+            $assessment = $this->assessment;
+
+            if (
+                $assessment
+                && $assessment->is_published
+                && $assessment->questions()->published()->exists()
+            ) {
+                return route('assessments.show', $assessment);
+            }
+        }
+
+        return $value;
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
