@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lesson extends Model
@@ -50,6 +51,14 @@ class Lesson extends Model
     public function mediaAsset(): BelongsTo
     {
         return $this->belongsTo(MediaAsset::class, 'isl_media_asset_id');
+    }
+
+    public function vocabularyTerms(): BelongsToMany
+    {
+        return $this->belongsToMany(VocabularyTerm::class, 'lesson_vocabulary_term')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
 
     public function practiceResources(): HasMany
