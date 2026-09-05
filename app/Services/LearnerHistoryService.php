@@ -12,6 +12,7 @@ class LearnerHistoryService
     public function build(User $user): array
     {
         $activityItems = $user->learningActivities()
+            ->where('activity_type', '!=', 'assessment_completed')
             ->orderByDesc('occurred_at')
             ->get()
             ->map(fn (LearningActivity $activity) => $this->activityItem($activity));
@@ -60,8 +61,6 @@ class LearnerHistoryService
     private function activityItem(LearningActivity $activity): array
     {
         $metadata = is_array($activity->metadata) ? $activity->metadata : [];
-        $courseTitle = data_get($metadata, 'course_title');
-        $lessonTitle = data_get($metadata, 'lesson_title');
 
         $url = null;
         if ($activity->subject_slug && $activity->course_slug) {
@@ -80,8 +79,8 @@ class LearnerHistoryService
         return [
             'type' => $activity->activity_type,
             'title' => $activity->title,
-            'course_title' => $courseTitle,
-            'lesson_title' => $lessonTitle,
+            'course_title' => data_get($metadata, 'course_title'),
+            'lesson_title' => data_get($metadata, 'lesson_title'),
             'detail' => match ($activity->activity_type) {
                 'lesson_completed' => 'Lesson completed',
                 'lesson_saved' => 'Learning place saved',
