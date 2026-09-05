@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\LessonContentBlock;
+use App\Models\MediaAsset;
 use App\Models\PracticeResource;
 use App\Models\Unit;
 use App\Models\VocabularyTerm;
@@ -32,6 +34,10 @@ class CourseBuilderController extends Controller
                         ->with([
                             'mediaAsset',
                             'vocabularyTerms',
+                            'contentBlocks' => fn ($blockQuery) => $blockQuery
+                                ->with(['mediaAsset', 'practiceResource'])
+                                ->orderBy('sort_order')
+                                ->orderBy('id'),
                             'practiceResources' => fn ($practiceQuery) => $practiceQuery
                                 ->with([
                                     'assessment' => fn ($assessmentQuery) => $assessmentQuery
@@ -49,6 +55,7 @@ class CourseBuilderController extends Controller
 
         $lessons = $course->units->flatMap->lessons;
         $practiceResources = $lessons->flatMap->practiceResources;
+        $contentBlocks = $lessons->flatMap->contentBlocks;
         $assessments = $practiceResources
             ->map->assessment
             ->filter()
@@ -58,6 +65,14 @@ class CourseBuilderController extends Controller
             'course' => $course,
             'lessons' => $lessons,
             'practiceResources' => $practiceResources,
+            'contentBlocks' => $contentBlocks,
+            'mediaAssets' => MediaAsset::query()
+                ->orderBy('media_type')
+                ->orderByDesc('is_isl')
+                ->orderByDesc('is_published')
+                ->orderBy('title')
+                ->get(),
+            'contentBlockTypes' => LessonContentBlock::TYPES,
             'assessments' => $assessments,
             'totalUnits' => $course->units->count(),
             'publishedUnits' => $course->units->where('is_published', true)->count(),
@@ -66,6 +81,7 @@ class CourseBuilderController extends Controller
             'practiceCount' => $practiceResources->where('kind', 'practice')->count(),
             'resourceCount' => $practiceResources->where('kind', 'resource')->count(),
             'vocabularyCount' => $course->vocabularyTerms->count(),
+            'contentBlockCount' => $contentBlocks->count(),
             'assessmentCount' => $assessments->count(),
             'publishedAssessmentCount' => $assessments->where('is_published', true)->count(),
         ]);
@@ -120,7 +136,7 @@ class CourseBuilderController extends Controller
     public function reorder(Request $request, Course $course): JsonResponse
     {
         $validated = $request->validate([
-            'type' => ['required', Rule::in(['units', 'lessons', 'practice', 'vocabulary'])],
+            'type' => ['required', Rule::in(['units', 'lessons', 'practice', 'vocabulary', 'content_blocks'])],
             'parent_id' => ['nullable', 'integer', 'min:1'],
             'ids' => ['required', 'array'],
             'ids.*' => ['required', 'integer', 'distinct', 'min:1'],
@@ -137,6 +153,7 @@ class CourseBuilderController extends Controller
             ],
             'lessons' => $this->lessonOrderingContext($course, $parentId),
             'practice' => $this->practiceOrderingContext($course, $parentId),
+            'content_blocks' => $this->contentBlockOrderingContext($course, $parentId),
             'vocabulary' => [
                 VocabularyTerm::query()->where('course_id', $course->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
                 VocabularyTerm::class,
@@ -181,6 +198,26 @@ class CourseBuilderController extends Controller
 
     private function practiceOrderingContext(Course $course, ?int $lessonId): array
     {
+        $lesson = $this->courseLesson($course, $lessonId);
+
+        return [
+            PracticeResource::query()->where('lesson_id', $lesson->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            PracticeResource::class,
+        ];
+    }
+
+    private function contentBlockOrderingContext(Course $course, ?int $lessonId): array
+    {
+        $lesson = $this->courseLesson($course, $lessonId);
+
+        return [
+            LessonContentBlock::query()->where('lesson_id', $lesson->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            LessonContentBlock::class,
+        ];
+    }
+
+    private function courseLesson(Course $course, ?int $lessonId): Lesson
+    {
         $lesson = Lesson::query()
             ->whereKey($lessonId)
             ->whereHas('unit', fn ($query) => $query->where('course_id', $course->id))
@@ -190,9 +227,6 @@ class CourseBuilderController extends Controller
             throw ValidationException::withMessages(['parent_id' => 'The selected lesson does not belong to this course.']);
         }
 
-        return [
-            PracticeResource::query()->where('lesson_id', $lesson->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
-            PracticeResource::class,
-        ];
+        return $lesson;
     }
 }
