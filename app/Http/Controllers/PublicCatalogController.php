@@ -67,6 +67,12 @@ class PublicCatalogController extends Controller
                     ->with([
                         'lessons' => fn ($lessonQuery) => $lessonQuery
                             ->published()
+                            ->with([
+                                'practiceResources' => fn ($practiceQuery) => $practiceQuery
+                                    ->published()
+                                    ->orderBy('sort_order')
+                                    ->orderBy('title'),
+                            ])
                             ->orderBy('sort_order')
                             ->orderBy('title'),
                     ])
