@@ -13,15 +13,21 @@
                     <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Learning reminders, assessment updates and milestones will appear here.</p>
                 </div>
 
-                @if ($unreadCount > 0)
-                    <form method="POST" action="{{ route('notifications.read-all') }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-primary bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft focus:outline-none focus:ring-4 focus:ring-sign-light">
-                            Mark all as read
-                        </button>
-                    </form>
-                @endif
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('profile.notifications') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-primary bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft focus:outline-none focus:ring-4 focus:ring-sign-light">
+                        Preferences
+                    </a>
+
+                    @if ($unreadCount > 0)
+                        <form method="POST" action="{{ route('notifications.read-all') }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-primary bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft focus:outline-none focus:ring-4 focus:ring-sign-light">
+                                Mark all as read
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
         </x-container>
     </section>
