@@ -34,6 +34,13 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function notificationPreferences(Request $request): View
+    {
+        return view('notification-preferences', [
+            'user' => $request->user(),
+        ]);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -80,6 +87,29 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('accessibility_status', 'Accessibility preferences were saved.');
+    }
+
+    public function updateNotificationPreferences(Request $request): RedirectResponse
+    {
+        $validated = $request->validateWithBag('notifications', [
+            'enabled' => ['nullable', 'boolean'],
+            'learning' => ['nullable', 'boolean'],
+            'assessment' => ['nullable', 'boolean'],
+            'milestone' => ['nullable', 'boolean'],
+            'general' => ['nullable', 'boolean'],
+        ]);
+
+        $request->user()->update([
+            'notification_preferences' => [
+                'enabled' => (bool) ($validated['enabled'] ?? false),
+                'learning' => (bool) ($validated['learning'] ?? false),
+                'assessment' => (bool) ($validated['assessment'] ?? false),
+                'milestone' => (bool) ($validated['milestone'] ?? false),
+                'general' => (bool) ($validated['general'] ?? false),
+            ],
+        ]);
+
+        return back()->with('notification_status', 'Notification preferences were saved.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
