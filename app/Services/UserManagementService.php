@@ -64,4 +64,20 @@ class UserManagementService
             ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN])
             ->count();
     }
+
+    public function activeAdministratorCount(): int
+    {
+        return User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN])
+            ->where('status', User::STATUS_ACTIVE)
+            ->count();
+    }
+
+    public function activeSuperAdministratorCount(): int
+    {
+        return User::query()
+            ->where('role', User::ROLE_SUPER_ADMIN)
+            ->where('status', User::STATUS_ACTIVE)
+            ->count();
+    }
 }
