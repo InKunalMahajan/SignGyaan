@@ -32,10 +32,14 @@
 
     $objectives = $cleanLines($lesson->learning_objectives);
     $keyPoints = $cleanLines($lesson->key_points);
+    $vocabularyItems = $cleanLines($lesson->key_vocabulary);
     $hasLessonText = filled($lesson->content)
+        || filled($lesson->simplified_summary)
+        || filled($lesson->isl_transcript)
         || filled($lesson->example_content)
         || $objectives->isNotEmpty()
-        || $keyPoints->isNotEmpty();
+        || $keyPoints->isNotEmpty()
+        || $vocabularyItems->isNotEmpty();
 
     $publishedItems = $lesson->relationLoaded('practiceResources')
         ? $lesson->practiceResources
@@ -62,8 +66,8 @@
             : null;
 
     $videoUrl = $lessonMedia?->publicUrl() ?: $lesson->isl_video_url;
-    $videoTitle = $lessonMedia?->title ?: $lesson->title;
-    $videoCaption = $lessonMedia?->caption;
+    $videoTitle = $lessonMedia?->title ?: ($lesson->isl_video_title ?: $lesson->title);
+    $videoCaption = $lessonMedia?->caption ?: $lesson->isl_video_caption;
     $isDirectVideo = $isDirectMediaVideo($videoUrl, $lessonMedia?->mime_type);
 
     $courseRouteParameters = [
@@ -80,9 +84,9 @@
         : null;
 @endphp
 
-<section class="border-b border-sign-border bg-sign-soft py-7 sm:py-10">
+<section class="border-b border-sign-border bg-sign-soft py-7 sm:py-10 print:border-b print:bg-white print:py-4">
     <x-container>
-        <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-sign-muted sm:text-sm" aria-label="Breadcrumb">
+        <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-sign-muted sm:text-sm print:hidden" aria-label="Breadcrumb">
             <a href="{{ route('home') }}" class="transition hover:text-sign-primary">Home</a>
             <span aria-hidden="true">/</span>
             <a href="{{ route('subjects.show', $subjectSlug) }}" class="transition hover:text-sign-primary">{{ $subject['name'] }}</a>
@@ -92,9 +96,9 @@
             <span class="font-semibold text-sign-primary">{{ $lesson->title }}</span>
         </nav>
 
-        <div class="mt-5 grid gap-5 sm:mt-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end xl:gap-6">
-            <div class="max-w-3xl">
-                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold sm:text-xs">
+        <div class="mt-5 grid gap-5 sm:mt-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end xl:gap-6 print:mt-0 print:block">
+            <div class="max-w-3xl print:max-w-none">
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold sm:text-xs print:hidden">
                     <span class="rounded-full bg-white px-3 py-1.5 text-sign-primary ring-1 ring-sign-border">Unit {{ $unitNumber }}</span>
                     <span class="rounded-full bg-sign-light px-3 py-1.5 text-sign-primary">Lesson {{ $lessonNumber }}</span>
                     @if ($videoUrl)
@@ -111,15 +115,15 @@
                     @endif
                 </div>
 
-                <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">{{ $unit->title }}</p>
-                <h1 class="mt-2 font-heading text-2xl font-semibold leading-tight tracking-tight text-sign-primary sm:text-4xl lg:text-5xl">{{ $lesson->title }}</h1>
+                <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark print:mt-0">{{ $unit->title }}</p>
+                <h1 class="mt-2 font-heading text-2xl font-semibold leading-tight tracking-tight text-sign-primary sm:text-4xl lg:text-5xl print:text-3xl">{{ $lesson->title }}</h1>
 
                 @if ($lesson->short_description)
-                    <p class="mt-4 max-w-2xl text-sm leading-7 text-sign-muted sm:text-base">{{ $lesson->short_description }}</p>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-sign-muted sm:text-base print:max-w-none">{{ $lesson->short_description }}</p>
                 @endif
             </div>
 
-            <div class="w-full rounded-2xl border border-sign-border bg-white p-4 shadow-sm">
+            <div class="w-full rounded-2xl border border-sign-border bg-white p-4 shadow-sm print:hidden">
                 <div class="flex items-center justify-between gap-4 text-sm">
                     <span class="font-semibold text-sign-primary">Course position</span>
                     <span class="font-semibold text-sign-cyan-dark">{{ $positionProgressPercent }}%</span>
@@ -133,11 +137,11 @@
     </x-container>
 </section>
 
-<section class="bg-white py-8 sm:py-12 lg:py-16">
+<section class="bg-white py-8 sm:py-12 lg:py-16 print:py-4" data-printable-lesson>
     <x-container>
-        <div class="grid gap-7 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
-            <div class="min-w-0 space-y-6 sm:space-y-8">
-                <section id="lesson-video" class="scroll-mt-24 overflow-hidden rounded-2xl border border-sign-border bg-white shadow-sm sm:rounded-3xl" aria-labelledby="lesson-video-heading">
+        <div class="grid gap-7 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8 print:block">
+            <div class="min-w-0 space-y-6 sm:space-y-8 print:space-y-5">
+                <section id="lesson-video" class="scroll-mt-24 overflow-hidden rounded-2xl border border-sign-border bg-white shadow-sm sm:rounded-3xl print:hidden" aria-labelledby="lesson-video-heading">
                     @if ($videoUrl && $isDirectVideo)
                         <video controls preload="metadata" class="aspect-video w-full bg-black" aria-label="ISL video for {{ $lesson->title }}">
                             <source src="{{ $videoUrl }}" @if ($lessonMedia?->mime_type) type="{{ $lessonMedia->mime_type }}" @endif>
@@ -183,13 +187,56 @@
                     </div>
                 </section>
 
+                @if ($lesson->simplified_summary)
+                    <section id="lesson-summary" class="scroll-mt-24 rounded-2xl border border-sign-cyan bg-sign-light p-5 sm:rounded-3xl sm:p-8 print:border print:bg-white print:p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Simple summary</p>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">Quick understanding</h2>
+                        <div class="mt-4 whitespace-pre-line text-sm leading-7 text-sign-text sm:text-base sm:leading-8">{{ $lesson->simplified_summary }}</div>
+                    </section>
+                @endif
+
+                @if ($lesson->isl_transcript)
+                    <section id="lesson-transcript" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8 print:p-4" aria-labelledby="lesson-transcript-heading">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">ISL transcript</p>
+                                <h2 id="lesson-transcript-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">Read the video content</h2>
+                            </div>
+                            <span class="w-fit rounded-full bg-sign-soft px-3 py-1.5 text-xs font-semibold text-sign-primary print:hidden">Text alternative</span>
+                        </div>
+                        <div class="mt-5 whitespace-pre-line text-sm leading-7 text-sign-muted sm:text-base sm:leading-8">{{ $lesson->isl_transcript }}</div>
+                    </section>
+                @endif
+
+                @if ($vocabularyItems->isNotEmpty())
+                    <section id="lesson-vocabulary" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8 print:bg-white print:p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Key vocabulary</p>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">Important words</h2>
+                        <div class="mt-5 grid gap-3 md:grid-cols-2">
+                            @foreach ($vocabularyItems as $vocabularyItem)
+                                @php
+                                    $parts = preg_split('/\s+[—–-]\s+/u', $vocabularyItem, 2);
+                                    $term = trim((string) ($parts[0] ?? $vocabularyItem));
+                                    $meaning = trim((string) ($parts[1] ?? ''));
+                                @endphp
+                                <div class="rounded-2xl border border-sign-border bg-white p-4 print:break-inside-avoid">
+                                    <p class="font-semibold text-sign-primary">{{ $term }}</p>
+                                    @if ($meaning !== '')
+                                        <p class="mt-1 text-sm leading-6 text-sign-muted">{{ $meaning }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 @if ($objectives->isNotEmpty())
-                    <section id="lesson-goals" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8">
+                    <section id="lesson-goals" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8 print:bg-white print:p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Lesson goals</p>
-                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">What you will understand</h2>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">What you will understand</h2>
                         <div class="mt-5 grid gap-3 md:grid-cols-2 sm:mt-6 sm:gap-4">
                             @foreach ($objectives as $objectiveIndex => $objective)
-                                <div class="rounded-2xl bg-white p-4 sm:p-5">
+                                <div class="rounded-2xl bg-white p-4 sm:p-5 print:break-inside-avoid">
                                     <span class="text-xs font-semibold text-sign-cyan-dark">{{ str_pad((string) ($objectiveIndex + 1), 2, '0', STR_PAD_LEFT) }}</span>
                                     <p class="mt-2 text-sm font-semibold leading-6 text-sign-primary">{{ $objective }}</p>
                                 </div>
@@ -199,20 +246,20 @@
                 @endif
 
                 @if ($lesson->content)
-                    <section id="lesson-notes" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8">
+                    <section id="lesson-notes" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8 print:p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Lesson notes</p>
-                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Learn the concept</h2>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">Learn the concept</h2>
                         <div class="mt-4 whitespace-pre-line text-sm leading-7 text-sign-muted sm:mt-5 sm:text-base sm:leading-8">{{ $lesson->content }}</div>
                     </section>
                 @endif
 
                 @if ($keyPoints->isNotEmpty())
-                    <section id="key-points" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8">
+                    <section id="key-points" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8 print:p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Key points</p>
-                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Remember these ideas</h2>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">Remember these ideas</h2>
                         <div class="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
                             @foreach ($keyPoints as $pointIndex => $point)
-                                <div class="flex gap-3 rounded-2xl bg-sign-soft p-4 sm:gap-4 sm:p-5">
+                                <div class="flex gap-3 rounded-2xl bg-sign-soft p-4 sm:gap-4 sm:p-5 print:break-inside-avoid print:bg-white">
                                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-semibold text-sign-primary">{{ $pointIndex + 1 }}</div>
                                     <p class="text-sm leading-6 text-sign-muted sm:pt-1">{{ $point }}</p>
                                 </div>
@@ -222,9 +269,9 @@
                 @endif
 
                 @if ($lesson->example_content)
-                    <section id="lesson-example" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8">
+                    <section id="lesson-example" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8 print:bg-white print:p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Example</p>
-                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">See the idea in context</h2>
+                        <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl print:text-xl">See the idea in context</h2>
                         <div class="mt-5 whitespace-pre-line rounded-2xl bg-white p-5 text-sm leading-7 text-sign-muted sm:mt-6 sm:p-6 sm:text-base">{{ $lesson->example_content }}</div>
                     </section>
                 @endif
@@ -232,11 +279,11 @@
                 @if (! $hasLessonText)
                     <section class="rounded-2xl border border-dashed border-sign-border bg-sign-soft p-6 text-center sm:rounded-3xl sm:p-10">
                         <h2 class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Lesson notes are being prepared</h2>
-                        <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-sign-muted">This lesson is published, but its learning objectives, notes, key points and examples have not been added yet.</p>
+                        <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-sign-muted">This lesson is published, but its learning text has not been added yet.</p>
                     </section>
                 @endif
 
-                <section id="lesson-practice" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8" aria-labelledby="lesson-practice-heading">
+                <section id="lesson-practice" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8 print:hidden" aria-labelledby="lesson-practice-heading">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Practice</p>
@@ -327,7 +374,7 @@
                 </section>
 
                 @if ($resourceItems->isNotEmpty())
-                    <section id="lesson-resources" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8" aria-labelledby="lesson-resources-heading">
+                    <section id="lesson-resources" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8 print:hidden" aria-labelledby="lesson-resources-heading">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Resources</p>
                         <h2 id="lesson-resources-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Extra learning material</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Use these published handouts, worksheets, downloads, references and media items to support this lesson.</p>
@@ -396,7 +443,7 @@
                     </section>
                 @endif
 
-                <nav class="grid gap-3 border-t border-sign-border pt-6 sm:grid-cols-2 sm:pt-8" aria-label="Lesson navigation">
+                <nav class="grid gap-3 border-t border-sign-border pt-6 sm:grid-cols-2 sm:pt-8 print:hidden" aria-label="Lesson navigation">
                     @if ($previousLessonEntry)
                         <a href="{{ $previousUrl }}" class="rounded-2xl border border-sign-border bg-white p-4 transition hover:border-sign-cyan hover:bg-sign-soft sm:p-5">
                             <span class="text-xs font-semibold uppercase tracking-wider text-sign-muted">← Previous lesson</span>
@@ -425,11 +472,14 @@
                 </nav>
             </div>
 
-            <aside class="space-y-4 xl:sticky xl:top-28" aria-label="Lesson contents">
+            <aside class="space-y-4 xl:sticky xl:top-28 print:hidden" aria-label="Lesson contents">
                 <div class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl">
                     <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">In this lesson</p>
                     <nav class="mt-4 grid gap-1 text-sm" aria-label="Lesson section links">
                         <a href="#lesson-video" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">ISL video</a>
+                        @if ($lesson->simplified_summary)<a href="#lesson-summary" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Simple summary</a>@endif
+                        @if ($lesson->isl_transcript)<a href="#lesson-transcript" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Transcript</a>@endif
+                        @if ($vocabularyItems->isNotEmpty())<a href="#lesson-vocabulary" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Vocabulary</a>@endif
                         @if ($objectives->isNotEmpty())<a href="#lesson-goals" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Learning goals</a>@endif
                         @if ($lesson->content)<a href="#lesson-notes" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Lesson notes</a>@endif
                         @if ($keyPoints->isNotEmpty())<a href="#key-points" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Key points</a>@endif
@@ -438,6 +488,10 @@
                         @if ($resourceItems->isNotEmpty())<a href="#lesson-resources" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Resources</a>@endif
                     </nav>
                 </div>
+
+                @if ($lesson->simplified_summary || $lesson->isl_transcript || $lesson->content || $keyPoints->isNotEmpty() || $vocabularyItems->isNotEmpty())
+                    <button type="button" onclick="window.print()" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft" aria-label="Print lesson text and notes">Print lesson notes</button>
+                @endif
 
                 <a href="{{ $courseUrl }}#course-curriculum" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">View course curriculum</a>
             </aside>
