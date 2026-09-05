@@ -107,11 +107,11 @@
             <section class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-7" aria-labelledby="assessment-questions-heading">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Next build step</p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Question builder</p>
                         <h2 id="assessment-questions-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Questions & answer options</h2>
-                        <p class="mt-2 text-sm leading-6 text-sign-muted">This assessment currently has {{ $assessment->questions_count ?? 0 }} {{ ($assessment->questions_count ?? 0) === 1 ? 'question' : 'questions' }}. The visual question builder is added in Step 9C.</p>
+                        <p class="mt-2 text-sm leading-6 text-sign-muted">This assessment currently has {{ $assessment->questions_count ?? 0 }} {{ ($assessment->questions_count ?? 0) === 1 ? 'question' : 'questions' }}. Build Single Choice, Multiple Choice, True/False and Fill in the Blank questions.</p>
                     </div>
-                    <span class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-2.5 text-sm font-semibold text-sign-muted">Question Builder — Step 9C</span>
+                    <a href="{{ route('admin.assessments.questions.index', $assessment) }}" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-sign-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sign-dark">Open Question Builder</a>
                 </div>
             </section>
         @endif
