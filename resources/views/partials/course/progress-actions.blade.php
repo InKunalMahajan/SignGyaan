@@ -8,14 +8,15 @@
         : null;
 
     $publishedProgressEntries = collect($lessonMap ?? [])->map(fn ($entry) => [
-        'stable_key' => 'lesson-'.$entry['lesson']->id,
-        'legacy_key' => $entry['key'],
+        'stable_key' => $entry['stable_key'] ?? ('lesson-'.$entry['lesson']->id),
+        'legacy_key' => $entry['legacy_key'] ?? null,
     ]);
 
     $normalizedCompletedLessonKeys = collect($existingProgress?->completed_lessons ?? [])
         ->map(function ($savedKey) use ($publishedProgressEntries) {
             $entry = $publishedProgressEntries->first(
-                fn ($entry) => $entry['stable_key'] === $savedKey || $entry['legacy_key'] === $savedKey
+                fn ($entry) => $entry['stable_key'] === $savedKey
+                    || ($entry['legacy_key'] && $entry['legacy_key'] === $savedKey)
             );
 
             return $entry['stable_key'] ?? null;
