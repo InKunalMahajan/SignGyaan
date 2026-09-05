@@ -88,7 +88,7 @@
                                         @foreach ($publishedLessons as $lessonIndex => $lesson)
                                             @php
                                                 $lessonNumber = $lessonIndex + 1;
-                                                $lessonKey = 'unit-' . $unitNumber . '-lesson-' . $lessonNumber;
+                                                $lessonKey = 'lesson-' . $lesson->id;
                                                 $lessonUrl = route('courses.show', [
                                                     'subject' => $subjectSlug,
                                                     'course' => $courseSlug,
