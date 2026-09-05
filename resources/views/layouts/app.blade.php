@@ -29,7 +29,20 @@
     @stack('head')
 </head>
 
-<body class="min-h-screen bg-white font-sans text-sign-text antialiased" data-public-shell>
+@php
+    $accessibilityPreferences = auth()->check()
+        ? (auth()->user()->accessibility_preferences ?? [])
+        : [];
+@endphp
+
+<body
+    class="min-h-screen bg-white font-sans text-sign-text antialiased"
+    data-public-shell
+    data-prefer-captions="{{ $accessibilityPreferences['captions'] ?? 'manual' }}"
+    data-prefer-transcript="{{ $accessibilityPreferences['transcript'] ?? 'show' }}"
+    data-prefer-simple-summary="{{ $accessibilityPreferences['simple_summary'] ?? 'show' }}"
+    data-reduced-motion="{{ $accessibilityPreferences['reduced_motion'] ?? 'system' }}"
+>
     <a
         href="#main-content"
         class="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-sign-dark px-4 py-3 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
@@ -58,5 +71,31 @@
 
     @livewireScripts
     @stack('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const shell = document.body;
+
+            if (shell.dataset.preferCaptions === 'prefer') {
+                document.querySelectorAll('#lesson-video video').forEach((video) => {
+                    const enablePreferredCaptions = () => {
+                        const tracks = Array.from(video.textTracks || []);
+                        const preferredTrack = tracks.find((track) => ['captions', 'subtitles'].includes(track.kind));
+
+                        if (preferredTrack) {
+                            tracks.forEach((track) => {
+                                if (['captions', 'subtitles'].includes(track.kind)) {
+                                    track.mode = track === preferredTrack ? 'showing' : 'hidden';
+                                }
+                            });
+                        }
+                    };
+
+                    video.addEventListener('loadedmetadata', enablePreferredCaptions, { once: true });
+                    enablePreferredCaptions();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
