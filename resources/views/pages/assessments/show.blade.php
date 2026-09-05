@@ -95,9 +95,15 @@
     <section class="bg-white py-10 sm:py-14 lg:py-18">
         <x-container>
             <div class="mx-auto max-w-4xl">
+                @if (session('status'))
+                    <div class="mb-6 rounded-2xl border border-sign-cyan bg-sign-light px-5 py-4 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4" role="alert" aria-live="polite" data-error-summary>
-                        <p class="text-sm font-semibold text-red-800">This assessment cannot be started right now.</p>
+                        <p class="text-sm font-semibold text-red-800">The assessment action could not be completed.</p>
                         <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -119,9 +125,9 @@
                             <p class="mt-2 text-sm leading-6 text-sign-muted">Questions may use single choice, multiple choice, true/false or typed answers.</p>
                         </div>
                         <div class="rounded-2xl bg-white p-5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">3. Review</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">3. Submit</span>
                             <h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Check before finishing</h2>
-                            <p class="mt-2 text-sm leading-6 text-sign-muted">Your in-progress answers can be saved while you work through the assessment.</p>
+                            <p class="mt-2 text-sm leading-6 text-sign-muted">Save progress while working, then submit when you are ready for automatic scoring.</p>
                         </div>
                     </div>
 
