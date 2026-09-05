@@ -72,6 +72,7 @@
     @livewireScripts
     @stack('scripts')
     <script src="{{ asset('js/learner-dashboard-accessibility.js') }}" defer></script>
+    <script src="{{ asset('js/notification-accessibility.js') }}" defer></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
