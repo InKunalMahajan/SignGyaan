@@ -36,107 +36,29 @@ body {
     overflow-wrap: anywhere;
 }
 
-main {
-    min-width: 0;
-}
+main { min-width: 0; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); text-wrap: balance; }
+p { text-wrap: pretty; }
+img, video, canvas, iframe { max-width: 100%; }
+video, iframe { width: 100%; }
+a, button { touch-action: manipulation; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+input, select, textarea, button { font-family: inherit; }
+input:disabled, select:disabled, textarea:disabled, button:disabled { cursor: not-allowed; opacity: 0.65; }
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: #fca5a5; }
+input[aria-invalid="true"]:focus, select[aria-invalid="true"]:focus, textarea[aria-invalid="true"]:focus { border-color: #dc2626; box-shadow: 0 0 0 4px #fee2e2; }
+::selection { background: var(--color-sign-light); color: var(--color-sign-dark); }
+:focus-visible { outline: 3px solid var(--color-sign-cyan); outline-offset: 3px; }
+:target { scroll-margin-top: 6rem; }
+[x-cloak] { display: none !important; }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: var(--font-heading);
-    text-wrap: balance;
-}
-
-p {
-    text-wrap: pretty;
-}
-
-img,
-video,
-canvas,
-iframe {
-    max-width: 100%;
-}
-
-video,
-iframe {
-    width: 100%;
-}
-
-a,
-button {
-    touch-action: manipulation;
-}
-
-button,
-a,
-input,
-select,
-textarea {
-    -webkit-tap-highlight-color: transparent;
-}
-
-input,
-select,
-textarea,
-button {
-    font-family: inherit;
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled,
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-}
-
-input[aria-invalid="true"],
-select[aria-invalid="true"],
-textarea[aria-invalid="true"] {
-    border-color: #fca5a5;
-}
-
-input[aria-invalid="true"]:focus,
-select[aria-invalid="true"]:focus,
-textarea[aria-invalid="true"]:focus {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 4px #fee2e2;
-}
-
-::selection {
-    background: var(--color-sign-light);
-    color: var(--color-sign-dark);
-}
-
-:focus-visible {
-    outline: 3px solid var(--color-sign-cyan);
-    outline-offset: 3px;
-}
-
-:target {
-    scroll-margin-top: 6rem;
-}
-
-[x-cloak] {
-    display: none !important;
-}
-
-/* Authentication and account forms */
 [data-auth-page] input,
 [data-auth-page] button,
 [data-account-page] input,
-[data-account-page] button {
-    min-height: 3rem;
-}
+[data-account-page] button { min-height: 3rem; }
 
 [data-auth-page] [role="alert"],
-[data-account-page] [role="alert"] {
-    scroll-margin-top: 6rem;
-}
+[data-account-page] [role="alert"] { scroll-margin-top: 6rem; }
 
 [data-auth-page] input:-webkit-autofill,
 [data-account-page] input:-webkit-autofill {
@@ -145,36 +67,32 @@ textarea[aria-invalid="true"]:focus {
     transition: background-color 9999s ease-out;
 }
 
-/* Public learner shell */
-[data-public-shell] [data-public-main] {
-    overflow-x: clip;
+[data-public-shell] [data-public-main] { overflow-x: clip; }
+[data-public-shell] [role="alert"], [data-public-shell] [role="status"] { scroll-margin-top: 6rem; }
+[data-public-shell] input, [data-public-shell] select, [data-public-shell] textarea { font-size: 1rem; }
+[data-public-shell] video { height: auto; }
+[data-public-shell] .overflow-x-auto { overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+[data-public-shell] a[target="_blank"] { overflow-wrap: anywhere; }
+
+/* Learner accessibility preferences */
+[data-public-shell][data-prefer-transcript="hide"] #lesson-transcript,
+[data-public-shell][data-prefer-simple-summary="hide"] #lesson-summary {
+    display: none;
 }
 
-[data-public-shell] [role="alert"],
-[data-public-shell] [role="status"] {
-    scroll-margin-top: 6rem;
+[data-public-shell][data-reduced-motion="on"] {
+    scroll-behavior: auto;
 }
 
-[data-public-shell] input,
-[data-public-shell] select,
-[data-public-shell] textarea {
-    font-size: 1rem;
+[data-public-shell][data-reduced-motion="on"] *,
+[data-public-shell][data-reduced-motion="on"] *::before,
+[data-public-shell][data-reduced-motion="on"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
 }
 
-[data-public-shell] video {
-    height: auto;
-}
-
-[data-public-shell] .overflow-x-auto {
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-}
-
-[data-public-shell] a[target="_blank"] {
-    overflow-wrap: anywhere;
-}
-
-/* Explore + Search horizontal filter strips */
 [aria-label="Explore categories"],
 [aria-label="Filter by result type"],
 [aria-label="Search result types"] {
@@ -186,23 +104,14 @@ textarea[aria-invalid="true"]:focus {
 
 [aria-label="Explore categories"]::-webkit-scrollbar,
 [aria-label="Filter by result type"]::-webkit-scrollbar,
-[aria-label="Search result types"]::-webkit-scrollbar {
-    display: none;
-}
+[aria-label="Search result types"]::-webkit-scrollbar { display: none; }
 
 [aria-label="Explore categories"] > div > a,
 [aria-label="Filter by result type"] > div > a,
-[aria-label="Search result types"] > div > a {
-    scroll-snap-align: start;
-}
+[aria-label="Search result types"] > div > a { scroll-snap-align: start; }
 
-#desktop-global-search,
-#desktop-account-menu,
-#mobile-navigation {
-    overscroll-behavior: contain;
-}
+#desktop-global-search, #desktop-account-menu, #mobile-navigation { overscroll-behavior: contain; }
 
-/* Keep search and account fields comfortable on touch devices and prevent mobile zoom. */
 #explore-search,
 #search-page-input,
 #catalog-search,
@@ -213,213 +122,73 @@ textarea[aria-invalid="true"]:focus {
 [data-auth-page] input,
 [data-account-page] input,
 [data-account-page] select,
-[data-account-page] textarea {
-    font-size: 1rem;
-}
+[data-account-page] textarea { font-size: 1rem; }
 
-/* Admin console responsive and accessibility polish */
-[data-admin-shell] {
-    background: var(--color-sign-soft);
-}
-
-[data-admin-shell] [data-admin-main] {
-    overflow-x: clip;
-}
-
-[data-admin-shell] input,
-[data-admin-shell] select,
-[data-admin-shell] textarea {
-    font-size: 1rem;
-}
-
+[data-admin-shell] { background: var(--color-sign-soft); }
+[data-admin-shell] [data-admin-main] { overflow-x: clip; }
+[data-admin-shell] input, [data-admin-shell] select, [data-admin-shell] textarea { font-size: 1rem; }
 [data-admin-shell] input:not([type="checkbox"]):not([type="radio"]),
 [data-admin-shell] select,
 [data-admin-shell] textarea,
 [data-admin-shell] main button,
-[data-admin-shell] main a {
-    min-height: 2.75rem;
-}
-
-[data-admin-shell] textarea {
-    resize: vertical;
-}
-
-[data-admin-shell] table {
-    border-collapse: collapse;
-}
-
-[data-admin-shell] table th {
-    white-space: nowrap;
-}
-
+[data-admin-shell] main a { min-height: 2.75rem; }
+[data-admin-shell] textarea { resize: vertical; }
+[data-admin-shell] table { border-collapse: collapse; }
+[data-admin-shell] table th { white-space: nowrap; }
 [data-admin-shell] [role="alert"],
 [data-admin-shell] [role="status"],
-[data-admin-shell] [data-error-summary] {
-    scroll-margin-top: 6rem;
-}
-
-[data-admin-shell] form :is(input, select, textarea):focus-visible {
-    outline-offset: 1px;
-}
-
-[data-admin-shell] form :is(input, select, textarea)[aria-invalid="true"] {
-    border-color: #dc2626;
-}
-
-[data-admin-shell] .overflow-x-auto {
-    overscroll-behavior-inline: contain;
-    scrollbar-gutter: stable;
-    -webkit-overflow-scrolling: touch;
-}
-
-html.admin-nav-open,
-html.admin-nav-open body {
-    overflow: hidden;
-}
-
-#admin-mobile-navigation {
-    overscroll-behavior: contain;
-}
+[data-admin-shell] [data-error-summary] { scroll-margin-top: 6rem; }
+[data-admin-shell] form :is(input, select, textarea):focus-visible { outline-offset: 1px; }
+[data-admin-shell] form :is(input, select, textarea)[aria-invalid="true"] { border-color: #dc2626; }
+[data-admin-shell] .overflow-x-auto { overscroll-behavior-inline: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; }
+html.admin-nav-open, html.admin-nav-open body { overflow: hidden; }
+#admin-mobile-navigation { overscroll-behavior: contain; }
 
 @media (max-width: 639px) {
-    html {
-        scroll-padding-top: 5rem;
-    }
-
-    :target {
-        scroll-margin-top: 5rem;
-    }
-
-    h1 {
-        line-height: 1.12;
-    }
-
-    h2 {
-        line-height: 1.18;
-    }
-
-    [data-public-shell] [data-public-main] > section {
-        max-width: 100%;
-    }
-
-    [data-public-shell] iframe,
-    [data-public-shell] video {
-        border-radius: 0;
-    }
-
-    /* Keep authentication pages focused and compact on phones. */
-    [data-auth-page] {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-    }
-
-    [data-auth-page] [data-auth-visual] {
-        padding-top: 1.5rem;
-        padding-bottom: 1.5rem;
-    }
-
-    [data-auth-page] [data-auth-benefits] {
-        display: none;
-    }
-
-    [data-auth-page] [data-auth-form] {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-
-    [data-account-page] {
-        overflow-x: clip;
-    }
-
-    /* Main Explore search button becomes a clear full-width touch target. */
-    form:has(#explore-search) > div > button[type="submit"] {
-        width: 100%;
-    }
-
-    /* Dedicated Search page primary submit button. */
+    html { scroll-padding-top: 5rem; }
+    :target { scroll-margin-top: 5rem; }
+    h1 { line-height: 1.12; }
+    h2 { line-height: 1.18; }
+    [data-public-shell] [data-public-main] > section { max-width: 100%; }
+    [data-public-shell] iframe, [data-public-shell] video { border-radius: 0; }
+    [data-auth-page] { padding-top: 1rem; padding-bottom: 1rem; }
+    [data-auth-page] [data-auth-visual] { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    [data-auth-page] [data-auth-benefits] { display: none; }
+    [data-auth-page] [data-auth-form] { padding-top: 2rem; padding-bottom: 2rem; }
+    [data-account-page] { overflow-x: clip; }
+    form:has(#explore-search) > div > button[type="submit"] { width: 100%; }
     form:has(#search-page-input) > div:first-of-type > button[type="submit"],
-    form:has(#catalog-search) > div:first-of-type > button[type="submit"] {
-        width: 100%;
-    }
-
-    [aria-label="Explore categories"],
-    [aria-label="Filter by result type"],
-    [aria-label="Search result types"] {
-        scroll-snap-type: x proximity;
-    }
-
-    aside[aria-label="Search filters summary"] {
-        border-radius: 1.25rem;
-    }
-
-    [data-admin-shell] [data-admin-main] > section {
-        padding-top: 1.25rem;
-        padding-bottom: 1.75rem;
-    }
-
-    [data-admin-shell] [data-admin-main] form button[type="submit"],
-    [data-admin-shell] [data-admin-main] form a {
-        max-width: 100%;
-    }
+    form:has(#catalog-search) > div:first-of-type > button[type="submit"] { width: 100%; }
+    [aria-label="Explore categories"], [aria-label="Filter by result type"], [aria-label="Search result types"] { scroll-snap-type: x proximity; }
+    aside[aria-label="Search filters summary"] { border-radius: 1.25rem; }
+    [data-admin-shell] [data-admin-main] > section { padding-top: 1.25rem; padding-bottom: 1.75rem; }
+    [data-admin-shell] [data-admin-main] form button[type="submit"], [data-admin-shell] [data-admin-main] form a { max-width: 100%; }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
-    #explore-search,
-    #search-page-input,
-    #catalog-search {
-        min-width: 0;
-    }
-
-    [data-auth-page] [data-auth-benefits] {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    #explore-search, #search-page-input, #catalog-search { min-width: 0; }
+    [data-auth-page] [data-auth-benefits] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1024px) {
-    html.admin-nav-open,
-    html.admin-nav-open body {
-        overflow: auto;
-    }
+    html.admin-nav-open, html.admin-nav-open body { overflow: auto; }
 }
 
 @media (prefers-contrast: more) {
-    :focus-visible {
-        outline-width: 4px;
-    }
-
-    a {
-        text-decoration-thickness: max(1px, 0.08em);
-    }
-
-    [aria-current="page"] {
-        outline: 2px solid currentColor;
-        outline-offset: -2px;
-    }
+    :focus-visible { outline-width: 4px; }
+    a { text-decoration-thickness: max(1px, 0.08em); }
+    [aria-current="page"] { outline: 2px solid currentColor; outline-offset: -2px; }
 }
 
 @media (forced-colors: active) {
-    :focus-visible {
-        outline: 3px solid Highlight;
-    }
-
-    [role="progressbar"] > div {
-        forced-color-adjust: none;
-        background: Highlight;
-    }
-
-    [aria-current="page"] {
-        border: 2px solid Highlight;
-    }
+    :focus-visible { outline: 3px solid Highlight; }
+    [role="progressbar"] > div { forced-color-adjust: none; background: Highlight; }
+    [aria-current="page"] { border: 2px solid Highlight; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
-
-    *,
-    *::before,
-    *::after {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
