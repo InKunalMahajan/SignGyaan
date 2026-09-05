@@ -5,7 +5,7 @@
 @endphp
 
 @if ($errors->any())
-    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite">
+    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite" data-error-summary>
         <p class="text-sm font-semibold text-red-800">Please check the lesson details.</p>
         <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
             @foreach ($errors->all() as $error)
@@ -55,6 +55,13 @@
                     <textarea id="short_description" name="short_description" rows="3" maxlength="255" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="A short summary of what this lesson teaches.">{{ old('short_description', $lesson->short_description ?? '') }}</textarea>
                     @error('short_description')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
                 </div>
+
+                <div>
+                    <label for="simplified_summary" class="mb-2 block text-sm font-semibold text-sign-primary">Simple summary</label>
+                    <textarea id="simplified_summary" name="simplified_summary" rows="5" maxlength="10000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base leading-7 text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="Explain this lesson in short, simple sentences for quick understanding.">{{ old('simplified_summary', $lesson->simplified_summary ?? '') }}</textarea>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Shown near the top of the public lesson as an easy-to-read overview.</p>
+                    @error('simplified_summary')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
             </div>
         </section>
 
@@ -94,8 +101,8 @@
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="lesson-isl-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h2 id="lesson-isl-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">ISL video support</h2>
-                    <p class="mt-2 text-sm leading-6 text-sign-muted">Choose a reusable Media Library video first. A direct URL with its own title and caption can be kept as a fallback.</p>
+                    <h2 id="lesson-isl-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">ISL video & text support</h2>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Choose the ISL video, then add a transcript and important vocabulary so learners can review the same content in text.</p>
                 </div>
                 <a href="{{ route('admin.media.index', ['type' => 'video', 'isl' => 'yes']) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light">Open ISL Videos</a>
             </div>
@@ -137,6 +144,20 @@
                             @error('isl_video_caption')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
                         </div>
                     </div>
+                </div>
+
+                <div>
+                    <label for="isl_transcript" class="mb-2 block text-sm font-semibold text-sign-primary">ISL video transcript</label>
+                    <textarea id="isl_transcript" name="isl_transcript" rows="12" maxlength="100000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base leading-7 text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="Write the spoken/written equivalent of the ISL video content. Keep the order close to the video where possible.">{{ old('isl_transcript', $lesson->isl_transcript ?? '') }}</textarea>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Displayed below the video so learners can read, search and print the lesson content.</p>
+                    @error('isl_transcript')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="key_vocabulary" class="mb-2 block text-sm font-semibold text-sign-primary">Key vocabulary</label>
+                    <textarea id="key_vocabulary" name="key_vocabulary" rows="7" maxlength="50000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base leading-7 text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="Keyboard — a device used to type text&#10;Mouse — a pointing device&#10;Monitor — a screen that displays output">{{ old('key_vocabulary', $lesson->key_vocabulary ?? '') }}</textarea>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Use one term per line. You can write “Term — meaning” for a simple glossary.</p>
+                    @error('key_vocabulary')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
                 </div>
             </div>
         </section>
