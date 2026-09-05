@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AssessmentController;
 use App\Http\Controllers\Admin\AssessmentQuestionController;
 use App\Http\Controllers\Admin\AssessmentResultController;
+use App\Http\Controllers\Admin\CourseBuilderController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
@@ -22,6 +23,9 @@ Route::middleware(['auth', 'admin'])
 
         Route::resource('subjects', SubjectController::class)
             ->except('show');
+
+        Route::get('/courses/{course}/builder', CourseBuilderController::class)
+            ->name('courses.builder');
 
         Route::resource('courses', CourseController::class)
             ->except('show');
