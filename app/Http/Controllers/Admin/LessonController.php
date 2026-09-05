@@ -182,6 +182,8 @@ class LessonController extends Controller
             'key_points' => ['nullable', 'string', 'max:50000'],
             'example_content' => ['nullable', 'string', 'max:50000'],
             'isl_video_url' => ['nullable', 'url', 'max:2048'],
+            'isl_video_title' => ['nullable', 'string', 'max:180'],
+            'isl_video_caption' => ['nullable', 'string', 'max:5000'],
             'isl_media_asset_id' => [
                 'nullable',
                 'integer',
@@ -196,6 +198,7 @@ class LessonController extends Controller
     {
         return MediaAsset::query()
             ->where('media_type', 'video')
+            ->orderByDesc('is_isl')
             ->orderByDesc('is_published')
             ->orderBy('title')
             ->get();
