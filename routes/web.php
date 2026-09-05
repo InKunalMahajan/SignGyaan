@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PublicAssessmentController;
 use App\Http\Controllers\PublicCatalogController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,26 @@ Route::get('/subjects/{subject}/courses/{course}', [PublicCatalogController::cla
         'course' => '[a-z0-9]+(?:-[a-z0-9]+)*',
     ])
     ->name('courses.show');
+
+Route::get('/assessments/{assessment}', [PublicAssessmentController::class, 'show'])
+    ->whereNumber('assessment')
+    ->name('assessments.show');
+
+Route::middleware('auth')->group(function () {
+    Route::post('/assessments/{assessment}/start', [PublicAssessmentController::class, 'start'])
+        ->whereNumber('assessment')
+        ->middleware('throttle:20,1')
+        ->name('assessments.start');
+
+    Route::get('/assessments/{assessment}/attempts/{attempt}', [PublicAssessmentController::class, 'play'])
+        ->whereNumber('assessment')
+        ->name('assessment-attempts.show');
+
+    Route::post('/assessments/{assessment}/attempts/{attempt}/save', [PublicAssessmentController::class, 'save'])
+        ->whereNumber('assessment')
+        ->middleware('throttle:60,1')
+        ->name('assessment-attempts.save');
+});
 
 Route::get('/explore', [PublicCatalogController::class, 'explore'])
     ->name('explore');
