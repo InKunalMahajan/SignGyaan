@@ -27,6 +27,13 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function accessibility(Request $request): View
+    {
+        return view('accessibility-preferences', [
+            'user' => $request->user(),
+        ]);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
