@@ -38,6 +38,10 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('assessment')
         ->name('assessment-attempts.show');
 
+    Route::get('/assessments/{assessment}/attempts/{attempt}/result', [PublicAssessmentController::class, 'result'])
+        ->whereNumber('assessment')
+        ->name('assessment-attempts.result');
+
     Route::post('/assessments/{assessment}/attempts/{attempt}/save', [PublicAssessmentController::class, 'save'])
         ->whereNumber('assessment')
         ->middleware('throttle:60,1')
