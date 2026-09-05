@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\UserManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,7 +12,7 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, UserManagementService $userManagement): View
     {
         $query = User::query()
             ->withCount('learningProgress')
@@ -27,8 +28,21 @@ class UserController extends Controller
             });
         }
 
-        if (in_array($request->input('role'), ['learner', 'admin'], true)) {
-            $query->where('role', $request->input('role'));
+        $role = (string) $request->input('role', '');
+        if (array_key_exists($role, $userManagement->roles())) {
+            $query->where('role', $role);
+        }
+
+        $status = (string) $request->input('status', '');
+        if (array_key_exists($status, $userManagement->statuses())) {
+            $query->where('status', $status);
+        }
+
+        $verification = (string) $request->input('verification', '');
+        if ($verification === 'verified') {
+            $query->whereNotNull('email_verified_at');
+        } elseif ($verification === 'unverified') {
+            $query->whereNull('email_verified_at');
         }
 
         if ($request->input('activity') === 'tracked') {
@@ -37,15 +51,29 @@ class UserController extends Controller
             $query->doesntHave('learningProgress');
         }
 
+        $sort = (string) $request->input('sort', 'newest');
+        match ($sort) {
+            'oldest' => $query->oldest('created_at'),
+            'name' => $query->orderBy('name'),
+            'last_login' => $query->orderByRaw('last_login_at IS NULL, last_login_at DESC'),
+            default => $query->latest('created_at'),
+        };
+
+        $now = now();
+
         return view('admin.users.index', [
-            'users' => $query
-                ->latest('created_at')
-                ->paginate(20)
-                ->withQueryString(),
+            'users' => $query->paginate(20)->withQueryString(),
+            'roleOptions' => $userManagement->roles(),
+            'statusOptions' => $userManagement->statuses(),
             'totalUsers' => User::query()->count(),
-            'learnerCount' => User::query()->where('role', 'learner')->count(),
-            'adminCount' => User::query()->where('role', 'admin')->count(),
+            'learnerCount' => User::query()->where('role', User::ROLE_LEARNER)->count(),
+            'adminCount' => User::query()->where('role', User::ROLE_ADMIN)->count(),
+            'activeCount' => User::query()->where('status', User::STATUS_ACTIVE)->count(),
+            'suspendedCount' => User::query()->where('status', User::STATUS_SUSPENDED)->count(),
+            'disabledCount' => User::query()->where('status', User::STATUS_DISABLED)->count(),
+            'verifiedCount' => User::query()->whereNotNull('email_verified_at')->count(),
             'usersWithProgress' => User::query()->has('learningProgress')->count(),
+            'newUsersThisWeek' => User::query()->where('created_at', '>=', $now->copy()->subDays(7))->count(),
         ]);
     }
 
