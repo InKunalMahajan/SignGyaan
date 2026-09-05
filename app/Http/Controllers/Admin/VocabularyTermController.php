@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Lesson;
 use App\Models\MediaAsset;
 use App\Models\Subject;
 use App\Models\VocabularyTerm;
@@ -17,7 +18,7 @@ class VocabularyTermController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = VocabularyTerm::query()->with(['subject', 'course', 'mediaAsset']);
+        $query = VocabularyTerm::query()->with(['subject', 'course', 'mediaAsset'])->withCount('lessons');
 
         if ($request->filled('q')) {
             $search = trim((string) $request->input('q'));
@@ -81,25 +82,33 @@ class VocabularyTermController extends Controller
     {
         $request->merge(['slug' => Str::slug((string) ($request->input('slug') ?: $request->input('term')))]);
         $validated = $this->validateTerm($request);
+        $lessonIds = $validated['lesson_ids'] ?? [];
+        unset($validated['lesson_ids']);
         $validated['is_published'] = $request->boolean('is_published');
 
-        VocabularyTerm::create($validated);
+        $term = VocabularyTerm::create($validated);
+        $this->syncLessons($term, $lessonIds);
 
         return redirect()->route('admin.vocabulary.index')->with('status', 'Vocabulary term created successfully.');
     }
 
     public function edit(VocabularyTerm $vocabulary): View
     {
-        return view('admin.vocabulary.edit', $this->formData() + ['vocabulary' => $vocabulary->load(['subject', 'course', 'mediaAsset'])]);
+        return view('admin.vocabulary.edit', $this->formData() + [
+            'vocabulary' => $vocabulary->load(['subject', 'course', 'mediaAsset', 'lessons.unit.course.subject']),
+        ]);
     }
 
     public function update(Request $request, VocabularyTerm $vocabulary): RedirectResponse
     {
         $request->merge(['slug' => Str::slug((string) ($request->input('slug') ?: $request->input('term')))]);
         $validated = $this->validateTerm($request, $vocabulary);
+        $lessonIds = $validated['lesson_ids'] ?? [];
+        unset($validated['lesson_ids']);
         $validated['is_published'] = $request->boolean('is_published');
 
         $vocabulary->update($validated);
+        $this->syncLessons($vocabulary, $lessonIds);
 
         return redirect()->route('admin.vocabulary.index')->with('status', 'Vocabulary term updated successfully.');
     }
@@ -113,7 +122,6 @@ class VocabularyTermController extends Controller
 
     private function validateTerm(Request $request, ?VocabularyTerm $term = null): array
     {
-        $courseId = $request->integer('course_id') ?: null;
         $subjectId = $request->integer('subject_id') ?: null;
 
         $slugRule = Rule::unique('vocabulary_terms', 'slug');
@@ -138,6 +146,8 @@ class VocabularyTermController extends Controller
                 Rule::exists('media_assets', 'id')->where(fn ($query) => $query->where('media_type', 'video')->where('is_isl', true)),
             ],
             'isl_video_url' => ['nullable', 'url', 'max:2048'],
+            'lesson_ids' => ['nullable', 'array', 'max:200'],
+            'lesson_ids.*' => ['integer', 'distinct', Rule::exists('lessons', 'id')],
             'sort_order' => ['required', 'integer', 'min:0', 'max:9999'],
         ]);
     }
@@ -147,7 +157,29 @@ class VocabularyTermController extends Controller
         return [
             'subjects' => Subject::query()->orderBy('sort_order')->orderBy('name')->get(),
             'courses' => Course::query()->with('subject')->orderBy('subject_id')->orderBy('sort_order')->orderBy('title')->get(),
-            'mediaAssets' => MediaAsset::query()->where('media_type', 'video')->where('is_isl', true)->orderByDesc('is_published')->orderBy('title')->get(),
+            'lessons' => Lesson::query()
+                ->with('unit.course.subject')
+                ->orderBy('unit_id')
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get(),
+            'mediaAssets' => MediaAsset::query()
+                ->where('media_type', 'video')
+                ->where('is_isl', true)
+                ->orderByDesc('is_published')
+                ->orderBy('title')
+                ->get(),
         ];
+    }
+
+    private function syncLessons(VocabularyTerm $term, array $lessonIds): void
+    {
+        $syncData = [];
+
+        foreach (array_values($lessonIds) as $index => $lessonId) {
+            $syncData[(int) $lessonId] = ['sort_order' => $index];
+        }
+
+        $term->lessons()->sync($syncData);
     }
 }
