@@ -16,13 +16,12 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     public const ROLE_LEARNER = 'learner';
-
+    public const ROLE_TEACHER = 'teacher';
     public const ROLE_ADMIN = 'admin';
+    public const ROLE_SUPER_ADMIN = 'super_admin';
 
     public const STATUS_ACTIVE = 'active';
-
     public const STATUS_SUSPENDED = 'suspended';
-
     public const STATUS_DISABLED = 'disabled';
 
     protected $fillable = [
@@ -91,12 +90,32 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN;
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->role === self::ROLE_TEACHER;
     }
 
     public function isLearner(): bool
     {
         return $this->role === self::ROLE_LEARNER;
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return app(\App\Services\RolePermissionService::class)->allows($this, $permission);
     }
 
     public function isActive(): bool
