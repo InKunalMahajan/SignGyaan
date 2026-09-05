@@ -3,11 +3,293 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Lesson;
 use App\Models\Subject;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PublicCatalogController extends Controller
 {
+    public function home(Request $request): View
+    {
+        $subjects = Subject::query()
+            ->published()
+            ->withCount([
+                'courses as courses_count' => fn ($query) => $query->published(),
+            ])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->limit(6)
+            ->get();
+
+        $featuredCourses = Course::query()
+            ->published()
+            ->whereHas('subject', fn ($query) => $query->published())
+            ->with('subject')
+            ->withCount([
+                'units as units_count' => fn ($query) => $query->published(),
+                'lessons as lessons_count' => fn ($query) => $query
+                    ->published()
+                    ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+            ])
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->limit(6)
+            ->get();
+
+        $popularLessons = Lesson::query()
+            ->published()
+            ->whereHas('unit', fn ($unitQuery) => $unitQuery
+                ->published()
+                ->whereHas('course', fn ($courseQuery) => $courseQuery
+                    ->published()
+                    ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->published())))
+            ->with('unit.course.subject')
+            ->orderByDesc('updated_at')
+            ->orderBy('title')
+            ->limit(6)
+            ->get();
+
+        $continueLearning = collect();
+
+        if ($request->user()) {
+            $progressItems = $request->user()
+                ->learningProgress()
+                ->latest('last_accessed_at')
+                ->limit(3)
+                ->get();
+
+            $continueLearning = $progressItems->map(function ($progress) {
+                $course = Course::query()
+                    ->published()
+                    ->where('slug', $progress->course_slug)
+                    ->whereHas('subject', fn ($query) => $query
+                        ->published()
+                        ->where('slug', $progress->subject_slug))
+                    ->with('subject')
+                    ->first();
+
+                if (! $course) {
+                    return null;
+                }
+
+                $parameters = [
+                    'subject' => $course->subject->slug,
+                    'course' => $course->slug,
+                ];
+
+                if ($progress->current_lesson_key) {
+                    $parameters['lesson'] = $progress->current_lesson_key;
+                }
+
+                return [
+                    'progress' => $progress,
+                    'course' => $course,
+                    'url' => route('courses.show', $parameters),
+                ];
+            })->filter()->values();
+        }
+
+        return view('home', compact(
+            'subjects',
+            'featuredCourses',
+            'popularLessons',
+            'continueLearning'
+        ));
+    }
+
+    public function learn(): View
+    {
+        $subjects = Subject::query()
+            ->published()
+            ->with([
+                'courses' => fn ($query) => $query
+                    ->published()
+                    ->withCount([
+                        'units as units_count' => fn ($unitQuery) => $unitQuery->published(),
+                        'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery
+                            ->published()
+                            ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+                    ])
+                    ->orderBy('sort_order')
+                    ->orderBy('title'),
+            ])
+            ->withCount([
+                'courses as courses_count' => fn ($query) => $query->published(),
+            ])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $learningPaths = Course::query()
+            ->published()
+            ->whereHas('subject', fn ($query) => $query->published())
+            ->with('subject')
+            ->withCount([
+                'units as units_count' => fn ($query) => $query->published(),
+                'lessons as lessons_count' => fn ($query) => $query
+                    ->published()
+                    ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+            ])
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->limit(9)
+            ->get();
+
+        $catalogCounts = [
+            'subjects' => $subjects->count(),
+            'courses' => $subjects->sum('courses_count'),
+            'lessons' => $subjects->sum(fn ($subject) => $subject->courses->sum('lessons_count')),
+        ];
+
+        return view('pages.learn', compact('subjects', 'learningPaths', 'catalogCounts'));
+    }
+
+    public function explore(Request $request): View
+    {
+        $query = trim((string) $request->query('q', ''));
+        $activeType = in_array($request->query('type'), ['course', 'lesson'], true)
+            ? (string) $request->query('type')
+            : 'all';
+
+        $subjects = Subject::query()
+            ->published()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $requestedCategory = (string) $request->query('category', 'all');
+        $activeCategory = $requestedCategory !== 'all' && $subjects->contains('slug', $requestedCategory)
+            ? $requestedCategory
+            : 'all';
+
+        $items = collect();
+
+        if ($activeType !== 'lesson') {
+            $courseQuery = Course::query()
+                ->published()
+                ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->published())
+                ->with('subject')
+                ->withCount([
+                    'units as units_count' => fn ($unitQuery) => $unitQuery->published(),
+                    'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery
+                        ->published()
+                        ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+                ]);
+
+            if ($activeCategory !== 'all') {
+                $courseQuery->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('slug', $activeCategory));
+            }
+
+            if ($query !== '') {
+                $courseQuery->where(function ($builder) use ($query) {
+                    $builder
+                        ->where('title', 'like', "%{$query}%")
+                        ->orWhere('short_description', 'like', "%{$query}%")
+                        ->orWhere('description', 'like', "%{$query}%")
+                        ->orWhereHas('subject', fn ($subjectQuery) => $subjectQuery->where('name', 'like', "%{$query}%"));
+                });
+            }
+
+            $courses = $courseQuery
+                ->orderByDesc('is_featured')
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->limit(36)
+                ->get();
+
+            foreach ($courses as $course) {
+                $items->push([
+                    'type' => 'Course',
+                    'type_key' => 'course',
+                    'title' => $course->title,
+                    'subject' => $course->subject->name,
+                    'category' => $course->subject->slug,
+                    'description' => $course->short_description ?: ($course->description ?: 'Structured visual learning with clear units and lessons.'),
+                    'meta' => $course->units_count.' '.($course->units_count === 1 ? 'unit' : 'units').' · '.$course->lessons_count.' '.($course->lessons_count === 1 ? 'lesson' : 'lessons'),
+                    'url' => route('courses.show', [
+                        'subject' => $course->subject->slug,
+                        'course' => $course->slug,
+                    ]),
+                    'featured' => $course->is_featured,
+                ]);
+            }
+        }
+
+        if ($activeType !== 'course') {
+            $lessonQuery = Lesson::query()
+                ->published()
+                ->whereHas('unit', fn ($unitQuery) => $unitQuery
+                    ->published()
+                    ->whereHas('course', fn ($courseQuery) => $courseQuery
+                        ->published()
+                        ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->published())))
+                ->with('unit.course.subject');
+
+            if ($activeCategory !== 'all') {
+                $lessonQuery->whereHas('unit.course.subject', fn ($subjectQuery) => $subjectQuery->where('slug', $activeCategory));
+            }
+
+            if ($query !== '') {
+                $lessonQuery->where(function ($builder) use ($query) {
+                    $builder
+                        ->where('title', 'like', "%{$query}%")
+                        ->orWhere('short_description', 'like', "%{$query}%")
+                        ->orWhere('content', 'like', "%{$query}%")
+                        ->orWhereHas('unit', fn ($unitQuery) => $unitQuery->where('title', 'like', "%{$query}%"))
+                        ->orWhereHas('unit.course', fn ($courseQuery) => $courseQuery->where('title', 'like', "%{$query}%"))
+                        ->orWhereHas('unit.course.subject', fn ($subjectQuery) => $subjectQuery->where('name', 'like', "%{$query}%"));
+                });
+            }
+
+            $lessons = $lessonQuery
+                ->orderByDesc('updated_at')
+                ->orderBy('title')
+                ->limit(36)
+                ->get();
+
+            foreach ($lessons as $lesson) {
+                $course = $lesson->unit->course;
+                $subject = $course->subject;
+
+                $items->push([
+                    'type' => 'Lesson',
+                    'type_key' => 'lesson',
+                    'title' => $lesson->title,
+                    'subject' => $subject->name,
+                    'category' => $subject->slug,
+                    'description' => $lesson->short_description ?: 'Open this lesson for visual notes, examples, ISL support and practice where available.',
+                    'meta' => $course->title.' · '.$lesson->unit->title,
+                    'url' => route('courses.show', [
+                        'subject' => $subject->slug,
+                        'course' => $course->slug,
+                        'lesson' => 'lesson-'.$lesson->id,
+                    ]),
+                    'featured' => false,
+                ]);
+            }
+        }
+
+        $items = $items
+            ->sortBy([
+                ['featured', 'desc'],
+                ['type_key', 'asc'],
+                ['title', 'asc'],
+            ])
+            ->take(48)
+            ->values();
+
+        return view('pages.explore', [
+            'subjects' => $subjects,
+            'items' => $items,
+            'query' => $query,
+            'activeCategory' => $activeCategory,
+            'activeType' => $activeType,
+        ]);
+    }
+
     public function subjects(): View
     {
         $subjects = Subject::query()
@@ -124,9 +406,16 @@ class PublicCatalogController extends Controller
         $currentLessonIndex = null;
 
         if ($requestedLessonKey !== '') {
-            $currentLessonIndex = $lessonMap->search(
-                fn (array $entry) => $entry['key'] === $requestedLessonKey
-            );
+            if (preg_match('/^lesson-(\d+)$/', $requestedLessonKey, $matches)) {
+                $requestedLessonId = (int) $matches[1];
+                $currentLessonIndex = $lessonMap->search(
+                    fn (array $entry) => (int) $entry['lesson']->id === $requestedLessonId
+                );
+            } else {
+                $currentLessonIndex = $lessonMap->search(
+                    fn (array $entry) => $entry['key'] === $requestedLessonKey
+                );
+            }
 
             abort_if($currentLessonIndex === false, 404);
 
