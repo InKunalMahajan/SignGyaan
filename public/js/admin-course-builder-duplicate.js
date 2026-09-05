@@ -48,13 +48,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return form;
     };
 
+    const makePreviewLink = (href, label, compact = false) => {
+        const link = document.createElement('a');
+        link.href = href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.dataset.previewControl = 'true';
+        link.textContent = label;
+        link.className = compact
+            ? 'inline-flex min-h-10 items-center justify-center rounded-lg border border-sign-primary bg-white px-3 py-2 text-xs font-semibold text-sign-primary transition hover:bg-sign-soft'
+            : 'inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft';
+        return link;
+    };
+
     const courseActions = builder.querySelector('div.mt-5.flex.flex-col.gap-5.xl\\:flex-row > div.flex.flex-wrap.gap-2');
-    if (courseActions && !courseActions.querySelector('[data-duplicate-control]')) {
-        courseActions.prepend(makeDuplicateForm(
-            `/admin/courses/${courseId}/builder/duplicate`,
-            'Copy Course',
-            'Create a full draft copy of this course, including units, lessons, rich content, activities, assessments and course vocabulary?'
-        ));
+    if (courseActions) {
+        if (!courseActions.querySelector('[data-preview-control]')) {
+            courseActions.prepend(makePreviewLink(`/admin/courses/${courseId}/preview`, 'Preview Course'));
+        }
+
+        if (!courseActions.querySelector('[data-duplicate-control]')) {
+            courseActions.prepend(makeDuplicateForm(
+                `/admin/courses/${courseId}/builder/duplicate`,
+                'Copy Course',
+                'Create a full draft copy of this course, including units, lessons, rich content, activities, assessments and course vocabulary?'
+            ));
+        }
     }
 
     const unitList = builder.querySelector('[data-sortable-list][data-sort-type="units"]');
@@ -69,16 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 || unitItem.querySelector('a[href*="/admin/units/"][href$="/edit"]');
             const actions = editLink?.parentElement;
 
-            if (!unitId || !actions || actions.querySelector('[data-duplicate-control]')) {
+            if (!unitId || !actions) {
                 return;
             }
 
-            actions.append(makeDuplicateForm(
-                `/admin/courses/${courseId}/builder/units/${unitId}/duplicate`,
-                'Copy Unit',
-                'Copy this unit and all of its lessons as drafts?',
-                true
-            ));
+            if (!actions.querySelector('[data-duplicate-control]')) {
+                actions.append(makeDuplicateForm(
+                    `/admin/courses/${courseId}/builder/units/${unitId}/duplicate`,
+                    'Copy Unit',
+                    'Copy this unit and all of its lessons as drafts?',
+                    true
+                ));
+            }
 
             const lessonList = unitItem.querySelector('[data-sortable-list][data-sort-type="lessons"]');
             if (!lessonList) {
@@ -95,16 +116,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     || lessonItem.querySelector('a[href*="/admin/lessons/"][href$="/edit"]');
                 const lessonActions = lessonEditLink?.parentElement;
 
-                if (!lessonId || !lessonActions || lessonActions.querySelector('[data-duplicate-control]')) {
+                if (!lessonId || !lessonActions) {
                     return;
                 }
 
-                lessonActions.append(makeDuplicateForm(
-                    `/admin/courses/${courseId}/builder/lessons/${lessonId}/duplicate`,
-                    'Copy',
-                    'Copy this lesson, including rich content, practice/resources, assessments and vocabulary links?',
-                    true
-                ));
+                if (!lessonActions.querySelector('[data-preview-control]')) {
+                    lessonActions.append(makePreviewLink(
+                        `/admin/courses/${courseId}/preview?lesson=lesson-${lessonId}`,
+                        'Preview',
+                        true
+                    ));
+                }
+
+                if (!lessonActions.querySelector('[data-duplicate-control]')) {
+                    lessonActions.append(makeDuplicateForm(
+                        `/admin/courses/${courseId}/builder/lessons/${lessonId}/duplicate`,
+                        'Copy',
+                        'Copy this lesson, including rich content, practice/resources, assessments and vocabulary links?',
+                        true
+                    ));
+                }
             });
         });
     }
