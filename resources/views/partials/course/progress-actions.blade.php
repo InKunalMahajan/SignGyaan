@@ -1,3 +1,5 @@
+@include('partials.course.linked-vocabulary')
+
 @php
     $currentProgressLessonKey = 'lesson-'.$currentLessonModel->id;
     $existingProgress = auth()->check()
