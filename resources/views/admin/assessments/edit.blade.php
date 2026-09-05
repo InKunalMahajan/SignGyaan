@@ -17,7 +17,10 @@
                         {{ $assessment->practiceResource?->lesson?->title ?? 'Lesson' }}
                     </p>
                 </div>
-                <a href="{{ route('admin.assessments.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to Assessments</a>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <a href="{{ route('admin.assessment-results.index', ['assessment' => $assessment->id]) }}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">View Learner Results</a>
+                    <a href="{{ route('admin.assessments.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to Assessments</a>
+                </div>
             </div>
 
             <form method="POST" action="{{ route('admin.assessments.update', $assessment) }}">
