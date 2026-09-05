@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(LearningProgress::class);
     }
 
+    public function assessmentAttempts(): HasMany
+    {
+        return $this->hasMany(AssessmentAttempt::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
