@@ -84,6 +84,8 @@
                 <div class="min-w-0 space-y-12">
                     @include('partials.learning.continue-learning')
 
+                    @include('partials.learning.recommended-next-lessons')
+
                     @include('partials.learning.assessment-progress', ['assessmentLimit' => 4])
 
                     @if ($progressRecords->isEmpty() && $starterCourses->isNotEmpty())
