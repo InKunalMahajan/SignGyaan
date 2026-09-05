@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\PracticeResource;
 use App\Models\Subject;
 use App\Models\Unit;
@@ -18,7 +19,7 @@ class PracticeResourceController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = PracticeResource::query()->with('lesson.unit.course.subject');
+        $query = PracticeResource::query()->with(['lesson.unit.course.subject', 'mediaAsset']);
 
         if ($request->filled('q')) {
             $search = trim((string) $request->input('q'));
@@ -83,6 +84,7 @@ class PracticeResourceController extends Controller
             'lessons' => Lesson::query()->with('unit.course.subject')->orderBy('unit_id')->orderBy('sort_order')->orderBy('title')->get(),
             'selectedLessonId' => $request->integer('lesson') ?: null,
             'resourceTypes' => $this->resourceTypes(),
+            'mediaAssets' => $this->mediaAssets(),
         ]);
     }
 
@@ -105,9 +107,10 @@ class PracticeResourceController extends Controller
     public function edit(PracticeResource $practiceResource): View
     {
         return view('admin.practice-resources.edit', [
-            'item' => $practiceResource->load('lesson.unit.course.subject'),
+            'item' => $practiceResource->load(['lesson.unit.course.subject', 'mediaAsset']),
             'lessons' => Lesson::query()->with('unit.course.subject')->orderBy('unit_id')->orderBy('sort_order')->orderBy('title')->get(),
             'resourceTypes' => $this->resourceTypes(),
+            'mediaAssets' => $this->mediaAssets(),
         ]);
     }
 
@@ -163,9 +166,19 @@ class PracticeResourceController extends Controller
             'content' => ['nullable', 'string', 'max:100000'],
             'answer_key' => ['nullable', 'string', 'max:100000'],
             'resource_url' => ['nullable', 'url', 'max:2048'],
+            'media_asset_id' => ['nullable', 'integer', Rule::exists('media_assets', 'id')],
             'estimated_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:9999'],
         ]);
+    }
+
+    private function mediaAssets()
+    {
+        return MediaAsset::query()
+            ->orderByDesc('is_published')
+            ->orderBy('media_type')
+            ->orderBy('title')
+            ->get();
     }
 
     private function resourceTypes(): array
