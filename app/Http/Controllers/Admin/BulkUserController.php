@@ -51,9 +51,8 @@ class BulkUserController extends Controller
 
         $headers = fgetcsv($handle);
         $headers = array_map(fn ($value) => strtolower(trim((string) $value)), $headers ?: []);
-        $requiredHeaders = ['name', 'email', 'role', 'status'];
 
-        foreach ($requiredHeaders as $requiredHeader) {
+        foreach (['name', 'email', 'role', 'status'] as $requiredHeader) {
             if (! in_array($requiredHeader, $headers, true)) {
                 fclose($handle);
                 throw ValidationException::withMessages([
@@ -66,86 +65,122 @@ class BulkUserController extends Controller
         $updated = 0;
         $rowNumber = 1;
 
-        DB::transaction(function () use (
-            $handle,
-            $headers,
-            $actor,
-            $userManagement,
-            $academicProfile,
-            &$created,
-            &$updated,
-            &$rowNumber
-        ): void {
-            while (($row = fgetcsv($handle)) !== false) {
-                $rowNumber++;
+        try {
+            DB::transaction(function () use (
+                $handle,
+                $headers,
+                $actor,
+                $userManagement,
+                $academicProfile,
+                &$created,
+                &$updated,
+                &$rowNumber
+            ): void {
+                while (($row = fgetcsv($handle)) !== false) {
+                    $rowNumber++;
 
-                if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
-                    continue;
-                }
+                    if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
+                        continue;
+                    }
 
-                $row = array_pad($row, count($headers), null);
-                $data = array_combine($headers, array_slice($row, 0, count($headers)));
-                $email = strtolower(trim((string) ($data['email'] ?? '')));
-                $existing = User::query()->where('email', $email)->first();
+                    $row = array_pad($row, count($headers), null);
+                    $data = array_combine($headers, array_slice($row, 0, count($headers)));
+                    $email = strtolower(trim((string) ($data['email'] ?? '')));
+                    $existing = User::query()->where('email', $email)->first();
 
-                $rules = [
-                    'name' => ['required', 'string', 'max:100'],
-                    'email' => ['required', 'email', 'max:255'],
-                    'role' => ['required', Rule::in(array_keys($userManagement->roles()))],
-                    'status' => ['required', Rule::in(array_keys($userManagement->statuses()))],
-                    'password' => [$existing ? 'nullable' : 'required', 'nullable', 'string', 'min:8'],
-                    'education_board' => ['nullable', Rule::in(array_keys($academicProfile->boards()))],
-                    'standard' => ['nullable', Rule::in(array_keys($academicProfile->standards()))],
-                    'academic_year' => ['nullable', Rule::in(array_keys($academicProfile->academicYears()))],
-                ];
-
-                $validator = Validator::make($data, $rules);
-
-                if ($validator->fails()) {
-                    throw ValidationException::withMessages([
-                        'csv_file' => "Row {$rowNumber}: ".implode(' ', $validator->errors()->all()),
+                    $validator = Validator::make($data, [
+                        'name' => ['required', 'string', 'max:100'],
+                        'email' => ['required', 'email', 'max:255'],
+                        'role' => ['required', Rule::in(array_keys($userManagement->roles()))],
+                        'status' => ['required', Rule::in(array_keys($userManagement->statuses()))],
+                        'password' => [$existing ? 'nullable' : 'required', 'string', 'min:8'],
+                        'education_board' => ['nullable', Rule::in(array_keys($academicProfile->boards()))],
+                        'standard' => ['nullable', Rule::in(array_keys($academicProfile->standards()))],
+                        'academic_year' => ['nullable', Rule::in(array_keys($academicProfile->academicYears()))],
                     ]);
-                }
 
-                $validated = $validator->validated();
+                    if ($validator->fails()) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: ".implode(' ', $validator->errors()->all()),
+                        ]);
+                    }
 
-                if (($existing?->isSuperAdmin() || $validated['role'] === User::ROLE_SUPER_ADMIN) && ! $actor?->isSuperAdmin()) {
-                    throw ValidationException::withMessages([
-                        'csv_file' => "Row {$rowNumber}: only a Super Administrator can import or modify Super Administrator accounts.",
-                    ]);
-                }
+                    $validated = $validator->validated();
+                    $targetRole = $validated['role'];
+                    $targetStatus = $validated['status'];
 
-                $attributes = [
-                    'name' => trim($validated['name']),
-                    'role' => $validated['role'],
-                    'status' => $validated['status'],
-                    'education_board' => $validated['education_board'] ?: null,
-                    'standard' => $validated['standard'] ?: null,
-                    'academic_year' => $validated['academic_year'] ?: null,
-                    'suspended_at' => $validated['status'] === User::STATUS_SUSPENDED ? ($existing?->suspended_at ?? now()) : null,
-                ];
+                    if (($existing?->isSuperAdmin() || $targetRole === User::ROLE_SUPER_ADMIN) && ! $actor?->isSuperAdmin()) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: only a Super Administrator can import or modify Super Administrator accounts.",
+                        ]);
+                    }
 
-                if (filled($validated['password'] ?? null)) {
-                    $attributes['password'] = Hash::make($validated['password']);
-                }
-
-                if ($existing) {
-                    if ($existing->is($actor) && $validated['status'] !== User::STATUS_ACTIVE) {
+                    if ($existing?->is($actor) && $targetStatus !== User::STATUS_ACTIVE) {
                         throw ValidationException::withMessages([
                             'csv_file' => "Row {$rowNumber}: you cannot deactivate your own signed-in account.",
                         ]);
                     }
 
-                    $existing->update($attributes);
-                    $updated++;
-                } else {
-                    User::create(array_merge($attributes, ['email' => $email]));
-                    $created++;
-                }
-            }
-        });
+                    if ($existing?->isAdmin()
+                        && ! in_array($targetRole, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)
+                        && $userManagement->administratorCount() <= 1) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: at least one administrator account must remain.",
+                        ]);
+                    }
 
-        fclose($handle);
+                    if ($existing?->isSuperAdmin()
+                        && $targetRole !== User::ROLE_SUPER_ADMIN
+                        && User::query()->where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: at least one Super Administrator account must remain.",
+                        ]);
+                    }
+
+                    if ($existing?->isAdmin()
+                        && $existing->isActive()
+                        && $targetStatus !== User::STATUS_ACTIVE
+                        && $userManagement->activeAdministratorCount() <= 1) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: at least one active administrator account must remain.",
+                        ]);
+                    }
+
+                    if ($existing?->isSuperAdmin()
+                        && $existing->isActive()
+                        && $targetStatus !== User::STATUS_ACTIVE
+                        && $userManagement->activeSuperAdministratorCount() <= 1) {
+                        throw ValidationException::withMessages([
+                            'csv_file' => "Row {$rowNumber}: at least one active Super Administrator account must remain.",
+                        ]);
+                    }
+
+                    $attributes = [
+                        'name' => trim($validated['name']),
+                        'role' => $targetRole,
+                        'status' => $targetStatus,
+                        'education_board' => filled($validated['education_board'] ?? null) ? $validated['education_board'] : null,
+                        'standard' => filled($validated['standard'] ?? null) ? $validated['standard'] : null,
+                        'academic_year' => filled($validated['academic_year'] ?? null) ? $validated['academic_year'] : null,
+                        'suspended_at' => $targetStatus === User::STATUS_SUSPENDED ? ($existing?->suspended_at ?? now()) : null,
+                    ];
+
+                    if (filled($validated['password'] ?? null)) {
+                        $attributes['password'] = Hash::make($validated['password']);
+                    }
+
+                    if ($existing) {
+                        $existing->update($attributes);
+                        $updated++;
+                    } else {
+                        User::create(array_merge($attributes, ['email' => $email]));
+                        $created++;
+                    }
+                }
+            });
+        } finally {
+            fclose($handle);
+        }
 
         return redirect()
             ->route('admin.users.bulk.index')
@@ -197,7 +232,7 @@ class BulkUserController extends Controller
 
         $changed = 0;
 
-        DB::transaction(function () use ($users, $validated, $actor, &$changed): void {
+        DB::transaction(function () use ($users, $validated, $actor, $userManagement, &$changed): void {
             foreach ($users as $user) {
                 if ($user->isSuperAdmin() && ! $actor?->isSuperAdmin()) {
                     continue;
@@ -209,20 +244,41 @@ class BulkUserController extends Controller
                         continue;
                     }
 
+                    if ($user->isAdmin() && $user->isActive() && $status !== User::STATUS_ACTIVE && $userManagement->activeAdministratorCount() <= 1) {
+                        continue;
+                    }
+
+                    if ($user->isSuperAdmin() && $user->isActive() && $status !== User::STATUS_ACTIVE && $userManagement->activeSuperAdministratorCount() <= 1) {
+                        continue;
+                    }
+
                     $user->update([
                         'status' => $status,
                         'suspended_at' => $status === User::STATUS_SUSPENDED ? ($user->suspended_at ?? now()) : null,
                     ]);
                     $changed++;
-                } else {
-                    $role = $validated['role'] ?? null;
-                    if (! $role || ($user->is($actor) && ! in_array($role, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true))) {
-                        continue;
-                    }
-
-                    $user->update(['role' => $role]);
-                    $changed++;
+                    continue;
                 }
+
+                $role = $validated['role'] ?? null;
+                if (! $role || ($user->is($actor) && ! in_array($role, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true))) {
+                    continue;
+                }
+
+                if ($user->isAdmin()
+                    && ! in_array($role, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)
+                    && $userManagement->administratorCount() <= 1) {
+                    continue;
+                }
+
+                if ($user->isSuperAdmin()
+                    && $role !== User::ROLE_SUPER_ADMIN
+                    && User::query()->where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
+                    continue;
+                }
+
+                $user->update(['role' => $role]);
+                $changed++;
             }
         });
 
