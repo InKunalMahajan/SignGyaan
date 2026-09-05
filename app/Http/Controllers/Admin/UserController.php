@@ -77,10 +77,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function edit(User $user): View
+    public function edit(User $user, UserManagementService $userManagement): View
     {
         $user->load([
             'learningProgress' => fn ($query) => $query->orderByDesc('last_accessed_at'),
+        ])->loadCount([
+            'learningActivities',
+            'assessmentAttempts',
         ]);
 
         $completedLessons = $user->learningProgress
@@ -90,11 +93,13 @@ class UserController extends Controller
             'managedUser' => $user,
             'completedLessons' => $completedLessons,
             'completedCourses' => $user->learningProgress->whereNotNull('completed_at')->count(),
-            'adminCount' => User::query()->where('role', 'admin')->count(),
+            'adminCount' => User::query()->where('role', User::ROLE_ADMIN)->count(),
+            'roleOptions' => $userManagement->roles(),
+            'statusOptions' => $userManagement->statuses(),
         ]);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user, UserManagementService $userManagement): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -104,18 +109,23 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'role' => ['required', Rule::in(['learner', 'admin'])],
+            'role' => ['required', Rule::in(array_keys($userManagement->roles()))],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $validated['email'] = strtolower($validated['email']);
+        $validated['email'] = strtolower(trim($validated['email']));
+        $validated['name'] = trim($validated['name']);
+        $validated['admin_note'] = filled($validated['admin_note'] ?? null)
+            ? trim((string) $validated['admin_note'])
+            : null;
 
-        if ($user->is($request->user()) && $validated['role'] !== 'admin') {
+        if ($user->is($request->user()) && $validated['role'] !== User::ROLE_ADMIN) {
             return back()
                 ->withInput()
                 ->withErrors(['role' => 'You cannot remove your own administrator access.']);
         }
 
-        if ($user->role === 'admin' && $validated['role'] !== 'admin' && User::query()->where('role', 'admin')->count() <= 1) {
+        if ($user->isAdmin() && $validated['role'] !== User::ROLE_ADMIN && User::query()->where('role', User::ROLE_ADMIN)->count() <= 1) {
             return back()
                 ->withInput()
                 ->withErrors(['role' => 'At least one administrator account must remain.']);
@@ -125,7 +135,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.users.edit', $user)
-            ->with('status', 'User account updated successfully.');
+            ->with('status', 'User profile updated successfully.');
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
@@ -136,7 +146,7 @@ class UserController extends Controller
                 ->with('status', 'You cannot delete your own signed-in administrator account.');
         }
 
-        if ($user->role === 'admin' && User::query()->where('role', 'admin')->count() <= 1) {
+        if ($user->isAdmin() && User::query()->where('role', User::ROLE_ADMIN)->count() <= 1) {
             return redirect()
                 ->route('admin.users.index')
                 ->with('status', 'The final administrator account cannot be deleted.');
