@@ -39,9 +39,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::post('/courses/{course}/builder/duplicate', [CourseBuilderDuplicateController::class, 'course'])->middleware('throttle:10,1')->name('courses.builder.duplicate-course');
     Route::post('/courses/{course}/builder/units/{unit}/duplicate', [CourseBuilderDuplicateController::class, 'unit'])->middleware('throttle:20,1')->name('courses.builder.duplicate-unit');
     Route::post('/courses/{course}/builder/lessons/{lesson}/duplicate', [CourseBuilderDuplicateController::class, 'lesson'])->middleware('throttle:30,1')->name('courses.builder.duplicate-lesson');
-    Route::post('/courses/{course}/builder/lessons/{lesson}/content-blocks', [CourseBuilderContentBlockController::class, 'store'])->name('courses.builder.content-blocks.store');
-    Route::put('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'update'])->name('courses.builder.content-blocks.update');
-    Route::delete('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'destroy'])->name('courses.builder.content-blocks.destroy');
+    Route::post('/courses/{course}/builder/lessons/{lesson}/content-blocks', [CourseBuilderContentBlockController::class, 'store'])->middleware('throttle:60,1')->name('courses.builder.content-blocks.store');
+    Route::put('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'update'])->middleware('throttle:60,1')->name('courses.builder.content-blocks.update');
+    Route::delete('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'destroy'])->middleware('throttle:60,1')->name('courses.builder.content-blocks.destroy');
 
     Route::resource('courses', CourseController::class)->except('show');
     Route::resource('units', UnitController::class)->except('show');
