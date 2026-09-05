@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AssessmentController;
 use App\Http\Controllers\Admin\AssessmentQuestionController;
 use App\Http\Controllers\Admin\AssessmentResultController;
+use App\Http\Controllers\Admin\BulkUserController;
 use App\Http\Controllers\Admin\CourseBuilderContentBlockController;
 use App\Http\Controllers\Admin\CourseBuilderController;
 use App\Http\Controllers\Admin\CourseBuilderDuplicateController;
@@ -74,6 +75,11 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
 
     Route::get('/learners', [LearnerController::class, 'index'])->name('learners.index');
     Route::get('/learners/{learner}', [LearnerController::class, 'show'])->name('learners.show');
+
+    Route::get('/users/bulk', [BulkUserController::class, 'index'])->name('users.bulk.index');
+    Route::post('/users/bulk/import', [BulkUserController::class, 'import'])->middleware('throttle:10,1')->name('users.bulk.import');
+    Route::get('/users/bulk/export', [BulkUserController::class, 'export'])->middleware('throttle:10,1')->name('users.bulk.export');
+    Route::patch('/users/bulk/action', [BulkUserController::class, 'action'])->middleware('throttle:20,1')->name('users.bulk.action');
 
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
         ->middleware('throttle:30,1')
