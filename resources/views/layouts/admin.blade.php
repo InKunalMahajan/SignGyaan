@@ -70,6 +70,7 @@
             @yield('content')
             @if (request()->routeIs('admin.dashboard'))
                 @include('admin.partials.dashboard-assessment-overview')
+                @include('admin.partials.dashboard-teacher-overview')
             @endif
         </main>
     </div>
