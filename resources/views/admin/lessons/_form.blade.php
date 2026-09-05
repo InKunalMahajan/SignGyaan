@@ -1,6 +1,7 @@
 @php
     $editing = isset($lesson);
     $selectedUnit = old('unit_id', $lesson->unit_id ?? $selectedUnitId ?? null);
+    $selectedMediaAsset = old('isl_media_asset_id', $lesson->isl_media_asset_id ?? null);
 @endphp
 
 @if ($errors->any())
@@ -59,7 +60,7 @@
 
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="lesson-content-heading">
             <h2 id="lesson-content-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Learning content</h2>
-            <p class="mt-2 text-sm leading-6 text-sign-muted">Add the lesson objectives, explanation, key points and examples. Practice activities are managed separately in Step 7G.</p>
+            <p class="mt-2 text-sm leading-6 text-sign-muted">Add the lesson objectives, explanation, key points and examples. Practice activities are managed separately.</p>
 
             <div class="mt-6 grid gap-5">
                 <div>
@@ -94,16 +95,32 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h2 id="lesson-isl-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">ISL support</h2>
-                    <p class="mt-2 text-sm leading-6 text-sign-muted">Link an Indian Sign Language video from the Media Library or another valid hosted video URL.</p>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Select a reusable video from the Media Library. You can also keep a direct video URL as a fallback.</p>
                 </div>
                 <a href="{{ route('admin.media.index', ['type' => 'video']) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light">Open Media Library</a>
             </div>
 
-            <div class="mt-6">
-                <label for="isl_video_url" class="mb-2 block text-sm font-semibold text-sign-primary">ISL video URL</label>
-                <input id="isl_video_url" name="isl_video_url" type="url" value="{{ old('isl_video_url', $lesson->isl_video_url ?? '') }}" maxlength="2048" inputmode="url" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
-                <p class="mt-2 text-xs leading-5 text-sign-muted">Open a Media Library video, copy its reusable URL, then paste it here.</p>
-                @error('isl_video_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+            <div class="mt-6 grid gap-5">
+                <div>
+                    <label for="isl_media_asset_id" class="mb-2 block text-sm font-semibold text-sign-primary">Media Library video</label>
+                    <select id="isl_media_asset_id" name="isl_media_asset_id" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                        <option value="">No Media Library video selected</option>
+                        @foreach ($mediaAssets as $asset)
+                            <option value="{{ $asset->id }}" @selected((string) $selectedMediaAsset === (string) $asset->id)>
+                                {{ $asset->title }} — {{ ucfirst($asset->source) }} — {{ $asset->is_published ? 'Published' : 'Draft' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">A published selected Media Library video takes priority on the learner lesson page.</p>
+                    @error('isl_media_asset_id')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="isl_video_url" class="mb-2 block text-sm font-semibold text-sign-primary">Fallback / external ISL video URL</label>
+                    <input id="isl_video_url" name="isl_video_url" type="url" value="{{ old('isl_video_url', $lesson->isl_video_url ?? '') }}" maxlength="2048" inputmode="url" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">Used when no published Media Library video is linked.</p>
+                    @error('isl_video_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                </div>
             </div>
         </section>
     </div>
