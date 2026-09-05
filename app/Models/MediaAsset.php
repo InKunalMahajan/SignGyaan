@@ -16,6 +16,7 @@ class MediaAsset extends Model
         'uploaded_by',
         'title',
         'media_type',
+        'is_isl',
         'source',
         'file_path',
         'original_name',
@@ -24,6 +25,8 @@ class MediaAsset extends Model
         'external_url',
         'alt_text',
         'caption',
+        'language_code',
+        'duration_seconds',
         'is_published',
     ];
 
@@ -31,6 +34,8 @@ class MediaAsset extends Model
     {
         return [
             'file_size' => 'integer',
+            'duration_seconds' => 'integer',
+            'is_isl' => 'boolean',
             'is_published' => 'boolean',
         ];
     }
@@ -53,6 +58,13 @@ class MediaAsset extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
+    }
+
+    public function scopeIslVideo(Builder $query): Builder
+    {
+        return $query
+            ->where('media_type', 'video')
+            ->where('is_isl', true);
     }
 
     public function publicUrl(): ?string
@@ -82,5 +94,19 @@ class MediaAsset extends Model
         }
 
         return number_format($bytes, $index === 0 ? 0 : 1).' '.$units[$index];
+    }
+
+    public function formattedDuration(): ?string
+    {
+        if (! $this->duration_seconds) {
+            return null;
+        }
+
+        $minutes = intdiv($this->duration_seconds, 60);
+        $seconds = $this->duration_seconds % 60;
+
+        return $minutes > 0
+            ? sprintf('%d:%02d', $minutes, $seconds)
+            : sprintf('0:%02d', $seconds);
     }
 }
