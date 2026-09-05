@@ -9,8 +9,10 @@ use App\Models\PracticeResource;
 use App\Models\Unit;
 use App\Models\VocabularyTerm;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -67,6 +69,52 @@ class CourseBuilderController extends Controller
             'assessmentCount' => $assessments->count(),
             'publishedAssessmentCount' => $assessments->where('is_published', true)->count(),
         ]);
+    }
+
+    public function quickLesson(Request $request, Course $course): RedirectResponse
+    {
+        $validated = $request->validate([
+            'unit_id' => [
+                'required',
+                'integer',
+                Rule::exists('units', 'id')->where(fn ($query) => $query->where('course_id', $course->id)),
+            ],
+            'title' => ['required', 'string', 'max:180'],
+            'short_description' => ['nullable', 'string', 'max:255'],
+            'estimated_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:100000'],
+        ]);
+
+        $unit = Unit::query()
+            ->whereKey($validated['unit_id'])
+            ->where('course_id', $course->id)
+            ->firstOrFail();
+
+        $baseSlug = Str::slug($validated['title']) ?: 'lesson';
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (Lesson::query()->where('unit_id', $unit->id)->where('slug', $slug)->exists()) {
+            $slug = $baseSlug.'-'.$suffix;
+            $suffix++;
+        }
+
+        $lesson = DB::transaction(function () use ($request, $validated, $unit, $slug) {
+            $nextOrder = ((int) Lesson::query()->where('unit_id', $unit->id)->max('sort_order')) + 1;
+
+            return Lesson::create([
+                'unit_id' => $unit->id,
+                'title' => $validated['title'],
+                'slug' => $slug,
+                'short_description' => $validated['short_description'] ?? null,
+                'estimated_duration_minutes' => $validated['estimated_duration_minutes'] ?? null,
+                'sort_order' => $nextOrder,
+                'is_published' => $request->boolean('is_published'),
+            ]);
+        });
+
+        return redirect()
+            ->to(route('admin.courses.builder', $course).'#builder-lesson-'.$lesson->id)
+            ->with('status', 'Lesson created successfully. You can now add full lesson content.');
     }
 
     public function reorder(Request $request, Course $course): JsonResponse
