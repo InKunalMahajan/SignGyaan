@@ -3,10 +3,13 @@
     $selectedSubject = old('subject_id', $vocabulary->subject_id ?? '');
     $selectedCourse = old('course_id', $vocabulary->course_id ?? '');
     $selectedMedia = old('isl_media_asset_id', $vocabulary->isl_media_asset_id ?? '');
+    $selectedLessons = collect(old('lesson_ids', $editing ? $vocabulary->lessons->pluck('id')->all() : []))
+        ->map(fn ($id) => (string) $id)
+        ->all();
 @endphp
 
 @if ($errors->any())
-    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite">
+    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite" data-error-summary>
         <p class="text-sm font-semibold text-red-800">Please check the vocabulary details.</p>
         <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
             @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
@@ -75,6 +78,58 @@
             </div>
         </section>
 
+        <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="vocabulary-lessons-heading">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 id="vocabulary-lessons-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Lesson integration</h2>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Select the lessons where this sign should appear. Published linked vocabulary is shown automatically on those learner lesson pages.</p>
+                </div>
+                <span class="w-fit rounded-full bg-sign-soft px-3 py-1.5 text-xs font-semibold text-sign-primary">{{ count($selectedLessons) }} selected</span>
+            </div>
+
+            @if ($lessons->isNotEmpty())
+                <fieldset class="mt-6">
+                    <legend class="sr-only">Lessons using this vocabulary term</legend>
+                    <div class="max-h-96 overflow-y-auto rounded-2xl border border-sign-border bg-sign-soft p-3 sm:p-4">
+                        <div class="grid gap-2 lg:grid-cols-2">
+                            @foreach ($lessons as $lessonOption)
+                                @php
+                                    $lessonCourse = $lessonOption->unit?->course;
+                                    $lessonSubject = $lessonCourse?->subject;
+                                @endphp
+                                <label class="flex cursor-pointer items-start gap-3 rounded-xl bg-white p-4 ring-1 ring-sign-border transition hover:ring-sign-cyan">
+                                    <input
+                                        type="checkbox"
+                                        name="lesson_ids[]"
+                                        value="{{ $lessonOption->id }}"
+                                        @checked(in_array((string) $lessonOption->id, $selectedLessons, true))
+                                        class="mt-0.5 h-5 w-5 shrink-0 rounded border-sign-border accent-sign-primary"
+                                    >
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-sign-primary">{{ $lessonOption->title }}</span>
+                                        <span class="mt-1 block text-xs leading-5 text-sign-muted">
+                                            {{ $lessonSubject?->name ?? 'No subject' }} → {{ $lessonCourse?->title ?? 'No course' }} → {{ $lessonOption->unit?->title ?? 'No unit' }}
+                                        </span>
+                                        <span class="mt-1 block text-[11px] font-semibold uppercase tracking-wide {{ $lessonOption->is_published ? 'text-sign-cyan-dark' : 'text-sign-muted' }}">
+                                            {{ $lessonOption->is_published ? 'Published lesson' : 'Draft lesson' }}
+                                        </span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">For best results, link the term to lessons in the selected subject/course context. Draft terms remain hidden publicly even when linked.</p>
+                </fieldset>
+            @else
+                <div class="mt-6 rounded-2xl border border-dashed border-sign-border bg-sign-soft p-6 text-center">
+                    <p class="text-sm font-semibold text-sign-primary">No lessons available yet.</p>
+                    <p class="mt-1 text-sm text-sign-muted">Create lessons first, then return here to link this vocabulary term.</p>
+                </div>
+            @endif
+            @error('lesson_ids')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+            @error('lesson_ids.*')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+        </section>
+
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="vocabulary-video-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -108,7 +163,7 @@
             <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Publishing</p>
             <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-sign-soft p-4">
                 <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $vocabulary->is_published ?? false)) class="mt-0.5 h-5 w-5 shrink-0 rounded border-sign-border accent-sign-primary">
-                <span><span class="block text-sm font-semibold text-sign-primary">Published</span><span class="mt-1 block text-xs leading-5 text-sign-muted">Only published terms will appear in the future public vocabulary library.</span></span>
+                <span><span class="block text-sm font-semibold text-sign-primary">Published</span><span class="mt-1 block text-xs leading-5 text-sign-muted">Only published terms appear in the public vocabulary library and linked lessons.</span></span>
             </label>
             <div class="mt-5">
                 <label for="sort_order" class="mb-2 block text-sm font-semibold text-sign-primary">Display order</label>
