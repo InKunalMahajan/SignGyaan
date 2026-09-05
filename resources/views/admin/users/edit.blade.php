@@ -80,7 +80,7 @@
                                     <div class="flex min-h-12 items-center rounded-xl border border-sign-border bg-sign-soft px-4 py-3 text-sm font-semibold text-sign-primary">
                                         {{ $statusOptions[$managedUser->status] ?? \Illuminate\Support\Str::headline($managedUser->status) }}
                                     </div>
-                                    <p class="mt-2 text-xs leading-5 text-sign-muted">Status changes are handled in the Account Status module.</p>
+                                    <p class="mt-2 text-xs leading-5 text-sign-muted">Use the Account Status panel below to change access.</p>
                                 </div>
 
                                 <div class="sm:col-span-2">
@@ -99,6 +99,54 @@
                                 </div>
                             </div>
                         </form>
+                    </section>
+
+                    <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="account-status-heading">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Access control</p>
+                            <h3 id="account-status-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary">Account Status</h3>
+                            <p class="mt-2 text-sm leading-6 text-sign-muted">Active accounts can sign in normally. Suspended and disabled accounts are blocked from authenticated SignGyaan areas.</p>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.users.status.update', $managedUser) }}" class="mt-6">
+                            @csrf
+                            @method('PATCH')
+
+                            <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                                <div>
+                                    <label for="status" class="mb-2 block text-sm font-semibold text-sign-primary">Account status</label>
+                                    <select id="status" name="status" required @disabled($managedUser->is(auth()->user())) class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light disabled:cursor-not-allowed disabled:bg-sign-soft disabled:opacity-70">
+                                        @foreach ($statusOptions as $value => $label)
+                                            <option value="{{ $value }}" @selected(old('status', $managedUser->status) === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('status')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                                </div>
+
+                                <button type="submit" @disabled($managedUser->is(auth()->user())) class="inline-flex min-h-12 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark disabled:cursor-not-allowed disabled:opacity-50">Update Status</button>
+                            </div>
+                        </form>
+
+                        <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                            <div class="rounded-xl border border-sign-border bg-sign-soft p-4">
+                                <p class="text-sm font-semibold text-sign-primary">Active</p>
+                                <p class="mt-1 text-xs leading-5 text-sign-muted">Normal sign-in and platform access.</p>
+                            </div>
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <p class="text-sm font-semibold text-amber-900">Suspended</p>
+                                <p class="mt-1 text-xs leading-5 text-amber-800">Temporarily blocks sign-in. The suspension date is recorded.</p>
+                            </div>
+                            <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+                                <p class="text-sm font-semibold text-red-800">Disabled</p>
+                                <p class="mt-1 text-xs leading-5 text-red-700">Blocks the account until an administrator reactivates it.</p>
+                            </div>
+                        </div>
+
+                        @if ($managedUser->is(auth()->user()))
+                            <p class="mt-4 rounded-xl bg-sign-light px-4 py-3 text-sm leading-6 text-sign-primary">You cannot suspend or disable your own signed-in administrator account.</p>
+                        @elseif ($managedUser->suspended_at)
+                            <p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">Suspended {{ $managedUser->suspended_at->diffForHumans() }}.</p>
+                        @endif
                     </section>
 
                     <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="user-learning-heading">
@@ -187,15 +235,9 @@
                         </dl>
                     </section>
 
-                    @if ($managedUser->suspended_at)
-                        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-                            Suspended {{ $managedUser->suspended_at->diffForHumans() }}. Account-status controls will be managed separately in Step 14E.
-                        </div>
-                    @endif
-
                     @if ($managedUser->is(auth()->user()))
                         <div class="rounded-2xl border border-sign-cyan bg-sign-light p-5 text-sm leading-6 text-sign-primary">
-                            This is your currently signed-in administrator account. SignGyaan prevents you from removing your own admin access or deleting this account here.
+                            This is your currently signed-in administrator account. SignGyaan prevents you from removing your own admin access, changing your own account status, or deleting this account here.
                         </div>
                     @elseif ($managedUser->isAdmin() && $adminCount <= 1)
                         <div class="rounded-2xl border border-sign-cyan bg-sign-light p-5 text-sm leading-6 text-sign-primary">
