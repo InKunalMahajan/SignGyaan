@@ -63,6 +63,12 @@
             'icon' => 'users',
         ],
         [
+            'label' => 'Teachers',
+            'route' => 'admin.teachers.index',
+            'matches' => ['admin.teachers.*'],
+            'icon' => 'users',
+        ],
+        [
             'label' => 'Settings',
             'route' => 'admin.settings.index',
             'matches' => ['admin.settings.*'],
