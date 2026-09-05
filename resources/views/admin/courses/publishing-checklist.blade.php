@@ -21,14 +21,14 @@
                 <h1 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">{{ $course->title }}</h1>
                 <p class="mt-3 text-sm leading-7 text-sign-muted sm:text-base">Review readiness, see the current course status, then publish or move the complete managed course structure back to draft.</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.courses.preview', $course) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary">Preview Course</a>
-                <a href="{{ route('admin.courses.builder', $course) }}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-4 py-2.5 text-sm font-semibold text-white">Back to Builder</a>
+            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
+                <a href="{{ route('admin.courses.preview', $course) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary sm:flex-none">Preview Course</a>
+                <a href="{{ route('admin.courses.builder', $course) }}" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-sign-primary px-4 py-2.5 text-sm font-semibold text-white sm:flex-none">Back to Builder</a>
             </div>
         </div>
 
         @if ($errors->has('publishing'))
-            <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert" data-error-summary>{{ $errors->first('publishing') }}</div>
+            <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert" data-error-summary tabindex="-1">{{ $errors->first('publishing') }}</div>
         @endif
 
         <section class="mt-7 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="course-status-heading">
@@ -40,26 +40,43 @@
                     </div>
                     <h2 id="course-status-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $publishingStatus['published'] }} of {{ $publishingStatus['total'] }} managed items published</h2>
                     <p class="mt-2 text-sm leading-6 text-sign-muted">{{ $publishingStatus['description'] }}</p>
-                    <div class="mt-4 h-2 overflow-hidden rounded-full bg-sign-soft" aria-label="Publishing progress {{ $publishingStatus['percentage'] }} percent">
+                    <div
+                        class="mt-4 h-2 overflow-hidden rounded-full bg-sign-soft"
+                        role="progressbar"
+                        aria-label="Course publishing progress"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="{{ $publishingStatus['percentage'] }}"
+                    >
                         <div class="h-full rounded-full bg-sign-primary" style="width: {{ $publishingStatus['percentage'] }}%"></div>
                     </div>
                     <p class="mt-2 text-xs font-semibold text-sign-muted">{{ $publishingStatus['percentage'] }}% published · {{ $publishingStatus['draft'] }} draft</p>
                 </div>
 
-                <div class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-64">
-                    <form method="POST" action="{{ route('admin.courses.publish-all', $course) }}" onsubmit="return confirm('Publish this course and all managed units, lessons, content blocks, activities, assessments, questions and course vocabulary?');">
+                <div class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-64" aria-labelledby="bulk-publishing-heading">
+                    <h3 id="bulk-publishing-heading" class="sr-only">Bulk publishing controls</h3>
+                    <form method="POST" action="{{ route('admin.courses.publish-all', $course) }}" aria-describedby="publish-all-help" onsubmit="return confirm('Publish this course and all managed units, lessons, content blocks, activities, assessments, questions and course vocabulary?');">
                         @csrf
                         <button type="submit" @disabled(! $checklist['ready'] || $publishingStatus['fully_published']) class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Publish All</button>
                     </form>
-                    <form method="POST" action="{{ route('admin.courses.unpublish-all', $course) }}" onsubmit="return confirm('Move this course and all managed learning content back to draft? Shared media and the subject will not be changed.');">
+                    <p id="publish-all-help" class="text-xs leading-5 {{ $checklist['ready'] ? 'text-sign-muted' : 'font-semibold text-red-700' }}">
+                        @if (! $checklist['ready'])
+                            Resolve all required checklist blockers before Publish All is available.
+                        @elseif ($publishingStatus['fully_published'])
+                            This course and all managed items are already published.
+                        @else
+                            Publishes the course and every managed item shown below.
+                        @endif
+                    </p>
+                    <form method="POST" action="{{ route('admin.courses.unpublish-all', $course) }}" aria-describedby="draft-all-help" onsubmit="return confirm('Move this course and all managed learning content back to draft? Shared media and the subject will not be changed.');">
                         @csrf
                         <button type="submit" @disabled(! $publishingStatus['has_published_content']) class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary disabled:cursor-not-allowed disabled:opacity-50">Move All to Draft</button>
                     </form>
-                    <p class="text-xs leading-5 text-sign-muted">Bulk publishing never changes the parent subject or shared Media Library publishing status.</p>
+                    <p id="draft-all-help" class="text-xs leading-5 text-sign-muted">Moves managed course content to draft. The parent subject and shared Media Library items are never changed by this action.</p>
                 </div>
             </div>
 
-            <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Publishing status by content type">
                 @foreach ($publishingStatus['groups'] as $group)
                     <div class="rounded-2xl bg-sign-soft p-4">
                         <p class="text-xs font-semibold uppercase tracking-wide text-sign-muted">{{ $group['label'] }}</p>
@@ -77,17 +94,17 @@
                     <h2 id="readiness-heading" class="mt-2 font-heading text-2xl font-semibold {{ $checklist['ready'] ? 'text-sign-primary' : 'text-red-900' }}">{{ $checklist['ready'] ? 'Required checks are complete' : count($checklist['blockers']) . ' required check' . (count($checklist['blockers']) === 1 ? '' : 's') . ' need attention' }}</h2>
                     <p class="mt-2 text-sm leading-6 {{ $checklist['ready'] ? 'text-sign-muted' : 'text-red-800' }}">{{ $checklist['ready'] ? 'The course can be bulk published. Recommendations are optional improvements.' : 'Resolve the required items below before Publish All becomes available.' }}</p>
                 </div>
-                <div class="grid grid-cols-3 gap-2 text-center sm:gap-3">
-                    <div class="rounded-2xl bg-white px-4 py-3 shadow-sm"><p class="font-heading text-2xl font-semibold text-sign-primary">{{ $checklist['passed_count'] }}/{{ $checklist['total_count'] }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Passed</p></div>
-                    <div class="rounded-2xl bg-white px-4 py-3 shadow-sm"><p class="font-heading text-2xl font-semibold text-red-700">{{ count($checklist['blockers']) }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Blockers</p></div>
-                    <div class="rounded-2xl bg-white px-4 py-3 shadow-sm"><p class="font-heading text-2xl font-semibold text-sign-cyan-dark">{{ $checklist['warning_count'] }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Suggestions</p></div>
+                <div class="grid grid-cols-3 gap-2 text-center sm:gap-3" aria-label="Checklist summary">
+                    <div class="rounded-2xl bg-white px-3 py-3 shadow-sm sm:px-4"><p class="font-heading text-2xl font-semibold text-sign-primary">{{ $checklist['passed_count'] }}/{{ $checklist['total_count'] }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Passed</p></div>
+                    <div class="rounded-2xl bg-white px-3 py-3 shadow-sm sm:px-4"><p class="font-heading text-2xl font-semibold text-red-700">{{ count($checklist['blockers']) }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Blockers</p></div>
+                    <div class="rounded-2xl bg-white px-3 py-3 shadow-sm sm:px-4"><p class="font-heading text-2xl font-semibold text-sign-cyan-dark">{{ $checklist['warning_count'] }}</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Suggestions</p></div>
                 </div>
             </div>
         </section>
 
         <div class="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
             <section aria-labelledby="required-heading">
-                <div class="flex items-center justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-wider text-red-700">Required</p><h2 id="required-heading" class="mt-1 font-heading text-2xl font-semibold text-sign-primary">Publishing blockers</h2></div><span class="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-sign-primary ring-1 ring-sign-border">{{ $checklist['required_passed'] }}/{{ $checklist['required_total'] }} complete</span></div>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><p class="text-xs font-semibold uppercase tracking-wider text-red-700">Required</p><h2 id="required-heading" class="mt-1 font-heading text-2xl font-semibold text-sign-primary">Publishing blockers</h2></div><span class="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-sign-primary ring-1 ring-sign-border">{{ $checklist['required_passed'] }}/{{ $checklist['required_total'] }} complete</span></div>
                 <div class="mt-4 space-y-3">
                     @foreach ($checklist['required'] as $check)
                         <article class="rounded-2xl border bg-white p-4 sm:p-5 {{ $check['passed'] ? 'border-sign-border' : 'border-red-200' }}">
