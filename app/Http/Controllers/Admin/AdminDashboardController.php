@@ -168,6 +168,51 @@ class AdminDashboardController extends Controller
             ->limit(8)
             ->get();
 
+        $teacherQuery = User::query()->where('role', User::ROLE_TEACHER);
+        $teacherAssignmentQuery = User::query()
+            ->where('role', User::ROLE_TEACHER)
+            ->withCount(['teachingSubjects', 'teachingCourses']);
+
+        $teacherAssignmentRecords = $teacherAssignmentQuery->get([
+            'id', 'name', 'email', 'status', 'last_login_at', 'updated_at',
+        ]);
+
+        $teachersWithAssignments = $teacherAssignmentRecords
+            ->filter(fn (User $teacher) => $teacher->teaching_subjects_count > 0 || $teacher->teaching_courses_count > 0)
+            ->count();
+
+        $teacherStats = [
+            'total' => (clone $teacherQuery)->count(),
+            'active' => (clone $teacherQuery)->where('status', User::STATUS_ACTIVE)->count(),
+            'suspended' => (clone $teacherQuery)->where('status', User::STATUS_SUSPENDED)->count(),
+            'disabled' => (clone $teacherQuery)->where('status', User::STATUS_DISABLED)->count(),
+            'with_profile' => (clone $teacherQuery)->whereHas('teacherProfile')->count(),
+            'with_subjects' => (clone $teacherQuery)->whereHas('teachingSubjects')->count(),
+            'with_courses' => (clone $teacherQuery)->whereHas('teachingCourses')->count(),
+            'with_assignments' => $teachersWithAssignments,
+            'unassigned' => max(0, (clone $teacherQuery)->count() - $teachersWithAssignments),
+            'subject_assignments' => $teacherAssignmentRecords->sum('teaching_subjects_count'),
+            'course_assignments' => $teacherAssignmentRecords->sum('teaching_courses_count'),
+            'recent_logins_30_days' => (clone $teacherQuery)->where('last_login_at', '>=', $thirtyDaysAgo)->count(),
+        ];
+
+        $teacherStats['profile_completion_rate'] = $teacherStats['total'] > 0
+            ? round(($teacherStats['with_profile'] / $teacherStats['total']) * 100, 1)
+            : 0.0;
+        $teacherStats['assignment_rate'] = $teacherStats['total'] > 0
+            ? round(($teacherStats['with_assignments'] / $teacherStats['total']) * 100, 1)
+            : 0.0;
+
+        $recentTeachers = User::query()
+            ->where('role', User::ROLE_TEACHER)
+            ->with([
+                'teacherProfile:id,user_id,employee_code,qualification,specialization,experience_years',
+            ])
+            ->withCount(['teachingSubjects', 'teachingCourses'])
+            ->latest('updated_at')
+            ->limit(6)
+            ->get(['id', 'name', 'email', 'status', 'last_login_at', 'updated_at']);
+
         $managementAreas = [
             ['label' => 'Users', 'description' => 'Accounts, roles, status and bulk management.', 'route' => 'admin.users.index'],
             ['label' => 'Learners', 'description' => 'Learner profiles, progress and assessment activity.', 'route' => 'admin.learners.index'],
@@ -190,6 +235,8 @@ class AdminDashboardController extends Controller
             'recentLearningProgress',
             'assessmentStats',
             'recentAssessmentAttempts',
+            'teacherStats',
+            'recentTeachers',
             'managementAreas'
         ));
     }
