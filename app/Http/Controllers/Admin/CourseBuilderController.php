@@ -4,6 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\PracticeResource;
+use App\Models\Unit;
+use App\Models\VocabularyTerm;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CourseBuilderController extends Controller
@@ -58,5 +67,84 @@ class CourseBuilderController extends Controller
             'assessmentCount' => $assessments->count(),
             'publishedAssessmentCount' => $assessments->where('is_published', true)->count(),
         ]);
+    }
+
+    public function reorder(Request $request, Course $course): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => ['required', Rule::in(['units', 'lessons', 'practice', 'vocabulary'])],
+            'parent_id' => ['nullable', 'integer', 'min:1'],
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'distinct', 'min:1'],
+        ]);
+
+        $ids = collect($validated['ids'])->map(fn ($id) => (int) $id)->values();
+        $type = $validated['type'];
+        $parentId = isset($validated['parent_id']) ? (int) $validated['parent_id'] : null;
+
+        [$currentIds, $model] = match ($type) {
+            'units' => [
+                Unit::query()->where('course_id', $course->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+                Unit::class,
+            ],
+            'lessons' => $this->lessonOrderingContext($course, $parentId),
+            'practice' => $this->practiceOrderingContext($course, $parentId),
+            'vocabulary' => [
+                VocabularyTerm::query()->where('course_id', $course->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+                VocabularyTerm::class,
+            ],
+        };
+
+        if ($ids->sort()->values()->all() !== $currentIds->sort()->values()->all()) {
+            throw ValidationException::withMessages([
+                'ids' => 'The ordering list must contain every current item exactly once.',
+            ]);
+        }
+
+        DB::transaction(function () use ($ids, $model) {
+            $ids->each(function (int $id, int $index) use ($model) {
+                $model::query()->whereKey($id)->update(['sort_order' => $index + 1]);
+            });
+        });
+
+        return response()->json([
+            'saved' => true,
+            'type' => $type,
+            'count' => $ids->count(),
+        ]);
+    }
+
+    private function lessonOrderingContext(Course $course, ?int $unitId): array
+    {
+        $unit = Unit::query()
+            ->whereKey($unitId)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if (! $unit) {
+            throw ValidationException::withMessages(['parent_id' => 'The selected unit does not belong to this course.']);
+        }
+
+        return [
+            Lesson::query()->where('unit_id', $unit->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            Lesson::class,
+        ];
+    }
+
+    private function practiceOrderingContext(Course $course, ?int $lessonId): array
+    {
+        $lesson = Lesson::query()
+            ->whereKey($lessonId)
+            ->whereHas('unit', fn ($query) => $query->where('course_id', $course->id))
+            ->first();
+
+        if (! $lesson) {
+            throw ValidationException::withMessages(['parent_id' => 'The selected lesson does not belong to this course.']);
+        }
+
+        return [
+            PracticeResource::query()->where('lesson_id', $lesson->id)->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            PracticeResource::class,
+        ];
     }
 }
