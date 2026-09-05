@@ -19,6 +19,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-courses', [LearningController::class, 'myCourses'])->name('my-courses');
     Route::get('/my-courses/{subject}/{course}/progress', [LearningController::class, 'courseProgress'])
         ->name('my-courses.progress');
+    Route::get('/assessment-performance', [LearningController::class, 'assessmentPerformance'])
+        ->name('assessment-performance');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:20,1')->name('profile.update');
