@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentAnswer;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentQuestion;
+use App\Services\AssessmentScoringService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -152,8 +153,12 @@ class PublicAssessmentController extends Controller
         ]);
     }
 
-    public function save(Request $request, int $assessment, AssessmentAttempt $attempt): RedirectResponse
-    {
+    public function save(
+        Request $request,
+        int $assessment,
+        AssessmentAttempt $attempt,
+        AssessmentScoringService $scoring
+    ): RedirectResponse {
         $assessmentModel = $this->publishedAssessment($assessment);
         $this->authorizeAttempt($assessmentModel, $attempt, $request->user()->id);
 
@@ -170,21 +175,17 @@ class PublicAssessmentController extends Controller
         $questions = $assessmentModel->questions()
             ->published()
             ->with('options')
-            ->get()
-            ->keyBy('id');
+            ->get();
 
-        $answers = $request->input('answers', []);
+        $responses = $scoring->normaliseResponses(
+            $questions,
+            $request->input('answers', []),
+            false
+        );
 
-        if (! is_array($answers)) {
-            throw ValidationException::withMessages([
-                'answers' => 'The submitted answers are not valid.',
-            ]);
-        }
-
-        DB::transaction(function () use ($attempt, $questions, $answers): void {
+        DB::transaction(function () use ($attempt, $questions, $responses): void {
             foreach ($questions as $question) {
-                $rawAnswer = $answers[$question->id] ?? null;
-                $response = $this->normaliseDraftResponse($question, $rawAnswer);
+                $response = $responses[$question->id] ?? null;
 
                 if ($response === null) {
                     $attempt->answers()
@@ -211,7 +212,134 @@ class PublicAssessmentController extends Controller
 
         return redirect()
             ->route('assessment-attempts.show', [$assessmentModel, $attempt])
-            ->with('status', 'Your answers have been saved.');
+            ->with('status', 'Your answers have been saved. You can continue editing them before submission.');
+    }
+
+    public function submit(
+        Request $request,
+        int $assessment,
+        AssessmentAttempt $attempt,
+        AssessmentScoringService $scoring
+    ): RedirectResponse {
+        $assessmentModel = $this->publishedAssessment($assessment);
+        $this->authorizeAttempt($assessmentModel, $attempt, $request->user()->id);
+
+        if ($attempt->status !== 'in-progress') {
+            return redirect()
+                ->route('assessments.show', $assessmentModel)
+                ->withErrors(['assessment' => 'This assessment attempt is no longer open for submission.']);
+        }
+
+        if ($attempt->expires_at && $attempt->expires_at->isPast()) {
+            $attempt->update(['status' => 'expired']);
+
+            return redirect()
+                ->route('assessments.show', $assessmentModel)
+                ->withErrors(['assessment' => 'This timed assessment attempt expired before it could be submitted.']);
+        }
+
+        $questions = $assessmentModel->questions()
+            ->published()
+            ->with('options')
+            ->get();
+
+        if ($questions->isEmpty()) {
+            throw ValidationException::withMessages([
+                'assessment' => 'This assessment does not have any published questions to score.',
+            ]);
+        }
+
+        $responses = $scoring->normaliseResponses(
+            $questions,
+            $request->input('answers', []),
+            true
+        );
+
+        $result = DB::transaction(function () use ($assessmentModel, $attempt, $questions, $responses, $scoring): array {
+            $lockedAttempt = AssessmentAttempt::query()
+                ->whereKey($attempt->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedAttempt->status !== 'in-progress') {
+                return ['state' => 'closed'];
+            }
+
+            if ($lockedAttempt->expires_at && $lockedAttempt->expires_at->isPast()) {
+                $lockedAttempt->update(['status' => 'expired']);
+
+                return ['state' => 'expired'];
+            }
+
+            $scorePoints = 0.0;
+            $maxPoints = $questions->sum(fn (AssessmentQuestion $question) => (float) $question->points);
+
+            foreach ($questions as $question) {
+                $response = $responses[$question->id] ?? null;
+
+                if ($response === null) {
+                    $lockedAttempt->answers()
+                        ->where('assessment_question_id', $question->id)
+                        ->delete();
+                    continue;
+                }
+
+                $grade = $scoring->grade($question, $response);
+                $scorePoints += $grade['points_awarded'];
+
+                AssessmentAnswer::updateOrCreate(
+                    [
+                        'assessment_attempt_id' => $lockedAttempt->id,
+                        'assessment_question_id' => $question->id,
+                    ],
+                    [
+                        'response' => $response,
+                        'question_snapshot' => $question->prompt,
+                        'is_correct' => $grade['is_correct'],
+                        'points_awarded' => $grade['points_awarded'],
+                        'answered_at' => now(),
+                    ]
+                );
+            }
+
+            $percentage = $maxPoints > 0
+                ? round(($scorePoints / $maxPoints) * 100, 2)
+                : 0.0;
+            $passed = $percentage >= $assessmentModel->passing_percentage;
+
+            $lockedAttempt->update([
+                'status' => 'submitted',
+                'score_points' => round($scorePoints, 2),
+                'max_points' => round($maxPoints, 2),
+                'percentage' => $percentage,
+                'passed' => $passed,
+                'submitted_at' => now(),
+            ]);
+
+            return [
+                'state' => 'submitted',
+                'percentage' => $percentage,
+                'passed' => $passed,
+            ];
+        });
+
+        if ($result['state'] === 'expired') {
+            return redirect()
+                ->route('assessments.show', $assessmentModel)
+                ->withErrors(['assessment' => 'This timed assessment attempt expired before it could be submitted.']);
+        }
+
+        if ($result['state'] === 'closed') {
+            return redirect()
+                ->route('assessments.show', $assessmentModel)
+                ->withErrors(['assessment' => 'This assessment attempt has already been closed.']);
+        }
+
+        $outcome = $result['passed'] ? 'Passed' : 'Not passed yet';
+
+        return redirect()
+            ->route('assessments.show', $assessmentModel)
+            ->with('status', 'Assessment submitted. Score: '.number_format($result['percentage'], 2).'% · '.$outcome.'.');
     }
 
     private function publishedAssessment(int $assessmentId): Assessment
@@ -275,58 +403,5 @@ class PublicAssessmentController extends Controller
         }
 
         return $questions;
-    }
-
-    private function normaliseDraftResponse(AssessmentQuestion $question, mixed $rawAnswer): ?array
-    {
-        if (! is_array($rawAnswer)) {
-            return null;
-        }
-
-        if ($question->question_type === 'fill-blank') {
-            $text = trim((string) ($rawAnswer['text'] ?? ''));
-
-            if ($text === '') {
-                return null;
-            }
-
-            if (mb_strlen($text) > 5000) {
-                throw ValidationException::withMessages([
-                    'answers.'.$question->id.'.text' => 'This answer is too long.',
-                ]);
-            }
-
-            return ['text' => $text];
-        }
-
-        if (! in_array($question->question_type, ['single-choice', 'multiple-choice', 'true-false'], true)) {
-            return null;
-        }
-
-        $optionIds = collect($rawAnswer['option_ids'] ?? [])
-            ->map(fn ($id) => filter_var($id, FILTER_VALIDATE_INT))
-            ->filter(fn ($id) => $id !== false && $id > 0)
-            ->unique()
-            ->values();
-
-        if ($optionIds->isEmpty()) {
-            return null;
-        }
-
-        if (in_array($question->question_type, ['single-choice', 'true-false'], true) && $optionIds->count() !== 1) {
-            throw ValidationException::withMessages([
-                'answers.'.$question->id => 'Choose one answer for this question.',
-            ]);
-        }
-
-        $validOptionIds = $question->options->pluck('id')->map(fn ($id) => (int) $id);
-
-        if ($optionIds->diff($validOptionIds)->isNotEmpty()) {
-            throw ValidationException::withMessages([
-                'answers.'.$question->id => 'One or more selected answers are not valid for this question.',
-            ]);
-        }
-
-        return ['option_ids' => $optionIds->all()];
     }
 }
