@@ -68,6 +68,9 @@
                 <div class="px-4 pt-5 sm:px-6 lg:px-8"><div class="rounded-2xl border border-sign-cyan bg-sign-light px-4 py-3 text-sm font-semibold text-sign-primary" role="status" aria-live="polite" data-admin-status>{{ session('status') }}</div></div>
             @endif
             @yield('content')
+            @if (request()->routeIs('admin.dashboard'))
+                @include('admin.partials.dashboard-assessment-overview')
+            @endif
         </main>
     </div>
 
