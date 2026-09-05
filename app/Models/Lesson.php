@@ -53,14 +53,6 @@ class Lesson extends Model
         return $this->belongsTo(MediaAsset::class, 'isl_media_asset_id');
     }
 
-    public function vocabularyTerms(): BelongsToMany
-    {
-        return $this->belongsToMany(VocabularyTerm::class, 'lesson_vocabulary_term')
-            ->withPivot('sort_order')
-            ->withTimestamps()
-            ->orderByPivot('sort_order');
-    }
-
     public function practiceResources(): HasMany
     {
         return $this->hasMany(PracticeResource::class)
@@ -68,8 +60,17 @@ class Lesson extends Model
             ->orderBy('title');
     }
 
+    public function vocabularyTerms(): BelongsToMany
+    {
+        return $this->belongsToMany(VocabularyTerm::class, 'lesson_vocabulary_term')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order')
+            ->orderBy('vocabulary_terms.term');
+    }
+
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('is_published', true);
+        return $query->where($query->getModel()->qualifyColumn('is_published'), true);
     }
 }
