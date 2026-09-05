@@ -8,8 +8,8 @@ use App\Models\Course;
 use App\Models\LearningProgress;
 use App\Models\Lesson;
 use App\Models\Subject;
+use App\Models\Unit;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
@@ -57,6 +57,47 @@ class AdminDashboardController extends Controller
             'assessments' => Assessment::query()->count(),
         ];
 
+        $academicStats = [
+            'subjects' => Subject::query()->count(),
+            'subjects_published' => Subject::query()->where('is_published', true)->count(),
+            'subjects_draft' => Subject::query()->where('is_published', false)->count(),
+            'courses' => Course::query()->count(),
+            'courses_published' => Course::query()->where('is_published', true)->count(),
+            'courses_draft' => Course::query()->where('is_published', false)->count(),
+            'courses_featured' => Course::query()->where('is_featured', true)->count(),
+            'units' => Unit::query()->count(),
+            'units_published' => Unit::query()->where('is_published', true)->count(),
+            'units_draft' => Unit::query()->where('is_published', false)->count(),
+            'lessons' => Lesson::query()->count(),
+            'lessons_published' => Lesson::query()->where('is_published', true)->count(),
+            'lessons_draft' => Lesson::query()->where('is_published', false)->count(),
+            'lessons_with_isl' => Lesson::query()
+                ->where(function ($query) {
+                    $query->whereNotNull('isl_media_asset_id')
+                        ->orWhereNotNull('isl_video_url');
+                })
+                ->count(),
+            'assessments' => Assessment::query()->count(),
+            'assessments_published' => Assessment::query()->where('is_published', true)->count(),
+            'assessments_draft' => Assessment::query()->where('is_published', false)->count(),
+        ];
+
+        foreach (['subjects', 'courses', 'units', 'lessons', 'assessments'] as $resource) {
+            $academicStats[$resource.'_published_rate'] = $academicStats[$resource] > 0
+                ? round(($academicStats[$resource.'_published'] / $academicStats[$resource]) * 100, 1)
+                : 0.0;
+        }
+
+        $academicStats['isl_lesson_rate'] = $academicStats['lessons'] > 0
+            ? round(($academicStats['lessons_with_isl'] / $academicStats['lessons']) * 100, 1)
+            : 0.0;
+
+        $recentCourses = Course::query()
+            ->with('subject:id,name')
+            ->latest('updated_at')
+            ->limit(5)
+            ->get(['id', 'subject_id', 'title', 'slug', 'is_published', 'is_featured', 'updated_at']);
+
         $learningStats = [
             'tracked_courses' => LearningProgress::query()->count(),
             'completed_courses' => LearningProgress::query()->whereNotNull('completed_at')->count(),
@@ -77,6 +118,8 @@ class AdminDashboardController extends Controller
             'userStats',
             'recentUsers',
             'contentStats',
+            'academicStats',
+            'recentCourses',
             'learningStats',
             'managementAreas'
         ));
