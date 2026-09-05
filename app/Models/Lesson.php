@@ -22,6 +22,8 @@ class Lesson extends Model
         'key_points',
         'example_content',
         'isl_video_url',
+        'isl_video_title',
+        'isl_video_caption',
         'isl_media_asset_id',
         'estimated_duration_minutes',
         'sort_order',
