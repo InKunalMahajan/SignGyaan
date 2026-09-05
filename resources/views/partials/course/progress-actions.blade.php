@@ -1,10 +1,6 @@
 @php
-    $lessonKeysForProgress = collect($lessonMap ?? [])
-        ->pluck('key')
-        ->values();
-
-    $currentProgressLessonKey = $currentLessonEntry['key'];
-    $nextProgressLessonKey = $nextLessonEntry['key'] ?? null;
+    $currentProgressLessonKey = 'lesson-'.$currentLessonModel->id;
+    $legacyCurrentLessonKey = $currentLessonEntry['key'];
     $existingProgress = auth()->check()
         ? auth()->user()->learningProgress()
             ->where('subject_slug', $subjectSlug)
@@ -12,7 +8,8 @@
             ->first()
         : null;
     $completedLessonKeys = collect($existingProgress?->completed_lessons ?? []);
-    $isCurrentLessonCompleted = $completedLessonKeys->contains($currentProgressLessonKey);
+    $isCurrentLessonCompleted = $completedLessonKeys->contains($currentProgressLessonKey)
+        || $completedLessonKeys->contains($legacyCurrentLessonKey);
     $savedProgressPercent = $existingProgress?->progressPercent() ?? 0;
 @endphp
 
@@ -22,6 +19,12 @@
             @if (session('status'))
                 <div class="mb-5 rounded-2xl border border-sign-cyan bg-sign-light px-4 py-3 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">
                     {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->has('course_slug') || $errors->has('lesson_id'))
+                <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800" role="alert" aria-live="assertive">
+                    {{ $errors->first('course_slug') ?: $errors->first('lesson_id') }}
                 </div>
             @endif
 
@@ -51,14 +54,8 @@
                                 <form method="POST" action="{{ route('learning-progress.store') }}">
                                     @csrf
                                     <input type="hidden" name="subject_slug" value="{{ $subjectSlug }}">
-                                    <input type="hidden" name="subject_name" value="{{ $subject['name'] }}">
                                     <input type="hidden" name="course_slug" value="{{ $courseSlug }}">
-                                    <input type="hidden" name="course_title" value="{{ $course['title'] }}">
-                                    <input type="hidden" name="total_lessons" value="{{ $lessonKeysForProgress->count() }}">
-                                    <input type="hidden" name="lesson_key" value="{{ $currentProgressLessonKey }}">
-                                    @if ($nextProgressLessonKey)
-                                        <input type="hidden" name="next_lesson_key" value="{{ $nextProgressLessonKey }}">
-                                    @endif
+                                    <input type="hidden" name="lesson_id" value="{{ $currentLessonModel->id }}">
                                     <input type="hidden" name="action" value="save">
 
                                     <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-primary px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">
@@ -69,21 +66,19 @@
                                 <form method="POST" action="{{ route('learning-progress.store') }}">
                                     @csrf
                                     <input type="hidden" name="subject_slug" value="{{ $subjectSlug }}">
-                                    <input type="hidden" name="subject_name" value="{{ $subject['name'] }}">
                                     <input type="hidden" name="course_slug" value="{{ $courseSlug }}">
-                                    <input type="hidden" name="course_title" value="{{ $course['title'] }}">
-                                    <input type="hidden" name="total_lessons" value="{{ $lessonKeysForProgress->count() }}">
-                                    <input type="hidden" name="lesson_key" value="{{ $currentProgressLessonKey }}">
-                                    @if ($nextProgressLessonKey)
-                                        <input type="hidden" name="next_lesson_key" value="{{ $nextProgressLessonKey }}">
-                                    @endif
+                                    <input type="hidden" name="lesson_id" value="{{ $currentLessonModel->id }}">
                                     <input type="hidden" name="action" value="complete">
 
                                     <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
-                                        {{ $nextProgressLessonKey ? 'Complete & Continue' : 'Complete Course' }}
+                                        {{ $nextLessonEntry ? 'Complete & Continue' : 'Complete Course' }}
                                     </button>
                                 </form>
                             </div>
+
+                            <p class="mt-4 text-xs leading-5 text-sign-muted">
+                                Course title, lesson order, total lessons and the next lesson are checked from the published database when progress is saved.
+                            </p>
                         @else
                             <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">
                                 Sign in to save your current lesson, completed lessons and course progress across visits.
