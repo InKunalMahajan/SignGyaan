@@ -20,30 +20,15 @@
             <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Continue open attempts and review scores from completed quizzes and exercises.</p>
         </div>
         @if (($assessmentSummary['submitted'] ?? 0) > 0)
-            <div class="text-sm text-sign-muted">
-                Best score:
-                <strong class="text-sign-primary">{{ number_format((float) $assessmentSummary['best_score'], 2) }}%</strong>
-            </div>
+            <div class="text-sm text-sign-muted">Best score: <strong class="text-sign-primary">{{ number_format((float) $assessmentSummary['best_score'], 2) }}%</strong></div>
         @endif
     </div>
 
     <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Assessment summary">
-        <div class="rounded-2xl border border-sign-border bg-white p-4">
-            <p class="text-xs font-semibold text-sign-muted">Attempts</p>
-            <p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['total_attempts'] ?? 0 }}</p>
-        </div>
-        <div class="rounded-2xl border border-sign-border bg-white p-4">
-            <p class="text-xs font-semibold text-sign-muted">In progress</p>
-            <p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['in_progress'] ?? 0 }}</p>
-        </div>
-        <div class="rounded-2xl border border-sign-border bg-white p-4">
-            <p class="text-xs font-semibold text-sign-muted">Submitted</p>
-            <p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['submitted'] ?? 0 }}</p>
-        </div>
-        <div class="rounded-2xl border border-sign-border bg-white p-4">
-            <p class="text-xs font-semibold text-sign-muted">Passed</p>
-            <p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['passed'] ?? 0 }}</p>
-        </div>
+        <div class="rounded-2xl border border-sign-border bg-white p-4"><p class="text-xs font-semibold text-sign-muted">Attempts</p><p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['total_attempts'] ?? 0 }}</p></div>
+        <div class="rounded-2xl border border-sign-border bg-white p-4"><p class="text-xs font-semibold text-sign-muted">In progress</p><p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['in_progress'] ?? 0 }}</p></div>
+        <div class="rounded-2xl border border-sign-border bg-white p-4"><p class="text-xs font-semibold text-sign-muted">Submitted</p><p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['submitted'] ?? 0 }}</p></div>
+        <div class="rounded-2xl border border-sign-border bg-white p-4"><p class="text-xs font-semibold text-sign-muted">Passed</p><p class="mt-2 font-heading text-2xl font-semibold text-sign-primary">{{ $assessmentSummary['passed'] ?? 0 }}</p></div>
     </div>
 
     @if ($visibleAttempts->isNotEmpty())
@@ -80,9 +65,7 @@
                                 <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
                                     <span class="font-semibold text-sign-primary">{{ number_format((float) $attempt->percentage, 2) }}%</span>
                                     <span class="text-sign-muted">{{ number_format((float) $attempt->score_points, 2) }} / {{ number_format((float) $attempt->max_points, 2) }} points</span>
-                                    @if ($attempt->submitted_at)
-                                        <span class="text-sign-muted">{{ $attempt->submitted_at->format('d M Y') }}</span>
-                                    @endif
+                                    @if ($attempt->submitted_at)<span class="text-sign-muted">{{ $attempt->submitted_at->format('d M Y') }}</span>@endif
                                 </div>
                             @elseif ($isActive)
                                 <p class="mt-3 text-sm leading-6 text-sign-muted">Your saved answers are waiting. Continue this attempt before starting another one.</p>
@@ -111,3 +94,7 @@
         </div>
     @endif
 </section>
+
+@isset($activitySummary)
+    @include('partials.learning.activity-streak')
+@endisset
