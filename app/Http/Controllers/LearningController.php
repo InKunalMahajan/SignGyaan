@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
+use App\Services\LearnerCoursesService;
 use App\Services\LearnerDashboardService;
 use App\Services\LearningProgressCatalog;
 use Illuminate\Http\Request;
@@ -15,6 +16,11 @@ class LearningController extends Controller
     public function dashboard(Request $request, LearnerDashboardService $dashboard): View
     {
         return view('dashboard', $dashboard->build($request->user()));
+    }
+
+    public function myCourses(Request $request, LearnerCoursesService $courses): View
+    {
+        return view('my-courses', $courses->build($request->user()));
     }
 
     public function index(Request $request, LearningProgressCatalog $catalog): View
