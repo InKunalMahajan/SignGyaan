@@ -74,7 +74,7 @@ class AccessibilityPreferencesTest extends TestCase
                 'reduced_motion' => 'system',
             ])
             ->assertRedirect(route('profile.accessibility'))
-            ->assertSessionHasErrors('captions', 'accessibility');
+            ->assertSessionHasErrors(['captions'], null, 'accessibility');
     }
 
     public function test_accessibility_css_and_caption_preference_support_exist(): void
