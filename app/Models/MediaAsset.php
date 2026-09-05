@@ -55,6 +55,11 @@ class MediaAsset extends Model
         return $this->hasMany(PracticeResource::class, 'media_asset_id');
     }
 
+    public function vocabularySignUses(): HasMany
+    {
+        return $this->hasMany(VocabularyTerm::class, 'isl_media_asset_id');
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
