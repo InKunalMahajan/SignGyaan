@@ -34,7 +34,8 @@ const focusSearchInput = (input) => {
 };
 
 const openGlobalSearch = () => {
-    const pageSearch = document.getElementById('search-page-input');
+    const pageSearch = document.getElementById('search-page-input')
+        || document.getElementById('catalog-search');
 
     if (isVisible(pageSearch)) {
         return focusSearchInput(pageSearch);
@@ -87,7 +88,7 @@ const openGlobalSearch = () => {
 
 const enhanceSearchInputs = () => {
     const searchInputs = document.querySelectorAll(
-        '#search-page-input, #desktop-search-input, #mobile-search-input, #explore-search'
+        '#search-page-input, #catalog-search, #desktop-search-input, #mobile-search-input, #explore-search'
     );
 
     searchInputs.forEach((input) => {
@@ -100,6 +101,7 @@ const enhanceSearchInputs = () => {
     if (searchTrigger instanceof HTMLElement) {
         searchTrigger.setAttribute('aria-keyshortcuts', '/ Control+K Meta+K');
         searchTrigger.setAttribute('title', 'Search — press / or Ctrl+K');
+        searchTrigger.setAttribute('aria-haspopup', 'true');
     }
 };
 
@@ -208,6 +210,80 @@ const returnFocusFromHeaderPanel = (target) => {
     return false;
 };
 
+const openHashTargetCourseUnit = () => {
+    if (!window.location.hash) {
+        return;
+    }
+
+    let targetId;
+
+    try {
+        targetId = decodeURIComponent(window.location.hash.slice(1));
+    } catch {
+        targetId = window.location.hash.slice(1);
+    }
+
+    if (!targetId.startsWith('course-unit-heading-')) {
+        return;
+    }
+
+    const target = document.getElementById(targetId);
+    const unitSection = target?.closest('section[aria-labelledby]');
+    const toggle = unitSection?.querySelector('button[aria-controls]');
+
+    if (!(toggle instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    if (toggle.getAttribute('aria-expanded') === 'false') {
+        toggle.click();
+    }
+};
+
+const enhancePublicShell = () => {
+    const shell = document.querySelector('[data-public-shell]');
+
+    if (!(shell instanceof HTMLElement)) {
+        return;
+    }
+
+    const mobileTrigger = document.querySelector('[aria-controls="mobile-navigation"]');
+    const accountTrigger = document.querySelector('[aria-controls="desktop-account-menu"]');
+
+    if (mobileTrigger instanceof HTMLElement) {
+        mobileTrigger.setAttribute('aria-haspopup', 'true');
+    }
+
+    if (accountTrigger instanceof HTMLElement) {
+        accountTrigger.setAttribute('aria-haspopup', 'true');
+    }
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(openHashTargetCourseUnit);
+    });
+
+    window.addEventListener('hashchange', () => {
+        requestAnimationFrame(openHashTargetCourseUnit);
+    });
+
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    const closeStaleMobileNavigation = (event) => {
+        if (
+            event.matches
+            && mobileTrigger instanceof HTMLElement
+            && mobileTrigger.getAttribute('aria-expanded') === 'true'
+        ) {
+            mobileTrigger.click();
+        }
+    };
+
+    if (typeof desktopQuery.addEventListener === 'function') {
+        desktopQuery.addEventListener('change', closeStaleMobileNavigation);
+    } else if (typeof desktopQuery.addListener === 'function') {
+        desktopQuery.addListener(closeStaleMobileNavigation);
+    }
+};
+
 const getAdminDrawer = () => document.getElementById('admin-mobile-navigation');
 
 const getAdminDrawerFocusable = () => {
@@ -285,16 +361,23 @@ const enhanceAdminShell = () => {
     }
 
     const desktopQuery = window.matchMedia('(min-width: 1024px)');
-    desktopQuery.addEventListener('change', (event) => {
+    const closeAdminNavigation = (event) => {
         if (event.matches && closeButton instanceof HTMLElement) {
             closeButton.click();
         }
-    });
+    };
+
+    if (typeof desktopQuery.addEventListener === 'function') {
+        desktopQuery.addEventListener('change', closeAdminNavigation);
+    } else if (typeof desktopQuery.addListener === 'function') {
+        desktopQuery.addListener(closeAdminNavigation);
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     enhanceSearchInputs();
     enhanceForms();
+    enhancePublicShell();
     enhanceAdminShell();
 });
 
