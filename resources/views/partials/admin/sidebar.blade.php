@@ -33,6 +33,12 @@
             'icon' => 'lessons',
         ],
         [
+            'label' => 'ISL Vocabulary',
+            'route' => 'admin.vocabulary.index',
+            'matches' => ['admin.vocabulary.*'],
+            'icon' => 'vocabulary',
+        ],
+        [
             'label' => 'Practice & Resources',
             'route' => 'admin.practice.index',
             'matches' => ['admin.practice.*'],
@@ -136,6 +142,9 @@
                                 @break
                             @case('lessons')
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.399 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
+                                @break
+                            @case('vocabulary')
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 5.25h15A2.25 2.25 0 0 1 21.75 7.5v9A2.25 2.25 0 0 1 19.5 18.75h-15A2.25 2.25 0 0 1 2.25 16.5v-9A2.25 2.25 0 0 1 4.5 5.25Zm1.5 4.5h4.5m-4.5 3h3m4.5-3h4.5m-4.5 3h4.5" /></svg>
                                 @break
                             @case('practice')
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
