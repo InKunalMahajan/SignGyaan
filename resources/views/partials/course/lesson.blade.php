@@ -17,7 +17,27 @@
 
     $objectives = $cleanLines($lesson->learning_objectives);
     $keyPoints = $cleanLines($lesson->key_points);
-    $hasLessonText = filled($lesson->content) || filled($lesson->example_content) || $objectives->isNotEmpty() || $keyPoints->isNotEmpty();
+    $hasLessonText = filled($lesson->content)
+        || filled($lesson->example_content)
+        || $objectives->isNotEmpty()
+        || $keyPoints->isNotEmpty();
+
+    $publishedItems = $lesson->relationLoaded('practiceResources')
+        ? $lesson->practiceResources
+        : collect();
+    $practiceItems = $publishedItems->where('kind', 'practice')->values();
+    $resourceItems = $publishedItems->where('kind', 'resource')->values();
+
+    $resourceTypeLabels = [
+        'exercise' => 'Exercise',
+        'quiz' => 'Quiz',
+        'reflection' => 'Reflection',
+        'worksheet' => 'Worksheet',
+        'notes' => 'Notes / Handout',
+        'download' => 'Download',
+        'external-link' => 'External Link',
+        'reference' => 'Reference',
+    ];
 
     $videoUrl = $lesson->isl_video_url;
     $isDirectVideo = false;
@@ -62,20 +82,22 @@
                     @if ($videoUrl)
                         <span class="rounded-full bg-white px-3 py-1.5 text-sign-cyan-dark ring-1 ring-sign-border">ISL video</span>
                     @endif
+                    @if ($practiceItems->isNotEmpty())
+                        <span class="rounded-full bg-white px-3 py-1.5 text-sign-cyan-dark ring-1 ring-sign-border">{{ $practiceItems->count() }} Practice</span>
+                    @endif
+                    @if ($resourceItems->isNotEmpty())
+                        <span class="rounded-full bg-white px-3 py-1.5 text-sign-muted ring-1 ring-sign-border">{{ $resourceItems->count() }} Resources</span>
+                    @endif
                     @if ($lesson->estimated_duration_minutes)
                         <span class="rounded-full bg-white px-3 py-1.5 text-sign-muted ring-1 ring-sign-border">{{ $lesson->estimated_duration_minutes }} min</span>
                     @endif
                 </div>
 
                 <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">{{ $unit->title }}</p>
-                <h1 class="mt-2 font-heading text-2xl font-semibold leading-tight tracking-tight text-sign-primary sm:text-4xl lg:text-5xl">
-                    {{ $lesson->title }}
-                </h1>
+                <h1 class="mt-2 font-heading text-2xl font-semibold leading-tight tracking-tight text-sign-primary sm:text-4xl lg:text-5xl">{{ $lesson->title }}</h1>
 
                 @if ($lesson->short_description)
-                    <p class="mt-4 max-w-2xl text-sm leading-7 text-sign-muted sm:text-base">
-                        {{ $lesson->short_description }}
-                    </p>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-sign-muted sm:text-base">{{ $lesson->short_description }}</p>
                 @endif
             </div>
 
@@ -106,46 +128,28 @@
                     @elseif ($videoUrl)
                         <div class="flex aspect-video min-h-52 items-center justify-center bg-sign-primary p-6 text-white sm:min-h-0 sm:p-8">
                             <div class="max-w-xl text-center">
-                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-sign-primary shadow-lg sm:h-20 sm:w-20" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="ml-1 h-7 w-7 sm:h-8 sm:w-8">
-                                        <path d="M8.25 5.433c0-1.178 1.296-1.896 2.295-1.272l9.067 5.666c.94.588.94 1.958 0 2.546l-9.067 5.666c-.999.624-2.295-.094-2.295-1.272V5.433Z" />
-                                    </svg>
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-sign-primary shadow-lg" aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="ml-1 h-7 w-7"><path d="M8.25 5.433c0-1.178 1.296-1.896 2.295-1.272l9.067 5.666c.94.588.94 1.958 0 2.546l-9.067 5.666c-.999.624-2.295-.094-2.295-1.272V5.433Z" /></svg>
                                 </div>
-                                <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-white/75 sm:mt-5 sm:text-sm">ISL Lesson Video</p>
+                                <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-white/75">ISL Lesson Video</p>
                                 <p id="lesson-video-heading" class="mt-2 font-heading text-lg font-semibold sm:text-2xl">{{ $lesson->title }}</p>
-                                <a href="{{ $videoUrl }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">
-                                    Open ISL Video
-                                </a>
+                                <a href="{{ $videoUrl }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Open ISL Video</a>
                             </div>
                         </div>
                     @else
                         <div class="flex min-h-52 items-center justify-center bg-sign-soft p-6 sm:min-h-64">
                             <div class="max-w-lg text-center">
-                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sign-primary shadow-sm" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-7 w-7">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h8.25A3.75 3.75 0 0 0 16.5 15V9a3.75 3.75 0 0 0-3.75-3.75H4.5A2.25 2.25 0 0 0 2.25 7.5v9A2.25 2.25 0 0 0 4.5 18.75Z" />
-                                    </svg>
-                                </div>
-                                <p id="lesson-video-heading" class="mt-4 font-heading text-xl font-semibold text-sign-primary">ISL video not added yet</p>
-                                <p class="mt-2 text-sm leading-6 text-sign-muted">You can continue with the lesson notes and examples below.</p>
+                                <p id="lesson-video-heading" class="font-heading text-xl font-semibold text-sign-primary">ISL video not added yet</p>
+                                <p class="mt-2 text-sm leading-6 text-sign-muted">Continue with the lesson notes, examples and practice below.</p>
                             </div>
                         </div>
                     @endif
-
-                    <div class="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                        <div>
-                            <p class="text-sm font-semibold text-sign-primary">Indian Sign Language support</p>
-                            <p class="mt-1 text-sm leading-6 text-sign-muted">{{ $videoUrl ? 'This lesson includes an ISL video link from the Admin lesson content.' : 'No ISL video has been published for this lesson yet.' }}</p>
-                        </div>
-                        <span class="inline-flex w-fit rounded-full bg-sign-soft px-3 py-1.5 text-xs font-semibold text-sign-primary">{{ $videoUrl ? 'Available' : 'Notes available' }}</span>
-                    </div>
                 </section>
 
                 @if ($objectives->isNotEmpty())
                     <section id="lesson-goals" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark sm:text-sm">Lesson goals</p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Lesson goals</p>
                         <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">What you will understand</h2>
-
                         <div class="mt-5 grid gap-3 md:grid-cols-2 sm:mt-6 sm:gap-4">
                             @foreach ($objectives as $objectiveIndex => $objective)
                                 <div class="rounded-2xl bg-white p-4 sm:p-5">
@@ -159,7 +163,7 @@
 
                 @if ($lesson->content)
                     <section id="lesson-notes" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark sm:text-sm">Lesson notes</p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Lesson notes</p>
                         <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Learn the concept</h2>
                         <div class="mt-4 whitespace-pre-line text-sm leading-7 text-sign-muted sm:mt-5 sm:text-base sm:leading-8">{{ $lesson->content }}</div>
                     </section>
@@ -167,13 +171,12 @@
 
                 @if ($keyPoints->isNotEmpty())
                     <section id="key-points" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark sm:text-sm">Key points</p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Key points</p>
                         <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Remember these ideas</h2>
-
                         <div class="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
                             @foreach ($keyPoints as $pointIndex => $point)
                                 <div class="flex gap-3 rounded-2xl bg-sign-soft p-4 sm:gap-4 sm:p-5">
-                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-semibold text-sign-primary sm:h-9 sm:w-9">{{ $pointIndex + 1 }}</div>
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-semibold text-sign-primary">{{ $pointIndex + 1 }}</div>
                                     <p class="text-sm leading-6 text-sign-muted sm:pt-1">{{ $point }}</p>
                                 </div>
                             @endforeach
@@ -183,7 +186,7 @@
 
                 @if ($lesson->example_content)
                     <section id="lesson-example" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark sm:text-sm">Example</p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Example</p>
                         <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">See the idea in context</h2>
                         <div class="mt-5 whitespace-pre-line rounded-2xl bg-white p-5 text-sm leading-7 text-sign-muted sm:mt-6 sm:p-6 sm:text-base">{{ $lesson->example_content }}</div>
                     </section>
@@ -196,9 +199,93 @@
                     </section>
                 @endif
 
+                <section id="lesson-practice" class="scroll-mt-24 rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl sm:p-8" aria-labelledby="lesson-practice-heading">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Practice</p>
+                            <h2 id="lesson-practice-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Check your understanding</h2>
+                            <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Published practice activities from this lesson appear here in the order set by the teacher.</p>
+                        </div>
+                        @if ($practiceItems->isNotEmpty())
+                            <span class="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-sign-primary ring-1 ring-sign-border">{{ $practiceItems->count() }} {{ $practiceItems->count() === 1 ? 'activity' : 'activities' }}</span>
+                        @endif
+                    </div>
+
+                    @if ($practiceItems->isNotEmpty())
+                        <div class="mt-6 space-y-4">
+                            @foreach ($practiceItems as $practiceIndex => $item)
+                                <article class="rounded-2xl border border-sign-border bg-white p-5 sm:p-6" aria-labelledby="practice-item-{{ $item->id }}">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full bg-sign-light px-3 py-1 text-[11px] font-semibold text-sign-primary">{{ $resourceTypeLabels[$item->resource_type] ?? ucfirst(str_replace('-', ' ', $item->resource_type)) }}</span>
+                                        <span class="text-xs font-semibold text-sign-muted">Activity {{ $practiceIndex + 1 }}</span>
+                                        @if ($item->estimated_duration_minutes)
+                                            <span class="text-xs text-sign-muted">· {{ $item->estimated_duration_minutes }} min</span>
+                                        @endif
+                                    </div>
+                                    <h3 id="practice-item-{{ $item->id }}" class="mt-3 font-heading text-lg font-semibold text-sign-primary sm:text-xl">{{ $item->title }}</h3>
+                                    @if ($item->short_description)
+                                        <p class="mt-2 text-sm leading-6 text-sign-muted">{{ $item->short_description }}</p>
+                                    @endif
+                                    @if ($item->instructions)
+                                        <div class="mt-4 rounded-xl bg-sign-soft p-4">
+                                            <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Instructions</p>
+                                            <div class="mt-2 whitespace-pre-line text-sm leading-6 text-sign-muted">{{ $item->instructions }}</div>
+                                        </div>
+                                    @endif
+                                    @if ($item->content)
+                                        <div class="mt-4 whitespace-pre-line text-sm leading-7 text-sign-text">{{ $item->content }}</div>
+                                    @endif
+                                    @if ($item->resource_url)
+                                        <a href="{{ $item->resource_url }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Open activity</a>
+                                    @endif
+                                </article>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="mt-6 rounded-2xl border border-dashed border-sign-border bg-white px-5 py-7 text-center">
+                            <p class="text-sm font-semibold text-sign-primary">No published practice activities yet.</p>
+                            <p class="mt-1 text-sm text-sign-muted">Review the lesson notes and continue when you are ready.</p>
+                        </div>
+                    @endif
+                </section>
+
+                @if ($resourceItems->isNotEmpty())
+                    <section id="lesson-resources" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8" aria-labelledby="lesson-resources-heading">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Resources</p>
+                        <h2 id="lesson-resources-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Extra learning material</h2>
+                        <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Use these published handouts, worksheets, downloads, references and links to support this lesson.</p>
+
+                        <div class="mt-6 grid gap-4 md:grid-cols-2">
+                            @foreach ($resourceItems as $item)
+                                <article class="flex h-full flex-col rounded-2xl border border-sign-border bg-sign-soft p-5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-sign-primary">{{ $resourceTypeLabels[$item->resource_type] ?? ucfirst(str_replace('-', ' ', $item->resource_type)) }}</span>
+                                        @if ($item->estimated_duration_minutes)
+                                            <span class="text-xs text-sign-muted">{{ $item->estimated_duration_minutes }} min</span>
+                                        @endif
+                                    </div>
+                                    <h3 class="mt-3 font-heading text-lg font-semibold text-sign-primary">{{ $item->title }}</h3>
+                                    @if ($item->short_description)
+                                        <p class="mt-2 text-sm leading-6 text-sign-muted">{{ $item->short_description }}</p>
+                                    @endif
+                                    @if ($item->instructions)
+                                        <div class="mt-3 whitespace-pre-line text-sm leading-6 text-sign-muted">{{ $item->instructions }}</div>
+                                    @endif
+                                    @if ($item->content)
+                                        <div class="mt-3 whitespace-pre-line text-sm leading-6 text-sign-muted">{{ $item->content }}</div>
+                                    @endif
+                                    @if ($item->resource_url)
+                                        <a href="{{ $item->resource_url }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-white/70">Open resource →</a>
+                                    @endif
+                                </article>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 <nav class="grid gap-3 border-t border-sign-border pt-6 sm:grid-cols-2 sm:pt-8" aria-label="Lesson navigation">
                     @if ($previousLessonEntry)
-                        <a href="{{ $previousUrl }}" class="group rounded-2xl border border-sign-border bg-white p-4 transition hover:border-sign-cyan hover:bg-sign-soft sm:p-5">
+                        <a href="{{ $previousUrl }}" class="rounded-2xl border border-sign-border bg-white p-4 transition hover:border-sign-cyan hover:bg-sign-soft sm:p-5">
                             <span class="text-xs font-semibold uppercase tracking-wider text-sign-muted">← Previous lesson</span>
                             <span class="mt-2 block font-heading text-lg font-semibold text-sign-primary">{{ $previousLessonEntry['lesson']->title }}</span>
                             <span class="mt-1 block text-xs text-sign-muted">Unit {{ $previousLessonEntry['unit_number'] }} · Lesson {{ $previousLessonEntry['lesson_number'] }}</span>
@@ -211,7 +298,7 @@
                     @endif
 
                     @if ($nextLessonEntry)
-                        <a href="{{ $nextUrl }}" class="group rounded-2xl border border-sign-primary bg-sign-primary p-4 text-white transition hover:bg-sign-dark sm:p-5">
+                        <a href="{{ $nextUrl }}" class="rounded-2xl border border-sign-primary bg-sign-primary p-4 text-white transition hover:bg-sign-dark sm:p-5">
                             <span class="text-xs font-semibold uppercase tracking-wider text-white/70">Next lesson →</span>
                             <span class="mt-2 block font-heading text-lg font-semibold">{{ $nextLessonEntry['lesson']->title }}</span>
                             <span class="mt-1 block text-xs text-white/70">Unit {{ $nextLessonEntry['unit_number'] }} · Lesson {{ $nextLessonEntry['lesson_number'] }}</span>
@@ -219,40 +306,27 @@
                     @else
                         <a href="{{ $courseUrl }}#course-curriculum" class="rounded-2xl border border-sign-primary bg-sign-primary p-4 text-white transition hover:bg-sign-dark sm:p-5">
                             <span class="text-xs font-semibold uppercase tracking-wider text-white/70">Course complete</span>
-                            <span class="mt-2 block font-heading text-lg font-semibold">Return to curriculum</span>
+                            <span class="mt-2 block font-heading text-lg font-semibold">Back to curriculum →</span>
                         </a>
                     @endif
                 </nav>
             </div>
 
-            <aside class="space-y-5 xl:sticky xl:top-28" aria-label="Lesson overview">
-                <section class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Current unit</p>
-                    <h2 class="mt-2 font-heading text-xl font-semibold text-sign-primary">{{ $unit->title }}</h2>
-                    @if ($unit->short_description || $unit->description)
-                        <p class="mt-3 text-sm leading-6 text-sign-muted">{{ $unit->short_description ?: $unit->description }}</p>
-                    @endif
-                    <a href="{{ $courseUrl }}#course-curriculum" class="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">View full curriculum →</a>
-                </section>
-
-                <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl">
+            <aside class="space-y-4 xl:sticky xl:top-28" aria-label="Lesson contents">
+                <div class="rounded-2xl border border-sign-border bg-sign-soft p-5 sm:rounded-3xl">
                     <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">In this lesson</p>
-                    <nav class="mt-3 grid gap-1 text-sm font-semibold" aria-label="Lesson sections">
-                        <a href="#lesson-video" class="rounded-xl px-3 py-2.5 text-sign-primary transition hover:bg-sign-soft">ISL video</a>
-                        @if ($objectives->isNotEmpty())
-                            <a href="#lesson-goals" class="rounded-xl px-3 py-2.5 text-sign-primary transition hover:bg-sign-soft">Learning goals</a>
-                        @endif
-                        @if ($lesson->content)
-                            <a href="#lesson-notes" class="rounded-xl px-3 py-2.5 text-sign-primary transition hover:bg-sign-soft">Lesson notes</a>
-                        @endif
-                        @if ($keyPoints->isNotEmpty())
-                            <a href="#key-points" class="rounded-xl px-3 py-2.5 text-sign-primary transition hover:bg-sign-soft">Key points</a>
-                        @endif
-                        @if ($lesson->example_content)
-                            <a href="#lesson-example" class="rounded-xl px-3 py-2.5 text-sign-primary transition hover:bg-sign-soft">Example</a>
-                        @endif
+                    <nav class="mt-4 grid gap-1 text-sm" aria-label="Lesson section links">
+                        <a href="#lesson-video" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">ISL video</a>
+                        @if ($objectives->isNotEmpty())<a href="#lesson-goals" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Learning goals</a>@endif
+                        @if ($lesson->content)<a href="#lesson-notes" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Lesson notes</a>@endif
+                        @if ($keyPoints->isNotEmpty())<a href="#key-points" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Key points</a>@endif
+                        @if ($lesson->example_content)<a href="#lesson-example" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Example</a>@endif
+                        <a href="#lesson-practice" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Practice</a>
+                        @if ($resourceItems->isNotEmpty())<a href="#lesson-resources" class="min-h-10 rounded-xl px-3 py-2.5 font-semibold text-sign-primary transition hover:bg-white">Resources</a>@endif
                     </nav>
-                </section>
+                </div>
+
+                <a href="{{ $courseUrl }}#course-curriculum" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">View course curriculum</a>
             </aside>
         </div>
     </x-container>
