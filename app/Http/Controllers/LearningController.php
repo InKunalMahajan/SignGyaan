@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
+use App\Services\LearnerAssessmentPerformanceService;
 use App\Services\LearnerCourseProgressService;
 use App\Services\LearnerCoursesService;
 use App\Services\LearnerDashboardService;
@@ -30,6 +31,11 @@ class LearningController extends Controller
         abort_unless($data, 404);
 
         return view('course-progress', $data);
+    }
+
+    public function assessmentPerformance(Request $request, LearnerAssessmentPerformanceService $performance): View
+    {
+        return view('assessment-performance', $performance->build($request->user()));
     }
 
     public function index(Request $request, LearningProgressCatalog $catalog): View
