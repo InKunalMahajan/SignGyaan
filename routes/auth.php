@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('throttle:20,1')
         ->name('profile.update');
+    Route::get('/accessibility', [ProfileController::class, 'accessibility'])
+        ->name('profile.accessibility');
     Route::patch('/profile/accessibility', [ProfileController::class, 'updateAccessibility'])
         ->middleware('throttle:20,1')
         ->name('profile.accessibility.update');
