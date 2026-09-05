@@ -87,7 +87,7 @@ class MediaController extends Controller
         $validated = $this->validateAsset($request);
         $validated['uploaded_by'] = $request->user()->id;
         $validated['is_published'] = $request->boolean('is_published');
-        $validated['is_isl'] = $validated['media_type'] === 'video' && $request->boolean('is_isl');
+        $validated = $this->withVideoMetadata($request, $validated);
 
         if ($validated['source'] === 'upload') {
             $file = $request->file('file');
@@ -122,7 +122,7 @@ class MediaController extends Controller
     {
         $validated = $this->validateAsset($request, $mediaAsset);
         $validated['is_published'] = $request->boolean('is_published');
-        $validated['is_isl'] = $validated['media_type'] === 'video' && $request->boolean('is_isl');
+        $validated = $this->withVideoMetadata($request, $validated);
 
         if ($validated['source'] === 'external') {
             $this->deleteStoredFile($mediaAsset);
@@ -189,6 +189,21 @@ class MediaController extends Controller
             'language_code' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9-]+$/'],
             'duration_seconds' => ['nullable', 'integer', 'min:1', 'max:86400'],
         ]);
+    }
+
+    private function withVideoMetadata(Request $request, array $validated): array
+    {
+        if ($validated['media_type'] !== 'video') {
+            $validated['is_isl'] = false;
+            $validated['language_code'] = null;
+            $validated['duration_seconds'] = null;
+
+            return $validated;
+        }
+
+        $validated['is_isl'] = $request->boolean('is_isl');
+
+        return $validated;
     }
 
     private function ensureUploadMatchesType(UploadedFile $file, string $mediaType): void
