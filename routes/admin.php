@@ -21,7 +21,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VocabularyTermController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::resource('subjects', SubjectController::class)->except('show');
 
@@ -64,6 +64,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/media-picker', MediaPickerController::class)->middleware('throttle:120,1')->name('media.picker');
     Route::resource('media', MediaController::class)->parameters(['media' => 'mediaAsset'])->except('show');
+    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
+        ->middleware('throttle:30,1')
+        ->name('users.status.update');
     Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
 
     Route::view('/settings', 'admin.placeholder', [
