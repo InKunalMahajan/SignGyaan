@@ -13,8 +13,11 @@
                     <h2 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">Users Dashboard</h2>
                     <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Monitor user accounts, roles, account status, email verification and learning activity from one place.</p>
                 </div>
-                <div class="rounded-2xl border border-sign-border bg-sign-soft px-4 py-3 text-sm text-sign-muted">
-                    <span class="font-semibold text-sign-primary">{{ $newUsersThisWeek }}</span> new {{ \Illuminate\Support\Str::plural('user', $newUsersThisWeek) }} in the last 7 days
+                <div class="flex flex-col gap-2 sm:items-end">
+                    <a href="{{ route('admin.users.bulk.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Bulk User Management</a>
+                    <div class="rounded-2xl border border-sign-border bg-sign-soft px-4 py-3 text-sm text-sign-muted">
+                        <span class="font-semibold text-sign-primary">{{ $newUsersThisWeek }}</span> new {{ \Illuminate\Support\Str::plural('user', $newUsersThisWeek) }} in the last 7 days
+                    </div>
                 </div>
             </div>
 
