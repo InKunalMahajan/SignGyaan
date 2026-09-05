@@ -38,6 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:20,1')->name('profile.update');
     Route::get('/accessibility', [ProfileController::class, 'accessibility'])->name('profile.accessibility');
     Route::patch('/profile/accessibility', [ProfileController::class, 'updateAccessibility'])->middleware('throttle:20,1')->name('profile.accessibility.update');
+    Route::get('/notification-preferences', [ProfileController::class, 'notificationPreferences'])
+        ->name('profile.notifications');
+    Route::patch('/profile/notifications', [ProfileController::class, 'updateNotificationPreferences'])
+        ->middleware('throttle:20,1')
+        ->name('profile.notifications.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:10,1')->name('profile.password.update');
 
     Route::post('/learning-progress', [LearningProgressController::class, 'store'])->middleware('throttle:30,1')->name('learning-progress.store');
