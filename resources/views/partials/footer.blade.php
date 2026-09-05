@@ -54,6 +54,11 @@
                             Explore
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('vocabulary.index') }}" class="inline-flex rounded-md py-1 text-white/70 transition hover:text-white">
+                            ISL Vocabulary
+                        </a>
+                    </li>
                 </ul>
             </div>
 
