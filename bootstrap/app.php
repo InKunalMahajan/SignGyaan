@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsureUserCanManageUsers;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureAccountIsActive::class,
             'admin' => EnsureUserIsAdmin::class,
+            'manage_users' => EnsureUserCanManageUsers::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
