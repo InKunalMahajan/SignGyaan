@@ -105,7 +105,7 @@
             </div>
         </section>
 
-        <section x-show="questionType === 'single-choice' || questionType === 'multiple-choice'" class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="choice-options-heading">
+        <section x-show="questionType === 'single-choice' || questionType === 'multiple-choice'" x-cloak class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="choice-options-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h2 id="choice-options-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">Answer options</h2>
@@ -122,17 +122,17 @@
                             <div class="min-w-0 flex-1 space-y-4">
                                 <div>
                                     <label class="mb-2 block text-sm font-semibold text-sign-primary" :for="`option-text-${index}`">Option text</label>
-                                    <input :id="`option-text-${index}`" type="text" :name="`options[${index}][option_text]`" x-model="option.option_text" maxlength="5000" required class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                                    <input :id="`option-text-${index}`" type="text" :name="`options[${index}][option_text]`" x-model="option.option_text" :disabled="!(questionType === 'single-choice' || questionType === 'multiple-choice')" maxlength="5000" required class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
                                 </div>
 
                                 <div>
                                     <label class="mb-2 block text-sm font-semibold text-sign-primary" :for="`option-feedback-${index}`">Option feedback <span class="font-normal text-sign-muted">(optional)</span></label>
-                                    <textarea :id="`option-feedback-${index}`" :name="`options[${index}][feedback]`" x-model="option.feedback" rows="2" maxlength="10000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light"></textarea>
+                                    <textarea :id="`option-feedback-${index}`" :name="`options[${index}][feedback]`" x-model="option.feedback" :disabled="!(questionType === 'single-choice' || questionType === 'multiple-choice')" rows="2" maxlength="10000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light"></textarea>
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <label class="flex cursor-pointer items-center gap-3 text-sm font-semibold text-sign-primary">
-                                        <input type="checkbox" :name="`options[${index}][is_correct]`" value="1" x-model="option.is_correct" class="h-5 w-5 rounded border-sign-border accent-sign-primary">
+                                        <input type="checkbox" :name="`options[${index}][is_correct]`" value="1" x-model="option.is_correct" :disabled="!(questionType === 'single-choice' || questionType === 'multiple-choice')" class="h-5 w-5 rounded border-sign-border accent-sign-primary">
                                         Correct answer
                                     </label>
                                     <button type="button" @click="removeOption(index)" :disabled="options.length <= 2" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">Remove option</button>
@@ -153,11 +153,11 @@
             <fieldset class="mt-6 grid gap-3 sm:grid-cols-2">
                 <legend class="sr-only">Correct True or False answer</legend>
                 <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-sign-border bg-sign-soft p-4 text-sm font-semibold text-sign-primary">
-                    <input type="radio" name="true_false_answer" value="true" @checked($trueFalseAnswer === 'true') class="h-5 w-5 border-sign-border accent-sign-primary">
+                    <input type="radio" name="true_false_answer" value="true" @checked($trueFalseAnswer === 'true') :disabled="questionType !== 'true-false'" class="h-5 w-5 border-sign-border accent-sign-primary">
                     True
                 </label>
                 <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-sign-border bg-sign-soft p-4 text-sm font-semibold text-sign-primary">
-                    <input type="radio" name="true_false_answer" value="false" @checked($trueFalseAnswer === 'false') class="h-5 w-5 border-sign-border accent-sign-primary">
+                    <input type="radio" name="true_false_answer" value="false" @checked($trueFalseAnswer === 'false') :disabled="questionType !== 'true-false'" class="h-5 w-5 border-sign-border accent-sign-primary">
                     False
                 </label>
             </fieldset>
@@ -170,7 +170,7 @@
 
             <div class="mt-6">
                 <label for="accepted_answers" class="mb-2 block text-sm font-semibold text-sign-primary">Accepted answers</label>
-                <textarea id="accepted_answers" name="accepted_answers" rows="7" maxlength="20000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="keyboard&#10;Keyboard">{{ $acceptedAnswers }}</textarea>
+                <textarea id="accepted_answers" name="accepted_answers" rows="7" maxlength="20000" :disabled="questionType !== 'fill-blank'" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="keyboard&#10;Keyboard">{{ $acceptedAnswers }}</textarea>
                 <p class="mt-2 text-xs leading-5 text-sign-muted">Automatic scoring rules for typed answers will be applied in Step 9E.</p>
                 @error('accepted_answers')<p class="mt-2 text-sm font-medium text-red-700" data-field-error>{{ $message }}</p>@enderror
             </div>
