@@ -73,6 +73,7 @@
                 @include('admin.partials.dashboard-teacher-overview')
                 @include('admin.partials.dashboard-quick-management-actions')
                 @include('admin.partials.dashboard-recent-admin-activity')
+                @include('admin.partials.dashboard-filters-reports')
             @endif
         </main>
     </div>
