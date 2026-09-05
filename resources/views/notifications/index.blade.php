@@ -9,8 +9,8 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-wider text-sign-cyan-dark">Learner updates</p>
-                    <h1 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">Notifications</h1>
-                    <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Learning reminders, assessment updates and milestones will appear here.</p>
+                    <h1 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">Notification History</h1>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Review your learning reminders, assessment updates and other SignGyaan notifications.</p>
                 </div>
 
                 <div class="flex flex-wrap gap-3">
@@ -40,15 +40,36 @@
                 </div>
             @endif
 
-            <div class="mb-5 flex items-center justify-between gap-4">
-                <p class="text-sm text-sign-muted">
-                    <span class="font-semibold text-sign-primary">{{ $unreadCount }}</span> unread
-                </p>
+            <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="min-w-0">
+                    <p class="text-sm text-sign-muted">
+                        <span class="font-semibold text-sign-primary">{{ $unreadCount }}</span> unread notification{{ $unreadCount === 1 ? '' : 's' }}
+                    </p>
+                </div>
+
                 <a href="{{ route('dashboard') }}" class="inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">Back to Dashboard →</a>
             </div>
 
+            <nav class="mb-8 overflow-x-auto" aria-label="Notification history filters">
+                <div class="flex min-w-max gap-2 pb-1">
+                    @foreach ($filters as $value => $label)
+                        <a
+                            href="{{ route('notifications.index', ['filter' => $value]) }}"
+                            @class([
+                                'inline-flex min-h-11 items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-sign-light',
+                                'border-sign-primary bg-sign-primary text-white' => $activeFilter === $value,
+                                'border-sign-border bg-white text-sign-primary hover:border-sign-cyan hover:bg-sign-soft' => $activeFilter !== $value,
+                            ])
+                            @if ($activeFilter === $value) aria-current="page" @endif
+                        >
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+            </nav>
+
             @if ($notifications->count())
-                <ol class="space-y-4" aria-label="Notification list">
+                <ol class="space-y-4" aria-label="Notification history list">
                     @foreach ($notifications as $notification)
                         @php
                             $data = is_array($notification->data) ? $notification->data : [];
@@ -100,9 +121,15 @@
                 </div>
             @else
                 <div class="rounded-2xl border border-dashed border-sign-border bg-sign-soft p-8 text-center sm:rounded-3xl sm:p-10">
-                    <h2 class="font-heading text-2xl font-semibold text-sign-primary">No notifications yet</h2>
-                    <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-sign-muted">When SignGyaan has a useful learning update for you, it will appear here.</p>
-                    <a href="{{ route('dashboard') }}" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white">Go to Dashboard</a>
+                    <h2 class="font-heading text-2xl font-semibold text-sign-primary">No notifications in this view</h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-sign-muted">
+                        @if ($activeFilter === 'all')
+                            When SignGyaan has a useful learning update for you, it will appear here.
+                        @else
+                            Try another filter to review the rest of your notification history.
+                        @endif
+                    </p>
+                    <a href="{{ route('notifications.index') }}" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white">View All Notifications</a>
                 </div>
             @endif
         </x-container>
