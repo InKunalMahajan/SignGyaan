@@ -69,27 +69,29 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/media-picker', MediaPickerController::class)->middleware('throttle:120,1')->name('media.picker');
     Route::resource('media', MediaController::class)->parameters(['media' => 'mediaAsset'])->except('show');
 
-    Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
-    Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
-    Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])->middleware('throttle:30,1')->name('teachers.update');
+    Route::middleware('manage_users')->group(function () {
+        Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+        Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
+        Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])->middleware('throttle:30,1')->name('teachers.update');
 
-    Route::get('/learners', [LearnerController::class, 'index'])->name('learners.index');
-    Route::get('/learners/{learner}', [LearnerController::class, 'show'])->name('learners.show');
+        Route::get('/learners', [LearnerController::class, 'index'])->name('learners.index');
+        Route::get('/learners/{learner}', [LearnerController::class, 'show'])->name('learners.show');
 
-    Route::get('/users/bulk', [BulkUserController::class, 'index'])->name('users.bulk.index');
-    Route::post('/users/bulk/import', [BulkUserController::class, 'import'])->middleware('throttle:10,1')->name('users.bulk.import');
-    Route::get('/users/bulk/export', [BulkUserController::class, 'export'])->middleware('throttle:10,1')->name('users.bulk.export');
-    Route::patch('/users/bulk/action', [BulkUserController::class, 'action'])->middleware('throttle:20,1')->name('users.bulk.action');
+        Route::get('/users/bulk', [BulkUserController::class, 'index'])->name('users.bulk.index');
+        Route::post('/users/bulk/import', [BulkUserController::class, 'import'])->middleware('throttle:10,1')->name('users.bulk.import');
+        Route::get('/users/bulk/export', [BulkUserController::class, 'export'])->middleware('throttle:10,1')->name('users.bulk.export');
+        Route::patch('/users/bulk/action', [BulkUserController::class, 'action'])->middleware('throttle:20,1')->name('users.bulk.action');
 
-    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
-        ->middleware('throttle:30,1')
-        ->name('users.status.update');
-    Route::get('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'edit'])
-        ->name('users.academic-profile.edit');
-    Route::patch('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'update'])
-        ->middleware('throttle:30,1')
-        ->name('users.academic-profile.update');
-    Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
+        Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
+            ->middleware('throttle:30,1')
+            ->name('users.status.update');
+        Route::get('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'edit'])
+            ->name('users.academic-profile.edit');
+        Route::patch('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'update'])
+            ->middleware('throttle:30,1')
+            ->name('users.academic-profile.update');
+        Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
+    });
 
     Route::view('/settings', 'admin.placeholder', [
         'title' => 'Settings',
