@@ -14,6 +14,7 @@
     >
 
     <meta name="theme-color" content="#145886">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>
         @yield('title', 'SignGyaan')
