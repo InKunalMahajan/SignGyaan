@@ -74,7 +74,7 @@ class CourseBuilderFoundationTest extends TestCase
             ->assertSee('Computer Basics')
             ->assertSee('Computer Hardware')
             ->assertSee('Keyboard and Mouse')
-            ->assertSee('Input Devices Practice', false)
+            ->assertSee('1 practice')
             ->assertSee('1 vocabulary')
             ->assertSee('Draft')
             ->assertSee(route('admin.units.create', ['course' => $course->id]), false)
