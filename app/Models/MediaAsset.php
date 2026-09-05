@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MediaAsset extends Model
 {
@@ -37,6 +38,16 @@ class MediaAsset extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function lessonVideoUses(): HasMany
+    {
+        return $this->hasMany(Lesson::class, 'isl_media_asset_id');
+    }
+
+    public function practiceResourceUses(): HasMany
+    {
+        return $this->hasMany(PracticeResource::class, 'media_asset_id');
     }
 
     public function scopePublished(Builder $query): Builder
