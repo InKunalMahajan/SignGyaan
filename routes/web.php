@@ -3,10 +3,10 @@
 use App\Http\Controllers\PublicCatalogController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'home')
+Route::get('/', [PublicCatalogController::class, 'home'])
     ->name('home');
 
-Route::view('/learn', 'pages.learn')
+Route::get('/learn', [PublicCatalogController::class, 'learn'])
     ->name('learn');
 
 Route::get('/subjects', [PublicCatalogController::class, 'subjects'])
@@ -18,7 +18,7 @@ Route::get('/subjects/{subject}', [PublicCatalogController::class, 'subject'])
 Route::get('/subjects/{subject}/courses/{course}', [PublicCatalogController::class, 'course'])
     ->name('courses.show');
 
-Route::view('/explore', 'pages.explore')
+Route::get('/explore', [PublicCatalogController::class, 'explore'])
     ->name('explore');
 
 Route::view('/about', 'pages.about')
