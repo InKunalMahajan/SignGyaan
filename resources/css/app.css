@@ -117,6 +117,10 @@ textarea[aria-invalid="true"]:focus {
     outline-offset: 3px;
 }
 
+:target {
+    scroll-margin-top: 6rem;
+}
+
 [x-cloak] {
     display: none !important;
 }
@@ -141,9 +145,39 @@ textarea[aria-invalid="true"]:focus {
     transition: background-color 9999s ease-out;
 }
 
+/* Public learner shell */
+[data-public-shell] [data-public-main] {
+    overflow-x: clip;
+}
+
+[data-public-shell] [role="alert"],
+[data-public-shell] [role="status"] {
+    scroll-margin-top: 6rem;
+}
+
+[data-public-shell] input,
+[data-public-shell] select,
+[data-public-shell] textarea {
+    font-size: 1rem;
+}
+
+[data-public-shell] video {
+    height: auto;
+}
+
+[data-public-shell] .overflow-x-auto {
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-public-shell] a[target="_blank"] {
+    overflow-wrap: anywhere;
+}
+
 /* Explore + Search horizontal filter strips */
 [aria-label="Explore categories"],
-[aria-label="Filter by result type"] {
+[aria-label="Filter by result type"],
+[aria-label="Search result types"] {
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior-inline: contain;
@@ -151,12 +185,14 @@ textarea[aria-invalid="true"]:focus {
 }
 
 [aria-label="Explore categories"]::-webkit-scrollbar,
-[aria-label="Filter by result type"]::-webkit-scrollbar {
+[aria-label="Filter by result type"]::-webkit-scrollbar,
+[aria-label="Search result types"]::-webkit-scrollbar {
     display: none;
 }
 
 [aria-label="Explore categories"] > div > a,
-[aria-label="Filter by result type"] > div > a {
+[aria-label="Filter by result type"] > div > a,
+[aria-label="Search result types"] > div > a {
     scroll-snap-align: start;
 }
 
@@ -169,6 +205,7 @@ textarea[aria-invalid="true"]:focus {
 /* Keep search and account fields comfortable on touch devices and prevent mobile zoom. */
 #explore-search,
 #search-page-input,
+#catalog-search,
 #desktop-search-input,
 #mobile-search-input,
 #search-type,
@@ -249,12 +286,25 @@ html.admin-nav-open body {
         scroll-padding-top: 5rem;
     }
 
+    :target {
+        scroll-margin-top: 5rem;
+    }
+
     h1 {
         line-height: 1.12;
     }
 
     h2 {
         line-height: 1.18;
+    }
+
+    [data-public-shell] [data-public-main] > section {
+        max-width: 100%;
+    }
+
+    [data-public-shell] iframe,
+    [data-public-shell] video {
+        border-radius: 0;
     }
 
     /* Keep authentication pages focused and compact on phones. */
@@ -287,12 +337,14 @@ html.admin-nav-open body {
     }
 
     /* Dedicated Search page primary submit button. */
-    form:has(#search-page-input) > div:first-of-type > button[type="submit"] {
+    form:has(#search-page-input) > div:first-of-type > button[type="submit"],
+    form:has(#catalog-search) > div:first-of-type > button[type="submit"] {
         width: 100%;
     }
 
     [aria-label="Explore categories"],
-    [aria-label="Filter by result type"] {
+    [aria-label="Filter by result type"],
+    [aria-label="Search result types"] {
         scroll-snap-type: x proximity;
     }
 
@@ -313,7 +365,8 @@ html.admin-nav-open body {
 
 @media (min-width: 640px) and (max-width: 1023px) {
     #explore-search,
-    #search-page-input {
+    #search-page-input,
+    #catalog-search {
         min-width: 0;
     }
 
@@ -338,7 +391,7 @@ html.admin-nav-open body {
         text-decoration-thickness: max(1px, 0.08em);
     }
 
-    [data-admin-shell] [aria-current="page"] {
+    [aria-current="page"] {
         outline: 2px solid currentColor;
         outline-offset: -2px;
     }
@@ -354,7 +407,7 @@ html.admin-nav-open body {
         background: Highlight;
     }
 
-    [data-admin-shell] [aria-current="page"] {
+    [aria-current="page"] {
         border: 2px solid Highlight;
     }
 }
