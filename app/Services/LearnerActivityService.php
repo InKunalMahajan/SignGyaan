@@ -9,6 +9,10 @@ use Illuminate\Support\Collection;
 
 class LearnerActivityService
 {
+    public function __construct(private AchievementNotificationService $achievements)
+    {
+    }
+
     public function record(User $user, array $data, bool $deduplicate = false): LearningActivity
     {
         if ($deduplicate) {
@@ -26,11 +30,13 @@ class LearnerActivityService
                     'occurred_at' => now(),
                 ]);
 
+                $this->achievements->activityRecorded($user);
+
                 return $existing;
             }
         }
 
-        return $user->learningActivities()->create([
+        $activity = $user->learningActivities()->create([
             'activity_type' => $data['activity_type'],
             'subject_slug' => $data['subject_slug'] ?? null,
             'course_slug' => $data['course_slug'] ?? null,
@@ -40,6 +46,10 @@ class LearnerActivityService
             'metadata' => $data['metadata'] ?? null,
             'occurred_at' => now(),
         ]);
+
+        $this->achievements->activityRecorded($user);
+
+        return $activity;
     }
 
     public function summary(User $user): array
