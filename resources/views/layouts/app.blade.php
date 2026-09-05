@@ -25,6 +25,30 @@
         'resources/js/app.js'
     ])
 
+    <style>
+        a[aria-label="SignGyaan home"] {
+            display: block !important;
+            width: 220px;
+            height: 54px;
+            flex-shrink: 0;
+            background-image: url("{{ asset('images/signgyaan-header-logo.svg') }}");
+            background-repeat: no-repeat;
+            background-position: left center;
+            background-size: contain;
+        }
+
+        a[aria-label="SignGyaan home"] > * {
+            display: none !important;
+        }
+
+        @media (max-width: 639px) {
+            a[aria-label="SignGyaan home"] {
+                width: 168px;
+                height: 44px;
+            }
+        }
+    </style>
+
     @livewireStyles
     @stack('head')
 </head>
