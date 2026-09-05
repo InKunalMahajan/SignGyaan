@@ -93,7 +93,7 @@ class PublicPublishingVisibilityTest extends TestCase
             'lesson' => 'lesson-'.$hiddenByParent->id,
         ]))->assertNotFound();
 
-        $this->get(route('search', ['q' => 'Private Draft Lesson']))
+        $this->get(route('search', ['q' => 'Private']))
             ->assertOk()
             ->assertDontSee($draftLesson->title);
     }
