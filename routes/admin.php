@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\MediaPickerController;
 use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
+use App\Http\Controllers\Admin\UserAcademicProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VocabularyTermController;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +68,11 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
         ->middleware('throttle:30,1')
         ->name('users.status.update');
+    Route::get('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'edit'])
+        ->name('users.academic-profile.edit');
+    Route::patch('/users/{user}/academic-profile', [UserAcademicProfileController::class, 'update'])
+        ->middleware('throttle:30,1')
+        ->name('users.academic-profile.update');
     Route::resource('users', UserController::class)->only(['index', 'edit', 'update', 'destroy']);
 
     Route::view('/settings', 'admin.placeholder', [
