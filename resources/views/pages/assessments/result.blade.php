@@ -60,7 +60,11 @@
                         </div>
                         <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
                             <dt class="text-sign-muted">Correct</dt>
-                            <dd class="font-semibold text-sign-primary">{{ $correctCount }} / {{ $answeredCount }}</dd>
+                            <dd class="font-semibold text-sign-primary">{{ $correctCount }} / {{ $questionCount }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
+                            <dt class="text-sign-muted">Answered</dt>
+                            <dd class="font-semibold text-sign-primary">{{ $answeredCount }} / {{ $questionCount }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
                             <dt class="text-sign-muted">Submitted</dt>
