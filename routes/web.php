@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PublicAssessmentController;
 use App\Http\Controllers\PublicCatalogController;
+use App\Http\Controllers\PublicVocabularyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicCatalogController::class, 'home'])
@@ -23,6 +24,13 @@ Route::get('/subjects/{subject}/courses/{course}', [PublicCatalogController::cla
         'course' => '[a-z0-9]+(?:-[a-z0-9]+)*',
     ])
     ->name('courses.show');
+
+Route::get('/isl-vocabulary', [PublicVocabularyController::class, 'index'])
+    ->name('vocabulary.index');
+
+Route::get('/isl-vocabulary/{vocabularyTerm}', [PublicVocabularyController::class, 'show'])
+    ->where('vocabularyTerm', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('vocabulary.show');
 
 Route::get('/assessments/{assessment}', [PublicAssessmentController::class, 'show'])
     ->whereNumber('assessment')
