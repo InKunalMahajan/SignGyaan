@@ -33,6 +33,9 @@ class User extends Authenticatable
         'last_login_at',
         'suspended_at',
         'admin_note',
+        'education_board',
+        'standard',
+        'academic_year',
         'accessibility_preferences',
         'notification_preferences',
     ];
@@ -131,6 +134,13 @@ class User extends Authenticatable
     public function isDisabled(): bool
     {
         return $this->status === self::STATUS_DISABLED;
+    }
+
+    public function hasAcademicProfile(): bool
+    {
+        return filled($this->education_board)
+            && filled($this->standard)
+            && filled($this->academic_year);
     }
 
     public function scopeWithRole(Builder $query, string $role): Builder
