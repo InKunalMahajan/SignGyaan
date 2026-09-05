@@ -96,7 +96,7 @@ class LearningController extends Controller
                             ->published()
                             ->whereHas('course', fn ($courseQuery) => $courseQuery
                                 ->published()
-                                ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->published())))))
+                                ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->published()))))))
             ->with('assessment.practiceResource.lesson.unit.course.subject')
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
