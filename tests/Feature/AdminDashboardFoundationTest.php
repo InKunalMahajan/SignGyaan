@@ -2,10 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Assessment;
-use App\Models\Course;
-use App\Models\Lesson;
-use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,11 +21,6 @@ class AdminDashboardFoundationTest extends TestCase
         $admin = User::factory()->admin()->create();
         User::factory()->learner()->create();
         User::factory()->teacher()->create();
-
-        $subject = Subject::factory()->create();
-        $course = Course::factory()->create(['subject_id' => $subject->id]);
-        Lesson::factory()->create();
-        Assessment::factory()->create();
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
