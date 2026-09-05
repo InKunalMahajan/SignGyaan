@@ -53,6 +53,11 @@ class Course extends Model
         return $this->hasManyThrough(Lesson::class, Unit::class);
     }
 
+    public function vocabularyTerms(): HasMany
+    {
+        return $this->hasMany(VocabularyTerm::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true);
