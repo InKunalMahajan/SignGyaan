@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PracticeResource extends Model
 {
@@ -45,6 +46,11 @@ class PracticeResource extends Model
     public function mediaAsset(): BelongsTo
     {
         return $this->belongsTo(MediaAsset::class);
+    }
+
+    public function assessment(): HasOne
+    {
+        return $this->hasOne(Assessment::class);
     }
 
     public function scopePublished(Builder $query): Builder
