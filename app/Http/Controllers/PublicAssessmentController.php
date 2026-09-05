@@ -284,14 +284,6 @@ class PublicAssessmentController extends Controller
 
             foreach ($questions as $question) {
                 $response = $responses[$question->id] ?? null;
-
-                if ($response === null) {
-                    $lockedAttempt->answers()
-                        ->where('assessment_question_id', $question->id)
-                        ->delete();
-                    continue;
-                }
-
                 $grade = $scoring->grade($question, $response);
                 $scorePoints += $grade['points_awarded'];
 
@@ -305,7 +297,7 @@ class PublicAssessmentController extends Controller
                         'question_snapshot' => $question->prompt,
                         'is_correct' => $grade['is_correct'],
                         'points_awarded' => $grade['points_awarded'],
-                        'answered_at' => now(),
+                        'answered_at' => $response !== null ? now() : null,
                     ]
                 );
             }
@@ -385,16 +377,14 @@ class PublicAssessmentController extends Controller
         $course = $lesson->unit->course;
         $subject = $course->subject;
 
-        $correctCount = $answers->where('is_correct', true)->count();
-        $answeredCount = $answers->count();
-
         return view('pages.assessments.result', [
             'assessment' => $assessmentModel,
             'attempt' => $attempt,
             'questions' => $questions,
             'answers' => $answerByQuestion,
-            'correctCount' => $correctCount,
-            'answeredCount' => $answeredCount,
+            'correctCount' => $answers->where('is_correct', true)->count(),
+            'answeredCount' => $answers->filter(fn (AssessmentAnswer $answer) => $answer->response !== null)->count(),
+            'questionCount' => $answers->count(),
             'lessonUrl' => route('courses.show', [
                 'subject' => $subject->slug,
                 'course' => $course->slug,
