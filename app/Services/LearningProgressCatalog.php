@@ -91,12 +91,16 @@ class LearningProgressCatalog
         $currentKey = $this->normalizeKey($progress->current_lesson_key, $entries);
 
         if (! $currentKey) {
-            $currentKey = $entries
-                ->first(fn (array $entry) => ! in_array($entry['stable_key'], $completed, true))['stable_key']
-                ?? $entries->first()['stable_key']
-                ?? null;
+            $firstIncomplete = $entries->first(
+                fn (array $entry) => ! in_array($entry['stable_key'], $completed, true)
+            );
+            $currentKey = $firstIncomplete['stable_key']
+                ?? ($entries->first()['stable_key'] ?? null);
         }
 
+        $currentEntry = $entries->first(
+            fn (array $entry) => $entry['stable_key'] === $currentKey
+        );
         $totalLessons = $entries->count();
 
         $progress->setAttribute('subject_name', $state['subject']->name);
@@ -104,6 +108,8 @@ class LearningProgressCatalog
         $progress->setAttribute('total_lessons', $totalLessons);
         $progress->setAttribute('current_lesson_key', $currentKey);
         $progress->setAttribute('completed_lessons', $completed);
+        $progress->setAttribute('current_lesson_title', $currentEntry['lesson']->title ?? null);
+        $progress->setAttribute('current_unit_title', $currentEntry['unit']->title ?? null);
         $progress->setAttribute(
             'completed_at',
             $totalLessons > 0 && count($completed) >= $totalLessons
