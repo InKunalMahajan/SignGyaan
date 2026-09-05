@@ -23,18 +23,23 @@ class PublicAssessmentController extends Controller
 
         $activeAttempt = null;
         $attemptsUsed = 0;
+        $attemptHistory = collect();
+        $bestSubmittedAttempt = null;
 
         if ($request->user()) {
-            $this->expireTimedOutAttempts($assessmentModel, $request->user()->id);
+            $userId = $request->user()->id;
+            $this->expireTimedOutAttempts($assessmentModel, $userId);
 
-            $attemptsUsed = $assessmentModel->attempts()
-                ->where('user_id', $request->user()->id)
-                ->count();
+            $attemptHistory = $assessmentModel->attempts()
+                ->where('user_id', $userId)
+                ->orderByDesc('attempt_number')
+                ->get();
 
-            $activeAttempt = $assessmentModel->attempts()
-                ->where('user_id', $request->user()->id)
-                ->where('status', 'in-progress')
-                ->latest('id')
+            $attemptsUsed = $attemptHistory->count();
+            $activeAttempt = $attemptHistory->firstWhere('status', 'in-progress');
+            $bestSubmittedAttempt = $attemptHistory
+                ->where('status', 'submitted')
+                ->sortByDesc(fn (AssessmentAttempt $attempt) => (float) $attempt->percentage)
                 ->first();
         }
 
@@ -46,6 +51,8 @@ class PublicAssessmentController extends Controller
             'attemptsRemaining' => $assessmentModel->max_attempts === null
                 ? null
                 : max(0, $assessmentModel->max_attempts - $attemptsUsed),
+            'attemptHistory' => $attemptHistory,
+            'bestSubmittedAttempt' => $bestSubmittedAttempt,
         ]);
     }
 
@@ -53,11 +60,12 @@ class PublicAssessmentController extends Controller
     {
         $assessmentModel = $this->publishedAssessment($assessment);
         $user = $request->user();
+        $userId = $user->id;
 
-        $this->expireTimedOutAttempts($assessmentModel, $user->id);
+        $this->expireTimedOutAttempts($assessmentModel, $userId);
 
         $activeAttempt = $assessmentModel->attempts()
-            ->where('user_id', $user->id)
+            ->where('user_id', $userId)
             ->where('status', 'in-progress')
             ->latest('id')
             ->first();
@@ -66,44 +74,71 @@ class PublicAssessmentController extends Controller
             return redirect()->route('assessment-attempts.show', [$assessmentModel, $activeAttempt]);
         }
 
-        $publishedQuestionsCount = $assessmentModel->questions()->published()->count();
-
-        if ($publishedQuestionsCount === 0) {
+        if ($assessmentModel->questions()->published()->count() === 0) {
             return back()->withErrors([
                 'assessment' => 'This assessment does not have any published questions yet.',
             ]);
         }
 
-        $attemptsUsed = $assessmentModel->attempts()
-            ->where('user_id', $user->id)
-            ->count();
+        $attempt = DB::transaction(function () use ($assessmentModel, $userId): AssessmentAttempt|string {
+            Assessment::query()
+                ->whereKey($assessmentModel->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($assessmentModel->max_attempts !== null && $attemptsUsed >= $assessmentModel->max_attempts) {
+            $existingActive = AssessmentAttempt::query()
+                ->where('assessment_id', $assessmentModel->id)
+                ->where('user_id', $userId)
+                ->where('status', 'in-progress')
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingActive) {
+                return $existingActive;
+            }
+
+            $attemptsUsed = AssessmentAttempt::query()
+                ->where('assessment_id', $assessmentModel->id)
+                ->where('user_id', $userId)
+                ->count();
+
+            if ($assessmentModel->max_attempts !== null && $attemptsUsed >= $assessmentModel->max_attempts) {
+                return 'limit-reached';
+            }
+
+            $attemptNumber = ((int) AssessmentAttempt::query()
+                ->where('assessment_id', $assessmentModel->id)
+                ->where('user_id', $userId)
+                ->max('attempt_number')) + 1;
+
+            $startedAt = now();
+
+            return AssessmentAttempt::create([
+                'assessment_id' => $assessmentModel->id,
+                'user_id' => $userId,
+                'attempt_number' => $attemptNumber,
+                'status' => 'in-progress',
+                'started_at' => $startedAt,
+                'expires_at' => $assessmentModel->time_limit_minutes
+                    ? $startedAt->copy()->addMinutes($assessmentModel->time_limit_minutes)
+                    : null,
+            ]);
+        });
+
+        if ($attempt === 'limit-reached') {
             return back()->withErrors([
                 'assessment' => 'You have used all available attempts for this assessment.',
             ]);
         }
 
-        $attemptNumber = ((int) $assessmentModel->attempts()
-            ->where('user_id', $user->id)
-            ->max('attempt_number')) + 1;
-
-        $startedAt = now();
-
-        $attempt = AssessmentAttempt::create([
-            'assessment_id' => $assessmentModel->id,
-            'user_id' => $user->id,
-            'attempt_number' => $attemptNumber,
-            'status' => 'in-progress',
-            'started_at' => $startedAt,
-            'expires_at' => $assessmentModel->time_limit_minutes
-                ? $startedAt->copy()->addMinutes($assessmentModel->time_limit_minutes)
-                : null,
-        ]);
+        if ($attempt->status === 'in-progress' && $attempt->started_at && $attempt->created_at?->ne($attempt->updated_at)) {
+            return redirect()->route('assessment-attempts.show', [$assessmentModel, $attempt]);
+        }
 
         return redirect()
             ->route('assessment-attempts.show', [$assessmentModel, $attempt])
-            ->with('status', 'Assessment started. Your attempt is now in progress.');
+            ->with('status', 'Attempt '.$attempt->attempt_number.' started. Your previous attempts remain saved in your history.');
     }
 
     public function play(Request $request, int $assessment, AssessmentAttempt $attempt): View|RedirectResponse
@@ -377,6 +412,14 @@ class PublicAssessmentController extends Controller
         $course = $lesson->unit->course;
         $subject = $course->subject;
 
+        $attemptsUsed = $assessmentModel->attempts()
+            ->where('user_id', $request->user()->id)
+            ->count();
+        $attemptsRemaining = $assessmentModel->max_attempts === null
+            ? null
+            : max(0, $assessmentModel->max_attempts - $attemptsUsed);
+        $canRetry = $assessmentModel->max_attempts === null || $attemptsRemaining > 0;
+
         return view('pages.assessments.result', [
             'assessment' => $assessmentModel,
             'attempt' => $attempt,
@@ -385,6 +428,9 @@ class PublicAssessmentController extends Controller
             'correctCount' => $answers->where('is_correct', true)->count(),
             'answeredCount' => $answers->filter(fn (AssessmentAnswer $answer) => $answer->response !== null)->count(),
             'questionCount' => $answers->count(),
+            'attemptsUsed' => $attemptsUsed,
+            'attemptsRemaining' => $attemptsRemaining,
+            'canRetry' => $canRetry,
             'lessonUrl' => route('courses.show', [
                 'subject' => $subject->slug,
                 'course' => $course->slug,
