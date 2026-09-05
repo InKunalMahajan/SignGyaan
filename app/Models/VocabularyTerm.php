@@ -58,6 +58,6 @@ class VocabularyTerm extends Model
 
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('is_published', true);
+        return $query->where($query->qualifyColumn('is_published'), true);
     }
 }
