@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="180" viewBox="0 0 820 180" role="img" aria-labelledby="title desc">
+  <title id="title">SignGyaan</title>
+  <desc id="desc">Signing hands above an open book with SignGyaan and the tagline संकेत भाषेचा सह शिक्षणम्।</desc>
+
+  <g fill="none" stroke="#34B1DE" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M80 18 C89 2 103 4 104 19 L106 39 L121 19 C127 11 137 15 133 25 L120 45 L140 29 C149 22 157 29 151 37 L134 52 L153 44 C163 39 168 48 159 54 L140 66 L156 63 C166 61 169 71 158 74 L136 80 C123 83 114 80 105 73 L89 60 C78 51 74 35 80 18Z"/>
+    <path d="M101 72 C90 79 84 89 87 100 C90 110 99 117 108 121 L126 131 C136 136 145 130 139 122 L125 111 L147 120 C157 124 162 114 153 109 L134 98 L153 103 C163 105 167 95 157 91 L137 84 L153 84 C163 85 166 75 156 73 L133 69 C121 67 110 67 101 72Z"/>
+  </g>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 125 C50 113 82 114 106 133 C130 114 162 113 192 125" stroke="#34B1DE" stroke-width="6"/>
+    <path d="M16 136 C49 124 81 126 106 145 C131 126 163 124 196 136" stroke="#2098C4" stroke-width="6"/>
+    <path d="M14 148 C48 137 81 139 106 156 C131 139 164 137 198 148" stroke="#145886" stroke-width="6"/>
+  </g>
+
+  <text x="225" y="100" fill="#145886" font-family="Lora, Georgia, serif" font-size="72" font-weight="700" letter-spacing="-1">SignGyaan</text>
+  <text x="230" y="140" fill="#145886" font-family="'Noto Sans Devanagari', 'Noto Sans', sans-serif" font-size="24" font-weight="700">संकेत भाषेचा सह शिक्षणम्।</text>
+</svg>
