@@ -97,7 +97,9 @@ class CoursePublishingChecklistTest extends TestCase
             ->assertOk()
             ->assertSee('Required checks are complete')
             ->assertSee('0</p><p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-sign-muted">Blockers', false)
-            ->assertSee('Review Draft Preview');
+            ->assertSee('Ready to publish')
+            ->assertSee('Publish All')
+            ->assertSee('Preview Course');
     }
 
     public function test_non_admin_cannot_access_the_publishing_checklist(): void
