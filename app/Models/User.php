@@ -6,7 +6,9 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -70,6 +72,21 @@ class User extends Authenticatable
     public function assessmentAttempts(): HasMany
     {
         return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    public function teacherProfile(): HasOne
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
+
+    public function teachingSubjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'subject_teacher')->withTimestamps();
+    }
+
+    public function teachingCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_teacher')->withTimestamps();
     }
 
     public function accessibilityPreference(string $key, mixed $default = null): mixed
@@ -136,7 +153,7 @@ class User extends Authenticatable
         return $this->status === self::STATUS_DISABLED;
     }
 
-    public function hasAcademicProfile(): bool
+    public function hasCompleteAcademicProfile(): bool
     {
         return filled($this->education_board)
             && filled($this->standard)
