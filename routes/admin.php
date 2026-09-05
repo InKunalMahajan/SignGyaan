@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\PracticeResourceController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VocabularyTermController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin'])
@@ -29,6 +30,10 @@ Route::middleware(['auth', 'admin'])
             ->except('show');
 
         Route::resource('lessons', LessonController::class)
+            ->except('show');
+
+        Route::resource('vocabulary', VocabularyTermController::class)
+            ->parameters(['vocabulary' => 'vocabulary'])
             ->except('show');
 
         Route::get('/practice-resources', [PracticeResourceController::class, 'index'])->name('practice.index');
