@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'role',
         'accessibility_preferences',
+        'notification_preferences',
     ];
 
     protected $hidden = [
@@ -33,6 +34,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'accessibility_preferences' => 'array',
+            'notification_preferences' => 'array',
         ];
     }
 
@@ -54,6 +56,20 @@ class User extends Authenticatable
     public function accessibilityPreference(string $key, mixed $default = null): mixed
     {
         return data_get($this->accessibility_preferences ?? [], $key, $default);
+    }
+
+    public function notificationPreference(string $key, bool $default = true): bool
+    {
+        return (bool) data_get($this->notification_preferences ?? [], $key, $default);
+    }
+
+    public function wantsNotificationCategory(string $category): bool
+    {
+        if (! $this->notificationPreference('enabled', true)) {
+            return false;
+        }
+
+        return $this->notificationPreference($category, true);
     }
 
     public function isAdmin(): bool
