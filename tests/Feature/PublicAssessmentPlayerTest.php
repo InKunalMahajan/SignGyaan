@@ -60,7 +60,8 @@ class PublicAssessmentPlayerTest extends TestCase
             ->get(route('assessment-attempts.show', [$assessment, $attempt]))
             ->assertOk()
             ->assertSee($question->prompt)
-            ->assertSee('Save Answers')
+            ->assertSee('Save Progress')
+            ->assertSee('Submit Assessment')
             ->assertDontSee('SECRET_EXPLANATION')
             ->assertDontSee('SECRET_OPTION_FEEDBACK');
     }
