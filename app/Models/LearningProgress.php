@@ -21,6 +21,7 @@ class LearningProgress extends Model
         'total_lessons',
         'current_lesson_key',
         'completed_lessons',
+        'video_progress',
         'last_accessed_at',
         'completed_at',
     ];
@@ -29,6 +30,7 @@ class LearningProgress extends Model
     {
         return [
             'completed_lessons' => 'array',
+            'video_progress' => 'array',
             'last_accessed_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
