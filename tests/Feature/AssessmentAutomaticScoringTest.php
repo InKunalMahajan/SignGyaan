@@ -48,7 +48,7 @@ class AssessmentAutomaticScoringTest extends TestCase
             ]);
 
         $response
-            ->assertRedirect(route('assessments.show', $assessment))
+            ->assertRedirect(route('assessment-attempts.result', [$assessment, $attempt]))
             ->assertSessionHas('status');
 
         $attempt->refresh();
@@ -98,7 +98,7 @@ class AssessmentAutomaticScoringTest extends TestCase
                     ],
                 ],
             ])
-            ->assertRedirect(route('assessments.show', $assessment));
+            ->assertRedirect(route('assessment-attempts.result', [$assessment, $attempt]));
 
         $attempt->refresh();
 
