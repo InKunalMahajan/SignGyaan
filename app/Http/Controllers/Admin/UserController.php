@@ -79,8 +79,12 @@ class UserController extends Controller
         ]);
     }
 
-    public function edit(User $user, UserManagementService $userManagement): View
+    public function edit(Request $request, User $user, UserManagementService $userManagement): View
     {
+        $actor = $request->user();
+
+        abort_if($user->isSuperAdmin() && ! $actor?->isSuperAdmin(), 403, 'Only a Super Administrator can manage another Super Administrator.');
+
         $user->load([
             'learningProgress' => fn ($query) => $query->orderByDesc('last_accessed_at'),
         ])->loadCount([
@@ -91,12 +95,17 @@ class UserController extends Controller
         $completedLessons = $user->learningProgress
             ->sum(fn ($progress) => $progress->completedLessonsCount());
 
+        $roleOptions = $userManagement->roles();
+        if (! $actor?->isSuperAdmin()) {
+            unset($roleOptions[User::ROLE_SUPER_ADMIN]);
+        }
+
         return view('admin.users.edit', [
             'managedUser' => $user,
             'completedLessons' => $completedLessons,
             'completedCourses' => $user->learningProgress->whereNotNull('completed_at')->count(),
             'adminCount' => $userManagement->administratorCount(),
-            'roleOptions' => $userManagement->roles(),
+            'roleOptions' => $roleOptions,
             'statusOptions' => $userManagement->statuses(),
         ]);
     }
