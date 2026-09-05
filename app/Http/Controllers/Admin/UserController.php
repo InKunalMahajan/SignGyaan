@@ -166,6 +166,52 @@ class UserController extends Controller
             ->with('status', 'User profile updated successfully.');
     }
 
+    public function updateStatus(Request $request, User $user, UserManagementService $userManagement): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(array_keys($userManagement->statuses()))],
+        ]);
+
+        $actor = $request->user();
+        $newStatus = $validated['status'];
+
+        if ($user->isSuperAdmin() && ! $actor?->isSuperAdmin()) {
+            abort(403, 'Only a Super Administrator can manage another Super Administrator.');
+        }
+
+        if ($user->is($actor) && $newStatus !== User::STATUS_ACTIVE) {
+            return back()->withErrors([
+                'status' => 'You cannot suspend or disable your own signed-in account.',
+            ]);
+        }
+
+        if ($user->isActive() && $newStatus !== User::STATUS_ACTIVE) {
+            if (in_array($user->role, [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)
+                && $userManagement->activeAdministratorCount() <= 1) {
+                return back()->withErrors([
+                    'status' => 'At least one active administrator account must remain.',
+                ]);
+            }
+
+            if ($user->isSuperAdmin() && $userManagement->activeSuperAdministratorCount() <= 1) {
+                return back()->withErrors([
+                    'status' => 'At least one active Super Administrator account must remain.',
+                ]);
+            }
+        }
+
+        $user->forceFill([
+            'status' => $newStatus,
+            'suspended_at' => $newStatus === User::STATUS_SUSPENDED
+                ? ($user->isSuspended() && $user->suspended_at ? $user->suspended_at : now())
+                : null,
+        ])->save();
+
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('status', 'Account status updated to '.($userManagement->statuses()[$newStatus] ?? $newStatus).'.');
+    }
+
     public function destroy(Request $request, User $user, UserManagementService $userManagement): RedirectResponse
     {
         $actor = $request->user();
