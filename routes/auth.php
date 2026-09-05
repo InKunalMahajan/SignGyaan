@@ -34,6 +34,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:30,1')
         ->name('learning-progress.store');
 
+    Route::post('/learning-progress/video', [LearningProgressController::class, 'storeVideoProgress'])
+        ->middleware('throttle:30,1')
+        ->name('learning-progress.video.store');
+
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
 });
