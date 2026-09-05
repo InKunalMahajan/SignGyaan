@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
+use App\Services\LearnerCourseProgressService;
 use App\Services\LearnerCoursesService;
 use App\Services\LearnerDashboardService;
 use App\Services\LearningProgressCatalog;
@@ -21,6 +22,14 @@ class LearningController extends Controller
     public function myCourses(Request $request, LearnerCoursesService $courses): View
     {
         return view('my-courses', $courses->build($request->user()));
+    }
+
+    public function courseProgress(Request $request, string $subject, string $course, LearnerCourseProgressService $progress): View
+    {
+        $data = $progress->build($request->user(), $subject, $course);
+        abort_unless($data, 404);
+
+        return view('course-progress', $data);
     }
 
     public function index(Request $request, LearningProgressCatalog $catalog): View
@@ -98,12 +107,8 @@ class LearningController extends Controller
             'submitted' => $submitted->count(),
             'passed' => $passed->count(),
             'in_progress' => $inProgress->count(),
-            'best_score' => $submitted->isEmpty()
-                ? null
-                : round((float) $submitted->max(fn ($attempt) => (float) $attempt->percentage), 2),
-            'average_score' => $submitted->isEmpty()
-                ? null
-                : round((float) $submitted->avg(fn ($attempt) => (float) $attempt->percentage), 2),
+            'best_score' => $submitted->isEmpty() ? null : round((float) $submitted->max(fn ($attempt) => (float) $attempt->percentage), 2),
+            'average_score' => $submitted->isEmpty() ? null : round((float) $submitted->avg(fn ($attempt) => (float) $attempt->percentage), 2),
         ];
     }
 
@@ -112,30 +117,15 @@ class LearningController extends Controller
         return Course::query()
             ->published()
             ->whereHas('subject', fn ($query) => $query->published())
-            ->whereHas('units', fn ($unitQuery) => $unitQuery
-                ->published()
-                ->whereHas('lessons', fn ($lessonQuery) => $lessonQuery->published()))
-            ->with([
-                'subject',
-                'units' => fn ($unitQuery) => $unitQuery
-                    ->published()
-                    ->with(['lessons' => fn ($lessonQuery) => $lessonQuery->published()]),
-            ])
+            ->whereHas('units', fn ($unitQuery) => $unitQuery->published()->whereHas('lessons', fn ($lessonQuery) => $lessonQuery->published()))
+            ->with(['subject', 'units' => fn ($unitQuery) => $unitQuery->published()->with(['lessons' => fn ($lessonQuery) => $lessonQuery->published()])])
             ->withCount([
                 'units as units_count' => fn ($unitQuery) => $unitQuery->published(),
-                'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery
-                    ->published()
-                    ->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
+                'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery->published()->whereHas('unit', fn ($unitQuery) => $unitQuery->published()),
             ])
-            ->orderByDesc('is_featured')
-            ->orderBy('sort_order')
-            ->orderBy('title')
-            ->limit(3)
-            ->get()
+            ->orderByDesc('is_featured')->orderBy('sort_order')->orderBy('title')->limit(3)->get()
             ->map(function (Course $course) {
-                $firstLesson = $course->units
-                    ->flatMap(fn ($unit) => $unit->lessons)
-                    ->first();
+                $firstLesson = $course->units->flatMap(fn ($unit) => $unit->lessons)->first();
 
                 return [
                     'title' => $course->title,
@@ -144,11 +134,7 @@ class LearningController extends Controller
                     'description' => $course->short_description ?: ($course->description ?: 'Structured visual learning with lessons and practice.'),
                     'units' => $course->units_count,
                     'lessons' => $course->lessons_count,
-                    'url' => route('courses.show', [
-                        'subject' => $course->subject->slug,
-                        'course' => $course->slug,
-                        'lesson' => 'lesson-'.$firstLesson->id,
-                    ]),
+                    'url' => route('courses.show', ['subject' => $course->subject->slug, 'course' => $course->slug, 'lesson' => 'lesson-'.$firstLesson->id]),
                 ];
             });
     }
