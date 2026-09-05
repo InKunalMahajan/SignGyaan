@@ -1,4 +1,4 @@
-<section aria-labelledby="dashboard-continue-heading">
+<section id="dashboard-continue" aria-labelledby="dashboard-continue-heading" class="scroll-mt-28">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-wider text-sign-cyan-dark">Your learning</p>
