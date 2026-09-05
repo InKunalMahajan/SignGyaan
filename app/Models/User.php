@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'accessibility_preferences',
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'accessibility_preferences' => 'array',
         ];
     }
 
@@ -57,6 +59,11 @@ class User extends Authenticatable
     public function assessmentAttempts(): HasMany
     {
         return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    public function accessibilityPreference(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->accessibility_preferences ?? [], $key, $default);
     }
 
     public function isAdmin(): bool
