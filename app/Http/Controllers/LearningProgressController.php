@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LearningProgress;
+use App\Services\LearnerActivityService;
 use App\Services\LearningProgressCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class LearningProgressController extends Controller
 {
-    public function store(Request $request, LearningProgressCatalog $catalog): RedirectResponse
+    public function store(Request $request, LearningProgressCatalog $catalog, LearnerActivityService $activity): RedirectResponse
     {
         $validated = $request->validate([
             'subject_slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
@@ -80,6 +81,22 @@ class LearningProgressController extends Controller
 
         $progress->save();
 
+        $activity->record($request->user(), [
+            'activity_type' => $validated['action'] === 'complete' ? 'lesson_completed' : 'lesson_saved',
+            'subject_slug' => $state['subject']->slug,
+            'course_slug' => $state['course']->slug,
+            'lesson_id' => $currentEntry['lesson']->id,
+            'lesson_key' => $currentEntry['stable_key'],
+            'title' => $validated['action'] === 'complete' ? 'Lesson completed' : 'Learning place saved',
+            'metadata' => [
+                'subject_name' => $state['subject']->name,
+                'course_title' => $state['course']->title,
+                'unit_title' => $currentEntry['unit']->title,
+                'lesson_title' => $currentEntry['lesson']->title,
+                'progress_percent' => $progress->progressPercent(),
+            ],
+        ]);
+
         if ($validated['action'] === 'complete' && $nextEntry) {
             return redirect()
                 ->route('courses.show', [
@@ -102,7 +119,7 @@ class LearningProgressController extends Controller
         return back()->with('status', 'Your learning progress has been saved.');
     }
 
-    public function storeVideoProgress(Request $request, LearningProgressCatalog $catalog): JsonResponse
+    public function storeVideoProgress(Request $request, LearningProgressCatalog $catalog, LearnerActivityService $activity): JsonResponse
     {
         $validated = $request->validate([
             'subject_slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
@@ -113,13 +130,11 @@ class LearningProgressController extends Controller
         ]);
 
         $state = $catalog->resolve($validated['subject_slug'], $validated['course_slug']);
-
         abort_unless($state && $state['entries']->isNotEmpty(), 404);
 
         $entry = $state['entries']->first(
             fn (array $entry) => (int) $entry['lesson']->id === (int) $validated['lesson_id']
         );
-
         abort_unless($entry, 404);
 
         $duration = max(0, (float) $validated['duration_seconds']);
@@ -149,6 +164,22 @@ class LearningProgressController extends Controller
             'last_accessed_at' => now(),
         ]);
         $progress->save();
+
+        if ($watchedPercent > 0) {
+            $activity->record($request->user(), [
+                'activity_type' => 'video_learning',
+                'subject_slug' => $state['subject']->slug,
+                'course_slug' => $state['course']->slug,
+                'lesson_id' => $entry['lesson']->id,
+                'lesson_key' => $entry['stable_key'],
+                'title' => 'ISL video learning',
+                'metadata' => [
+                    'course_title' => $state['course']->title,
+                    'lesson_title' => $entry['lesson']->title,
+                    'watched_percent' => $watchedPercent,
+                ],
+            ], true);
+        }
 
         return response()->json([
             'saved' => true,
