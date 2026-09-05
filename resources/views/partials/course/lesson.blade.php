@@ -15,6 +15,21 @@
             ->values();
     };
 
+    $isDirectMediaVideo = function (?string $url, ?string $mimeType = null): bool {
+        if ($mimeType && str_starts_with(strtolower($mimeType), 'video/')) {
+            return true;
+        }
+
+        if (! $url) {
+            return false;
+        }
+
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        return in_array($extension, ['mp4', 'webm', 'mov', 'ogg'], true);
+    };
+
     $objectives = $cleanLines($lesson->learning_objectives);
     $keyPoints = $cleanLines($lesson->key_points);
     $hasLessonText = filled($lesson->content)
@@ -39,14 +54,17 @@
         'reference' => 'Reference',
     ];
 
-    $videoUrl = $lesson->isl_video_url;
-    $isDirectVideo = false;
+    $lessonMedia = $lesson->relationLoaded('mediaAsset')
+        && $lesson->mediaAsset
+        && $lesson->mediaAsset->is_published
+        && $lesson->mediaAsset->media_type === 'video'
+            ? $lesson->mediaAsset
+            : null;
 
-    if ($videoUrl) {
-        $videoPath = (string) parse_url($videoUrl, PHP_URL_PATH);
-        $videoExtension = strtolower(pathinfo($videoPath, PATHINFO_EXTENSION));
-        $isDirectVideo = in_array($videoExtension, ['mp4', 'webm', 'mov', 'ogg'], true);
-    }
+    $videoUrl = $lessonMedia?->publicUrl() ?: $lesson->isl_video_url;
+    $videoTitle = $lessonMedia?->title ?: $lesson->title;
+    $videoCaption = $lessonMedia?->caption;
+    $isDirectVideo = $isDirectMediaVideo($videoUrl, $lessonMedia?->mime_type);
 
     $courseRouteParameters = [
         'subject' => $subjectSlug,
@@ -122,7 +140,7 @@
                 <section id="lesson-video" class="scroll-mt-24 overflow-hidden rounded-2xl border border-sign-border bg-white shadow-sm sm:rounded-3xl" aria-labelledby="lesson-video-heading">
                     @if ($videoUrl && $isDirectVideo)
                         <video controls preload="metadata" class="aspect-video w-full bg-black" aria-label="ISL video for {{ $lesson->title }}">
-                            <source src="{{ $videoUrl }}">
+                            <source src="{{ $videoUrl }}" @if ($lessonMedia?->mime_type) type="{{ $lessonMedia->mime_type }}" @endif>
                             Your browser does not support this video.
                         </video>
                     @elseif ($videoUrl)
@@ -132,7 +150,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="ml-1 h-7 w-7"><path d="M8.25 5.433c0-1.178 1.296-1.896 2.295-1.272l9.067 5.666c.94.588.94 1.958 0 2.546l-9.067 5.666c-.999.624-2.295-.094-2.295-1.272V5.433Z" /></svg>
                                 </div>
                                 <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-white/75">ISL Lesson Video</p>
-                                <p id="lesson-video-heading" class="mt-2 font-heading text-lg font-semibold sm:text-2xl">{{ $lesson->title }}</p>
+                                <p id="lesson-video-heading" class="mt-2 font-heading text-lg font-semibold sm:text-2xl">{{ $videoTitle }}</p>
                                 <a href="{{ $videoUrl }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Open ISL Video</a>
                             </div>
                         </div>
@@ -144,6 +162,25 @@
                             </div>
                         </div>
                     @endif
+
+                    <div class="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                        <div>
+                            <p class="text-sm font-semibold text-sign-primary">Indian Sign Language support</p>
+                            <p class="mt-1 text-sm leading-6 text-sign-muted">
+                                @if ($lessonMedia)
+                                    Linked from the published SignGyaan Media Library.
+                                @elseif ($videoUrl)
+                                    This lesson uses an external or fallback ISL video URL.
+                                @else
+                                    No ISL video has been published for this lesson yet.
+                                @endif
+                            </p>
+                            @if ($videoCaption)
+                                <p class="mt-2 text-sm leading-6 text-sign-muted">{{ $videoCaption }}</p>
+                            @endif
+                        </div>
+                        <span class="inline-flex w-fit shrink-0 rounded-full bg-sign-soft px-3 py-1.5 text-xs font-semibold text-sign-primary">{{ $videoUrl ? 'Available' : 'Notes available' }}</span>
+                    </div>
                 </section>
 
                 @if ($objectives->isNotEmpty())
@@ -214,10 +251,24 @@
                     @if ($practiceItems->isNotEmpty())
                         <div class="mt-6 space-y-4">
                             @foreach ($practiceItems as $practiceIndex => $item)
+                                @php
+                                    $linkedMedia = $item->relationLoaded('mediaAsset') && $item->mediaAsset && $item->mediaAsset->is_published
+                                        ? $item->mediaAsset
+                                        : null;
+                                    $itemUrl = $linkedMedia?->publicUrl() ?: $item->resource_url;
+                                    $itemMediaType = $linkedMedia?->media_type;
+                                    $itemAltText = $linkedMedia?->alt_text ?: ($linkedMedia?->title ?: $item->title);
+                                    $itemDirectVideo = $itemMediaType === 'video'
+                                        && $isDirectMediaVideo($itemUrl, $linkedMedia?->mime_type);
+                                @endphp
+
                                 <article class="rounded-2xl border border-sign-border bg-white p-5 sm:p-6" aria-labelledby="practice-item-{{ $item->id }}">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="rounded-full bg-sign-light px-3 py-1 text-[11px] font-semibold text-sign-primary">{{ $resourceTypeLabels[$item->resource_type] ?? ucfirst(str_replace('-', ' ', $item->resource_type)) }}</span>
                                         <span class="text-xs font-semibold text-sign-muted">Activity {{ $practiceIndex + 1 }}</span>
+                                        @if ($linkedMedia)
+                                            <span class="rounded-full bg-sign-soft px-2.5 py-1 text-[10px] font-semibold uppercase text-sign-muted">{{ $linkedMedia->media_type }}</span>
+                                        @endif
                                         @if ($item->estimated_duration_minutes)
                                             <span class="text-xs text-sign-muted">· {{ $item->estimated_duration_minutes }} min</span>
                                         @endif
@@ -235,8 +286,34 @@
                                     @if ($item->content)
                                         <div class="mt-4 whitespace-pre-line text-sm leading-7 text-sign-text">{{ $item->content }}</div>
                                     @endif
-                                    @if ($item->resource_url)
-                                        <a href="{{ $item->resource_url }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Open activity</a>
+
+                                    @if ($linkedMedia && $itemMediaType === 'image' && $itemUrl)
+                                        <figure class="mt-5 overflow-hidden rounded-2xl border border-sign-border bg-sign-soft">
+                                            <img src="{{ $itemUrl }}" alt="{{ $itemAltText }}" class="h-auto w-full object-contain">
+                                            @if ($linkedMedia->caption)
+                                                <figcaption class="border-t border-sign-border bg-white px-4 py-3 text-xs leading-5 text-sign-muted">{{ $linkedMedia->caption }}</figcaption>
+                                            @endif
+                                        </figure>
+                                    @elseif ($linkedMedia && $itemMediaType === 'video' && $itemDirectVideo && $itemUrl)
+                                        <div class="mt-5 overflow-hidden rounded-2xl border border-sign-border bg-black">
+                                            <video controls preload="metadata" class="aspect-video w-full" aria-label="{{ $itemAltText }}">
+                                                <source src="{{ $itemUrl }}" @if ($linkedMedia->mime_type) type="{{ $linkedMedia->mime_type }}" @endif>
+                                                Your browser does not support this video.
+                                            </video>
+                                        </div>
+                                    @elseif ($linkedMedia && $itemMediaType === 'audio' && $itemUrl)
+                                        <div class="mt-5 rounded-2xl bg-sign-soft p-4">
+                                            <audio controls preload="metadata" class="w-full" aria-label="{{ $itemAltText }}">
+                                                <source src="{{ $itemUrl }}" @if ($linkedMedia->mime_type) type="{{ $linkedMedia->mime_type }}" @endif>
+                                                Your browser does not support this audio.
+                                            </audio>
+                                        </div>
+                                    @endif
+
+                                    @if ($itemUrl)
+                                        <a href="{{ $itemUrl }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">
+                                            {{ $linkedMedia ? 'Open linked media' : 'Open activity' }}
+                                        </a>
                                     @endif
                                 </article>
                             @endforeach
@@ -253,13 +330,27 @@
                     <section id="lesson-resources" class="scroll-mt-24 rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-8" aria-labelledby="lesson-resources-heading">
                         <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Resources</p>
                         <h2 id="lesson-resources-heading" class="mt-2 font-heading text-xl font-semibold text-sign-primary sm:text-3xl">Extra learning material</h2>
-                        <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Use these published handouts, worksheets, downloads, references and links to support this lesson.</p>
+                        <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Use these published handouts, worksheets, downloads, references and media items to support this lesson.</p>
 
                         <div class="mt-6 grid gap-4 md:grid-cols-2">
                             @foreach ($resourceItems as $item)
+                                @php
+                                    $linkedMedia = $item->relationLoaded('mediaAsset') && $item->mediaAsset && $item->mediaAsset->is_published
+                                        ? $item->mediaAsset
+                                        : null;
+                                    $itemUrl = $linkedMedia?->publicUrl() ?: $item->resource_url;
+                                    $itemMediaType = $linkedMedia?->media_type;
+                                    $itemAltText = $linkedMedia?->alt_text ?: ($linkedMedia?->title ?: $item->title);
+                                    $itemDirectVideo = $itemMediaType === 'video'
+                                        && $isDirectMediaVideo($itemUrl, $linkedMedia?->mime_type);
+                                @endphp
+
                                 <article class="flex h-full flex-col rounded-2xl border border-sign-border bg-sign-soft p-5">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-sign-primary">{{ $resourceTypeLabels[$item->resource_type] ?? ucfirst(str_replace('-', ' ', $item->resource_type)) }}</span>
+                                        @if ($linkedMedia)
+                                            <span class="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase text-sign-muted">{{ $linkedMedia->media_type }}</span>
+                                        @endif
                                         @if ($item->estimated_duration_minutes)
                                             <span class="text-xs text-sign-muted">{{ $item->estimated_duration_minutes }} min</span>
                                         @endif
@@ -274,8 +365,30 @@
                                     @if ($item->content)
                                         <div class="mt-3 whitespace-pre-line text-sm leading-6 text-sign-muted">{{ $item->content }}</div>
                                     @endif
-                                    @if ($item->resource_url)
-                                        <a href="{{ $item->resource_url }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-white/70">Open resource →</a>
+
+                                    @if ($linkedMedia && $itemMediaType === 'image' && $itemUrl)
+                                        <figure class="mt-4 overflow-hidden rounded-xl border border-sign-border bg-white">
+                                            <img src="{{ $itemUrl }}" alt="{{ $itemAltText }}" class="h-auto w-full object-contain">
+                                            @if ($linkedMedia->caption)
+                                                <figcaption class="border-t border-sign-border px-3 py-2 text-xs leading-5 text-sign-muted">{{ $linkedMedia->caption }}</figcaption>
+                                            @endif
+                                        </figure>
+                                    @elseif ($linkedMedia && $itemMediaType === 'video' && $itemDirectVideo && $itemUrl)
+                                        <div class="mt-4 overflow-hidden rounded-xl border border-sign-border bg-black">
+                                            <video controls preload="metadata" class="aspect-video w-full" aria-label="{{ $itemAltText }}">
+                                                <source src="{{ $itemUrl }}" @if ($linkedMedia->mime_type) type="{{ $linkedMedia->mime_type }}" @endif>
+                                                Your browser does not support this video.
+                                            </video>
+                                        </div>
+                                    @elseif ($linkedMedia && $itemMediaType === 'audio' && $itemUrl)
+                                        <audio controls preload="metadata" class="mt-4 w-full" aria-label="{{ $itemAltText }}">
+                                            <source src="{{ $itemUrl }}" @if ($linkedMedia->mime_type) type="{{ $linkedMedia->mime_type }}" @endif>
+                                            Your browser does not support this audio.
+                                        </audio>
+                                    @endif
+
+                                    @if ($itemUrl)
+                                        <a href="{{ $itemUrl }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-white/70">Open resource →</a>
                                     @endif
                                 </article>
                             @endforeach
