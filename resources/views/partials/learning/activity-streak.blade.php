@@ -5,6 +5,7 @@
             <h2 id="learning-activity-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary sm:text-3xl">Your learning streak</h2>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">A learning day is counted when you save lesson progress, complete a lesson, watch lesson video content, or submit an assessment.</p>
         </div>
+        <a href="{{ route('learning-history') }}" class="inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">View Learning History →</a>
     </div>
 
     <div class="mt-5 grid gap-4 sm:grid-cols-3">
