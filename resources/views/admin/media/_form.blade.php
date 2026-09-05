@@ -74,6 +74,33 @@
                     </div>
                 </div>
 
+                <div x-show="mediaType === 'video'" x-cloak class="rounded-2xl border border-sign-border bg-sign-soft p-4 sm:p-5">
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input type="checkbox" name="is_isl" value="1" @checked(old('is_isl', $mediaAsset->is_isl ?? false)) class="mt-0.5 h-5 w-5 shrink-0 rounded border-sign-border accent-sign-primary">
+                        <span>
+                            <span class="block text-sm font-semibold text-sign-primary">Indian Sign Language video</span>
+                            <span class="mt-1 block text-xs leading-5 text-sign-muted">Mark this when the video is learner-facing ISL content. ISL videos are prioritised when selecting lesson media.</span>
+                        </span>
+                    </label>
+
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="language_code" class="mb-2 block text-sm font-semibold text-sign-primary">Language code</label>
+                            <input id="language_code" name="language_code" type="text" value="{{ old('language_code', $mediaAsset->language_code ?? 'is') }}" maxlength="20" placeholder="is" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                            <p class="mt-2 text-xs leading-5 text-sign-muted">For ISL, use <strong>is</strong> unless you use another internal language code.</p>
+                            @error('language_code')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="duration_seconds" class="mb-2 block text-sm font-semibold text-sign-primary">Video duration</label>
+                            <div class="relative">
+                                <input id="duration_seconds" name="duration_seconds" type="number" min="1" max="86400" value="{{ old('duration_seconds', $mediaAsset->duration_seconds ?? '') }}" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 pr-20 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-sign-muted">seconds</span>
+                            </div>
+                            @error('duration_seconds')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
+
                 <div x-show="source === 'upload'" x-cloak>
                     <label for="file" class="mb-2 block text-sm font-semibold text-sign-primary">
                         {{ $editing && ($mediaAsset->file_path ?? false) ? 'Replace uploaded file' : 'Upload file' }}
@@ -95,6 +122,7 @@
                             <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-sign-muted">
                                 @if ($mediaAsset->formattedFileSize())<span>{{ $mediaAsset->formattedFileSize() }}</span>@endif
                                 @if ($mediaAsset->mime_type)<span>{{ $mediaAsset->mime_type }}</span>@endif
+                                @if ($mediaAsset->formattedDuration())<span>{{ $mediaAsset->formattedDuration() }}</span>@endif
                             </div>
                             @if ($mediaAsset->publicUrl())
                                 <a href="{{ $mediaAsset->publicUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex min-h-10 items-center text-xs font-semibold text-sign-primary hover:text-sign-cyan-dark">Open current file →</a>
