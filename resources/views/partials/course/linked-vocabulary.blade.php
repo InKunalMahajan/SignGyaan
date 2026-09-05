@@ -1,13 +1,19 @@
 @php
+    $lessonCourseModel = $courseModel;
+    $lessonSubjectModel = $lessonCourseModel->subject()->first();
+
     $linkedVocabulary = $currentLessonModel->vocabularyTerms()
         ->published()
-        ->where(function ($query) use ($subjectModel) {
-            $query->whereNull('vocabulary_terms.subject_id')
-                ->orWhere('vocabulary_terms.subject_id', $subjectModel->id);
+        ->where(function ($query) use ($lessonSubjectModel) {
+            $query->whereNull('vocabulary_terms.subject_id');
+
+            if ($lessonSubjectModel) {
+                $query->orWhere('vocabulary_terms.subject_id', $lessonSubjectModel->id);
+            }
         })
-        ->where(function ($query) use ($courseModel) {
+        ->where(function ($query) use ($lessonCourseModel) {
             $query->whereNull('vocabulary_terms.course_id')
-                ->orWhere('vocabulary_terms.course_id', $courseModel->id);
+                ->orWhere('vocabulary_terms.course_id', $lessonCourseModel->id);
         })
         ->with([
             'mediaAsset' => fn ($query) => $query
@@ -27,7 +33,7 @@
                         <h2 id="lesson-isl-vocabulary-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary sm:text-3xl">Signs used in this lesson</h2>
                         <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Review the important signs linked to this lesson. Open any term for its full meaning, example and ISL video.</p>
                     </div>
-                    <a href="{{ route('vocabulary.index', ['subject' => $subjectModel->slug, 'course' => $courseModel->slug]) }}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-light print:hidden">
+                    <a href="{{ route('vocabulary.index', ['subject' => $subjectSlug, 'course' => $courseSlug]) }}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:bg-sign-light print:hidden">
                         Browse ISL Vocabulary
                     </a>
                 </div>
