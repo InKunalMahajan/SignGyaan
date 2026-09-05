@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CourseBuilderContentBlockController;
 use App\Http\Controllers\Admin\CourseBuilderController;
 use App\Http\Controllers\Admin\CourseBuilderDuplicateController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\CoursePreviewController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('subjects', SubjectController::class)->except('show');
 
     Route::get('/courses/{course}/builder', CourseBuilderController::class)->name('courses.builder');
+    Route::get('/courses/{course}/preview', CoursePreviewController::class)->name('courses.preview');
     Route::post('/courses/{course}/builder/quick-lesson', [CourseBuilderController::class, 'quickLesson'])->middleware('throttle:30,1')->name('courses.builder.quick-lesson');
     Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])->middleware('throttle:60,1')->name('courses.builder.reorder');
     Route::post('/courses/{course}/builder/duplicate', [CourseBuilderDuplicateController::class, 'course'])->middleware('throttle:10,1')->name('courses.builder.duplicate-course');
