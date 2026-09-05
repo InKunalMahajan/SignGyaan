@@ -28,7 +28,7 @@
     @stack('head')
 </head>
 
-<body class="min-h-screen bg-white font-sans text-sign-text antialiased">
+<body class="min-h-screen bg-white font-sans text-sign-text antialiased" data-public-shell>
     <a
         href="#main-content"
         class="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-sign-dark px-4 py-3 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
@@ -40,19 +40,14 @@
 
         @include('partials.header')
 
-        <main id="main-content" tabindex="-1" class="flex-1">
-            @if (request()->routeIs('courses.show') && request()->filled('lesson'))
-                @include('partials.course.lesson')
-                @include('partials.course.progress-actions')
-            @else
-                @yield('content')
+        <main id="main-content" tabindex="-1" class="min-w-0 flex-1" data-public-main>
+            @yield('content')
 
-                @if (request()->routeIs('home'))
-                    @include('partials.home.how-it-works')
-                    @include('partials.home.isl-learning')
-                    @include('partials.home.popular-topics')
-                    @include('partials.home.final-cta')
-                @endif
+            @if (request()->routeIs('home'))
+                @include('partials.home.how-it-works')
+                @include('partials.home.isl-learning')
+                @include('partials.home.popular-topics')
+                @include('partials.home.final-cta')
             @endif
         </main>
 
