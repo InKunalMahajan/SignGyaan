@@ -94,10 +94,10 @@
         <section class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl sm:p-7" aria-labelledby="lesson-isl-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h2 id="lesson-isl-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">ISL support</h2>
-                    <p class="mt-2 text-sm leading-6 text-sign-muted">Select a reusable video from the Media Library. You can also keep a direct video URL as a fallback.</p>
+                    <h2 id="lesson-isl-heading" class="font-heading text-xl font-semibold text-sign-primary sm:text-2xl">ISL video support</h2>
+                    <p class="mt-2 text-sm leading-6 text-sign-muted">Choose a reusable Media Library video first. A direct URL with its own title and caption can be kept as a fallback.</p>
                 </div>
-                <a href="{{ route('admin.media.index', ['type' => 'video']) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light">Open Media Library</a>
+                <a href="{{ route('admin.media.index', ['type' => 'video', 'isl' => 'yes']) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-4 py-2.5 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light">Open ISL Videos</a>
             </div>
 
             <div class="mt-6 grid gap-5">
@@ -107,19 +107,36 @@
                         <option value="">No Media Library video selected</option>
                         @foreach ($mediaAssets as $asset)
                             <option value="{{ $asset->id }}" @selected((string) $selectedMediaAsset === (string) $asset->id)>
-                                {{ $asset->title }} — {{ ucfirst($asset->source) }} — {{ $asset->is_published ? 'Published' : 'Draft' }}
+                                {{ $asset->is_isl ? 'ISL — ' : '' }}{{ $asset->title }} — {{ ucfirst($asset->source) }} — {{ $asset->is_published ? 'Published' : 'Draft' }}
                             </option>
                         @endforeach
                     </select>
-                    <p class="mt-2 text-xs leading-5 text-sign-muted">A published selected Media Library video takes priority on the learner lesson page.</p>
+                    <p class="mt-2 text-xs leading-5 text-sign-muted">A published selected Media Library video takes priority on the learner lesson page. Draft media is never shown publicly.</p>
                     @error('isl_media_asset_id')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label for="isl_video_url" class="mb-2 block text-sm font-semibold text-sign-primary">Fallback / external ISL video URL</label>
-                    <input id="isl_video_url" name="isl_video_url" type="url" value="{{ old('isl_video_url', $lesson->isl_video_url ?? '') }}" maxlength="2048" inputmode="url" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
-                    <p class="mt-2 text-xs leading-5 text-sign-muted">Used when no published Media Library video is linked.</p>
-                    @error('isl_video_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                <div class="rounded-2xl bg-sign-soft p-4 sm:p-5">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Fallback video</p>
+                    <div class="mt-4 grid gap-5">
+                        <div>
+                            <label for="isl_video_url" class="mb-2 block text-sm font-semibold text-sign-primary">External ISL video URL</label>
+                            <input id="isl_video_url" name="isl_video_url" type="url" value="{{ old('isl_video_url', $lesson->isl_video_url ?? '') }}" maxlength="2048" inputmode="url" placeholder="https://..." class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                            @error('isl_video_url')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="isl_video_title" class="mb-2 block text-sm font-semibold text-sign-primary">Fallback video title</label>
+                            <input id="isl_video_title" name="isl_video_title" type="text" value="{{ old('isl_video_title', $lesson->isl_video_title ?? '') }}" maxlength="180" placeholder="ISL explanation: Input Devices" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
+                            @error('isl_video_title')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div>
+                            <label for="isl_video_caption" class="mb-2 block text-sm font-semibold text-sign-primary">Fallback video caption</label>
+                            <textarea id="isl_video_caption" name="isl_video_caption" rows="4" maxlength="5000" class="w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light" placeholder="Short learner-facing note about what the ISL video explains.">{{ old('isl_video_caption', $lesson->isl_video_caption ?? '') }}</textarea>
+                            <p class="mt-2 text-xs leading-5 text-sign-muted">Used only when the lesson falls back to the external URL instead of a published Media Library video.</p>
+                            @error('isl_video_caption')<p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
