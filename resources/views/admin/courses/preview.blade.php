@@ -34,7 +34,7 @@
             </div>
 
             @include('partials.course.lesson')
-            @include('partials.course.rich-content')
+            @include('admin.courses.preview-rich-content')
         @else
             <section class="border-b border-sign-border bg-sign-soft py-8 sm:py-10 lg:py-14">
                 <x-container>
