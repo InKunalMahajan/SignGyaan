@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AssessmentQuestionController;
 use App\Http\Controllers\Admin\AssessmentResultController;
 use App\Http\Controllers\Admin\CourseBuilderContentBlockController;
 use App\Http\Controllers\Admin\CourseBuilderController;
+use App\Http\Controllers\Admin\CourseBuilderDuplicateController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/courses/{course}/builder', CourseBuilderController::class)->name('courses.builder');
     Route::post('/courses/{course}/builder/quick-lesson', [CourseBuilderController::class, 'quickLesson'])->middleware('throttle:30,1')->name('courses.builder.quick-lesson');
     Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])->middleware('throttle:60,1')->name('courses.builder.reorder');
+    Route::post('/courses/{course}/builder/duplicate', [CourseBuilderDuplicateController::class, 'course'])->middleware('throttle:10,1')->name('courses.builder.duplicate-course');
+    Route::post('/courses/{course}/builder/units/{unit}/duplicate', [CourseBuilderDuplicateController::class, 'unit'])->middleware('throttle:20,1')->name('courses.builder.duplicate-unit');
+    Route::post('/courses/{course}/builder/lessons/{lesson}/duplicate', [CourseBuilderDuplicateController::class, 'lesson'])->middleware('throttle:30,1')->name('courses.builder.duplicate-lesson');
     Route::post('/courses/{course}/builder/lessons/{lesson}/content-blocks', [CourseBuilderContentBlockController::class, 'store'])->name('courses.builder.content-blocks.store');
     Route::put('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'update'])->name('courses.builder.content-blocks.update');
     Route::delete('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'destroy'])->name('courses.builder.content-blocks.destroy');
