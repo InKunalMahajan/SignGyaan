@@ -77,11 +77,11 @@ class CourseController extends Controller
         $validated['is_published'] = $request->boolean('is_published');
         $validated['is_featured'] = $request->boolean('is_featured');
 
-        Course::create($validated);
+        $course = Course::create($validated);
 
         return redirect()
-            ->route('admin.courses.index')
-            ->with('status', 'Course created successfully.');
+            ->route('admin.courses.builder', $course)
+            ->with('status', 'Course created successfully. Start building its units and lessons.');
     }
 
     public function edit(Course $course): View
