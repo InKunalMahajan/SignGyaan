@@ -60,30 +60,20 @@
                 <aside class="rounded-2xl border border-sign-border bg-white p-5 shadow-sm sm:rounded-3xl sm:p-6" aria-label="Assessment summary">
                     <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Assessment summary</p>
                     <div class="mt-5 space-y-3 text-sm">
-                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
-                            <span class="text-sign-muted">Questions</span>
-                            <span class="font-semibold text-sign-primary">{{ $publishedQuestionsCount }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
-                            <span class="text-sign-muted">Pass mark</span>
-                            <span class="font-semibold text-sign-primary">{{ $assessment->passing_percentage }}%</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3">
-                            <span class="text-sign-muted">Time limit</span>
-                            <span class="font-semibold text-sign-primary">{{ $assessment->time_limit_minutes ? $assessment->time_limit_minutes.' min' : 'No limit' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-4">
-                            <span class="text-sign-muted">Attempts</span>
-                            <span class="font-semibold text-sign-primary">{{ $assessment->max_attempts ?: 'Unlimited' }}</span>
-                        </div>
+                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3"><span class="text-sign-muted">Questions</span><span class="font-semibold text-sign-primary">{{ $publishedQuestionsCount }}</span></div>
+                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3"><span class="text-sign-muted">Pass mark</span><span class="font-semibold text-sign-primary">{{ $assessment->passing_percentage }}%</span></div>
+                        <div class="flex items-center justify-between gap-4 border-b border-sign-border pb-3"><span class="text-sign-muted">Time limit</span><span class="font-semibold text-sign-primary">{{ $assessment->time_limit_minutes ? $assessment->time_limit_minutes.' min' : 'No limit' }}</span></div>
+                        <div class="flex items-center justify-between gap-4"><span class="text-sign-muted">Attempts</span><span class="font-semibold text-sign-primary">{{ $assessment->max_attempts ?: 'Unlimited' }}</span></div>
                     </div>
 
                     @auth
                         <div class="mt-5 rounded-xl bg-sign-soft p-4 text-xs leading-5 text-sign-muted">
-                            You have used <strong class="text-sign-primary">{{ $attemptsUsed }}</strong>
-                            {{ $attemptsUsed === 1 ? 'attempt' : 'attempts' }}.
+                            You have used <strong class="text-sign-primary">{{ $attemptsUsed }}</strong> {{ $attemptsUsed === 1 ? 'attempt' : 'attempts' }}.
                             @if ($attemptsRemaining !== null)
                                 {{ $attemptsRemaining }} remaining.
+                            @endif
+                            @if ($bestSubmittedAttempt)
+                                <span class="mt-2 block">Best score: <strong class="text-sign-primary">{{ number_format((float) $bestSubmittedAttempt->percentage, 2) }}%</strong>.</span>
                             @endif
                         </div>
                     @endauth
@@ -94,65 +84,85 @@
 
     <section class="bg-white py-10 sm:py-14 lg:py-18">
         <x-container>
-            <div class="mx-auto max-w-4xl">
+            <div class="mx-auto max-w-5xl">
                 @if (session('status'))
-                    <div class="mb-6 rounded-2xl border border-sign-cyan bg-sign-light px-5 py-4 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">
-                        {{ session('status') }}
-                    </div>
+                    <div class="mb-6 rounded-2xl border border-sign-cyan bg-sign-light px-5 py-4 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">{{ session('status') }}</div>
                 @endif
 
                 @if ($errors->any())
                     <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4" role="alert" aria-live="polite" data-error-summary>
                         <p class="text-sm font-semibold text-red-800">The assessment action could not be completed.</p>
-                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
                     </div>
                 @endif
 
                 <div class="rounded-3xl border border-sign-border bg-sign-soft p-6 sm:p-8">
                     <div class="grid gap-6 md:grid-cols-3">
-                        <div class="rounded-2xl bg-white p-5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">1. Read</span>
-                            <h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Understand each question</h2>
-                            <p class="mt-2 text-sm leading-6 text-sign-muted">Move through the assessment at your own pace unless a time limit is shown.</p>
-                        </div>
-                        <div class="rounded-2xl bg-white p-5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">2. Answer</span>
-                            <h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Choose or type answers</h2>
-                            <p class="mt-2 text-sm leading-6 text-sign-muted">Questions may use single choice, multiple choice, true/false or typed answers.</p>
-                        </div>
-                        <div class="rounded-2xl bg-white p-5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">3. Submit</span>
-                            <h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Check before finishing</h2>
-                            <p class="mt-2 text-sm leading-6 text-sign-muted">Save progress while working, then submit when you are ready for automatic scoring.</p>
-                        </div>
+                        <div class="rounded-2xl bg-white p-5"><span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">1. Read</span><h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Understand each question</h2><p class="mt-2 text-sm leading-6 text-sign-muted">Move through the assessment at your own pace unless a time limit is shown.</p></div>
+                        <div class="rounded-2xl bg-white p-5"><span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">2. Answer</span><h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Choose or type answers</h2><p class="mt-2 text-sm leading-6 text-sign-muted">Questions may use single choice, multiple choice, true/false or typed answers.</p></div>
+                        <div class="rounded-2xl bg-white p-5"><span class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">3. Submit</span><h2 class="mt-2 font-heading text-lg font-semibold text-sign-primary">Check before finishing</h2><p class="mt-2 text-sm leading-6 text-sign-muted">Save progress while working, then submit when you are ready for automatic scoring.</p></div>
                     </div>
 
                     <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                         @guest
                             <a href="{{ route('login') }}" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-sign-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Sign in to start</a>
-                            <a href="{{ $lessonUrl }}" class="inline-flex min-h-12 items-center justify-center rounded-xl border border-sign-border bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to lesson</a>
                         @else
                             @if ($activeAttempt)
                                 <a href="{{ route('assessment-attempts.show', [$assessment, $activeAttempt]) }}" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-sign-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Continue Attempt {{ $activeAttempt->attempt_number }}</a>
                             @elseif ($publishedQuestionsCount > 0 && $canStartAnotherAttempt)
-                                <form method="POST" action="{{ route('assessments.start', $assessment) }}">
-                                    @csrf
-                                    <button type="submit" class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-sign-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark sm:w-auto">Start Assessment</button>
-                                </form>
+                                <form method="POST" action="{{ route('assessments.start', $assessment) }}">@csrf<button type="submit" class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-sign-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark sm:w-auto">{{ $attemptsUsed > 0 ? 'Start New Attempt' : 'Start Assessment' }}</button></form>
                             @elseif ($publishedQuestionsCount === 0)
                                 <span class="inline-flex min-h-12 items-center justify-center rounded-xl border border-sign-border bg-gray-100 px-6 py-3 text-sm font-semibold text-sign-muted">Questions are being prepared</span>
                             @else
                                 <span class="inline-flex min-h-12 items-center justify-center rounded-xl border border-sign-border bg-gray-100 px-6 py-3 text-sm font-semibold text-sign-muted">Attempt limit reached</span>
                             @endif
-
-                            <a href="{{ $lessonUrl }}" class="inline-flex min-h-12 items-center justify-center rounded-xl border border-sign-border bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to lesson</a>
                         @endguest
+                        <a href="{{ $lessonUrl }}" class="inline-flex min-h-12 items-center justify-center rounded-xl border border-sign-border bg-white px-6 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to lesson</a>
                     </div>
                 </div>
+
+                @auth
+                    @if ($attemptHistory->isNotEmpty())
+                        <section class="mt-8 rounded-3xl border border-sign-border bg-white p-5 sm:p-7" aria-labelledby="attempt-history-heading">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Attempt history</p>
+                                    <h2 id="attempt-history-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary">Your previous attempts</h2>
+                                </div>
+                                <p class="text-sm text-sign-muted">{{ $attemptsUsed }} {{ $attemptsUsed === 1 ? 'attempt' : 'attempts' }} used</p>
+                            </div>
+
+                            <div class="mt-5 divide-y divide-sign-border overflow-hidden rounded-2xl border border-sign-border">
+                                @foreach ($attemptHistory as $historyAttempt)
+                                    <div class="flex flex-col gap-3 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="font-semibold text-sign-primary">Attempt {{ $historyAttempt->attempt_number }}</span>
+                                                <span class="rounded-full bg-sign-soft px-2.5 py-1 text-xs font-semibold text-sign-muted">{{ ucfirst(str_replace('-', ' ', $historyAttempt->status)) }}</span>
+                                                @if ($historyAttempt->status === 'submitted')
+                                                    <span class="rounded-full bg-sign-light px-2.5 py-1 text-xs font-semibold text-sign-primary">{{ number_format((float) $historyAttempt->percentage, 2) }}%</span>
+                                                @endif
+                                            </div>
+                                            <p class="mt-2 text-xs text-sign-muted">
+                                                Started {{ $historyAttempt->started_at?->format('d M Y, H:i') ?? '—' }}
+                                                @if ($historyAttempt->submitted_at) · Submitted {{ $historyAttempt->submitted_at->format('d M Y, H:i') }} @endif
+                                            </p>
+                                        </div>
+                                        <div class="shrink-0">
+                                            @if ($historyAttempt->status === 'submitted')
+                                                <a href="{{ route('assessment-attempts.result', [$assessment, $historyAttempt]) }}" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sign-border px-4 py-2 text-xs font-semibold text-sign-primary transition hover:bg-sign-soft">View Result</a>
+                                            @elseif ($historyAttempt->status === 'in-progress')
+                                                <a href="{{ route('assessment-attempts.show', [$assessment, $historyAttempt]) }}" class="inline-flex min-h-10 items-center justify-center rounded-lg bg-sign-primary px-4 py-2 text-xs font-semibold text-white">Continue</a>
+                                            @else
+                                                <span class="text-xs font-semibold text-sign-muted">No result</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
+                @endauth
             </div>
         </x-container>
     </section>
