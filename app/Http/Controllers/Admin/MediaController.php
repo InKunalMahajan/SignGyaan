@@ -144,6 +144,12 @@ class MediaController extends Controller
 
     public function destroy(MediaAsset $mediaAsset): RedirectResponse
     {
+        if ($mediaAsset->lessonVideoUses()->exists() || $mediaAsset->practiceResourceUses()->exists()) {
+            return redirect()
+                ->route('admin.media.index')
+                ->with('status', 'This media item is linked to learning content. Unlink it from lessons or resources before deleting it.');
+        }
+
         $this->deleteStoredFile($mediaAsset);
         $mediaAsset->delete();
 
