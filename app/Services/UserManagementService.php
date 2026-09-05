@@ -16,13 +16,14 @@ class UserManagementService
     {
         return [
             User::ROLE_LEARNER => 'Learner',
+            User::ROLE_TEACHER => 'Teacher',
             User::ROLE_ADMIN => 'Administrator',
+            User::ROLE_SUPER_ADMIN => 'Super Administrator',
         ];
     }
 
     /**
-     * Account statuses reserved for the user-management system.
-     * Status enforcement is introduced in the dedicated account-status step.
+     * Account statuses supported by the user-management system.
      *
      * @return array<string, string>
      */
@@ -55,5 +56,12 @@ class UserManagementService
         return collect($this->statuses())
             ->map(fn (string $label, string $value) => compact('value', 'label'))
             ->values();
+    }
+
+    public function administratorCount(): int
+    {
+        return User::query()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN])
+            ->count();
     }
 }
