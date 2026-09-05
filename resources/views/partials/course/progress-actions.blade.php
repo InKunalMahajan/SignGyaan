@@ -1,16 +1,34 @@
 @php
     $currentProgressLessonKey = 'lesson-'.$currentLessonModel->id;
-    $legacyCurrentLessonKey = $currentLessonEntry['key'];
     $existingProgress = auth()->check()
         ? auth()->user()->learningProgress()
             ->where('subject_slug', $subjectSlug)
             ->where('course_slug', $courseSlug)
             ->first()
         : null;
-    $completedLessonKeys = collect($existingProgress?->completed_lessons ?? []);
-    $isCurrentLessonCompleted = $completedLessonKeys->contains($currentProgressLessonKey)
-        || $completedLessonKeys->contains($legacyCurrentLessonKey);
-    $savedProgressPercent = $existingProgress?->progressPercent() ?? 0;
+
+    $publishedProgressEntries = collect($lessonMap ?? [])->map(fn ($entry) => [
+        'stable_key' => 'lesson-'.$entry['lesson']->id,
+        'legacy_key' => $entry['key'],
+    ]);
+
+    $normalizedCompletedLessonKeys = collect($existingProgress?->completed_lessons ?? [])
+        ->map(function ($savedKey) use ($publishedProgressEntries) {
+            $entry = $publishedProgressEntries->first(
+                fn ($entry) => $entry['stable_key'] === $savedKey || $entry['legacy_key'] === $savedKey
+            );
+
+            return $entry['stable_key'] ?? null;
+        })
+        ->filter()
+        ->unique()
+        ->values();
+
+    $isCurrentLessonCompleted = $normalizedCompletedLessonKeys->contains($currentProgressLessonKey);
+    $publishedLessonCount = $publishedProgressEntries->count();
+    $savedProgressPercent = $publishedLessonCount > 0
+        ? (int) min(100, round(($normalizedCompletedLessonKeys->count() / $publishedLessonCount) * 100))
+        : 0;
 @endphp
 
 <section class="border-t border-sign-border bg-sign-soft py-8 sm:py-10">
