@@ -61,6 +61,18 @@ class PublicCatalogController extends Controller
             ->published()
             ->where('subject_id', $subjectModel->id)
             ->where('slug', $course)
+            ->with([
+                'units' => fn ($unitQuery) => $unitQuery
+                    ->published()
+                    ->with([
+                        'lessons' => fn ($lessonQuery) => $lessonQuery
+                            ->published()
+                            ->orderBy('sort_order')
+                            ->orderBy('title'),
+                    ])
+                    ->orderBy('sort_order')
+                    ->orderBy('title'),
+            ])
             ->withCount([
                 'units as units_count' => fn ($unitQuery) => $unitQuery->published(),
                 'lessons as lessons_count' => fn ($lessonQuery) => $lessonQuery
@@ -77,6 +89,10 @@ class PublicCatalogController extends Controller
             'general-knowledge' => 'GK',
             'life-skills' => 'LS',
         ];
+
+        $firstPublishedLesson = $courseModel->units
+            ->flatMap(fn ($unit) => $unit->lessons)
+            ->first();
 
         return view('pages.course', [
             'subject' => [
@@ -99,6 +115,9 @@ class PublicCatalogController extends Controller
             'subjectSlug' => $subjectModel->slug,
             'courseSlug' => $courseModel->slug,
             'courseModel' => $courseModel,
+            'publishedUnits' => $courseModel->units,
+            'firstPublishedLesson' => $firstPublishedLesson,
+            'firstLessonKey' => $firstPublishedLesson ? 'unit-1-lesson-1' : null,
         ]);
     }
 }
