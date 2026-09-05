@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AssessmentController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'admin'])
         Route::get('/practice-resources/{practiceResource}/edit', [PracticeResourceController::class, 'edit'])->name('practice.edit');
         Route::put('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'update'])->name('practice.update');
         Route::delete('/practice-resources/{practiceResource}', [PracticeResourceController::class, 'destroy'])->name('practice.destroy');
+
+        Route::resource('assessments', AssessmentController::class)
+            ->except('show');
 
         Route::resource('media', MediaController::class)
             ->parameters(['media' => 'mediaAsset'])
