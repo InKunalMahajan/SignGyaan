@@ -8,6 +8,7 @@ use App\Services\LearnerAssessmentPerformanceService;
 use App\Services\LearnerCourseProgressService;
 use App\Services\LearnerCoursesService;
 use App\Services\LearnerDashboardService;
+use App\Services\LearnerHistoryService;
 use App\Services\LearningProgressCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -36,6 +37,11 @@ class LearningController extends Controller
     public function assessmentPerformance(Request $request, LearnerAssessmentPerformanceService $performance): View
     {
         return view('assessment-performance', $performance->build($request->user()));
+    }
+
+    public function learningHistory(Request $request, LearnerHistoryService $history): View
+    {
+        return view('learning-history', $history->build($request->user()));
     }
 
     public function index(Request $request, LearningProgressCatalog $catalog): View
