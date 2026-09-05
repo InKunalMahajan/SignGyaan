@@ -12,16 +12,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
@@ -35,10 +27,31 @@ class UserFactory extends Factory
         ];
     }
 
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_SUPER_ADMIN,
+        ]);
+    }
+
     public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
             'role' => User::ROLE_ADMIN,
+        ]);
+    }
+
+    public function teacher(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_TEACHER,
+        ]);
+    }
+
+    public function learner(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_LEARNER,
         ]);
     }
 
@@ -57,9 +70,6 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [
