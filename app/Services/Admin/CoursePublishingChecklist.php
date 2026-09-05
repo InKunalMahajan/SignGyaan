@@ -60,7 +60,7 @@ class CoursePublishingChecklist
         $unpublishedMediaReferences = $unpublishedMediaReferences->unique()->values();
 
         $assessmentsWithoutQuestions = $assessments->filter(function ($assessment) {
-            return $assessment->questions->where('is_published', true)->isEmpty();
+            return $assessment->questions->isEmpty();
         });
 
         $lessonsWithoutTextSupport = $lessons->filter(function ($lesson) {
@@ -135,18 +135,18 @@ class CoursePublishingChecklist
             $this->check(
                 'media-published',
                 'Linked media is published',
-                'Draft media linked from course content will not be available to learners.',
+                'Shared media is not changed by bulk publishing, so linked media must already be published.',
                 $unpublishedMediaReferences->isEmpty(),
                 'required',
                 $unpublishedMediaReferences->isEmpty() ? null : $this->countMessage($unpublishedMediaReferences, 'linked media item is still draft', 'linked media items are still draft')
             ),
             $this->check(
                 'assessment-questions',
-                'Assessments have published questions',
-                'Any assessment attached to this course should contain at least one published question.',
+                'Assessments contain questions',
+                'Any assessment attached to this course needs at least one question. Bulk publishing will publish those questions together with the assessment.',
                 $assessmentsWithoutQuestions->isEmpty(),
                 'required',
-                $assessmentsWithoutQuestions->isEmpty() ? null : $this->countMessage($assessmentsWithoutQuestions, 'assessment needs a published question', 'assessments need published questions')
+                $assessmentsWithoutQuestions->isEmpty() ? null : $this->countMessage($assessmentsWithoutQuestions, 'assessment needs a question', 'assessments need questions')
             ),
             $this->check(
                 'text-support',
