@@ -61,8 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return link;
     };
 
+    const makeChecklistLink = (href) => {
+        const link = document.createElement('a');
+        link.href = href;
+        link.dataset.publishingChecklistControl = 'true';
+        link.textContent = 'Publishing Checklist';
+        link.className = 'inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-dark px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sign-primary';
+        return link;
+    };
+
     const courseActions = builder.querySelector('div.mt-5.flex.flex-col.gap-5.xl\\:flex-row > div.flex.flex-wrap.gap-2');
     if (courseActions) {
+        if (!courseActions.querySelector('[data-publishing-checklist-control]')) {
+            courseActions.prepend(makeChecklistLink(`/admin/courses/${courseId}/publishing-checklist`));
+        }
+
         if (!courseActions.querySelector('[data-preview-control]')) {
             courseActions.prepend(makePreviewLink(`/admin/courses/${courseId}/preview`, 'Preview Course'));
         }
