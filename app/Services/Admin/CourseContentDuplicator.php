@@ -5,7 +5,6 @@ namespace App\Services\Admin;
 use App\Models\Assessment;
 use App\Models\Course;
 use App\Models\Lesson;
-use App\Models\LessonContentBlock;
 use App\Models\PracticeResource;
 use App\Models\Unit;
 use App\Models\VocabularyTerm;
@@ -18,18 +17,14 @@ class CourseContentDuplicator
     {
         $targetUnit ??= $lesson->unit;
 
-        return DB::transaction(function () use ($lesson, $targetUnit) {
-            return $this->cloneLesson($lesson, $targetUnit);
-        });
+        return DB::transaction(fn () => $this->cloneLesson($lesson, $targetUnit, [], true));
     }
 
     public function duplicateUnit(Unit $unit, ?Course $targetCourse = null): Unit
     {
         $targetCourse ??= $unit->course;
 
-        return DB::transaction(function () use ($unit, $targetCourse) {
-            return $this->cloneUnit($unit, $targetCourse);
-        });
+        return DB::transaction(fn () => $this->cloneUnit($unit, $targetCourse, [], true));
     }
 
     public function duplicateCourse(Course $course): Course
@@ -61,14 +56,14 @@ class CourseContentDuplicator
             }
 
             foreach ($course->units as $unit) {
-                $this->cloneUnit($unit, $copy, $vocabularyMap);
+                $this->cloneUnit($unit, $copy, $vocabularyMap, false);
             }
 
             return $copy;
         });
     }
 
-    private function cloneUnit(Unit $unit, Course $targetCourse, array $vocabularyMap = []): Unit
+    private function cloneUnit(Unit $unit, Course $targetCourse, array $vocabularyMap = [], bool $markAsCopy = true): Unit
     {
         $unit->loadMissing([
             'lessons.vocabularyTerms',
@@ -78,20 +73,20 @@ class CourseContentDuplicator
 
         $copy = $unit->replicate();
         $copy->course_id = $targetCourse->id;
-        $copy->title = $this->copyTitle($unit->title);
+        $copy->title = $markAsCopy ? $this->copyTitle($unit->title) : $unit->title;
         $copy->slug = $this->uniqueUnitSlug($targetCourse->id, Str::slug($copy->title) ?: 'unit-copy');
         $copy->sort_order = ((int) Unit::query()->where('course_id', $targetCourse->id)->max('sort_order')) + 1;
         $copy->is_published = false;
         $copy->save();
 
         foreach ($unit->lessons as $lesson) {
-            $this->cloneLesson($lesson, $copy, $vocabularyMap);
+            $this->cloneLesson($lesson, $copy, $vocabularyMap, false);
         }
 
         return $copy;
     }
 
-    private function cloneLesson(Lesson $lesson, Unit $targetUnit, array $vocabularyMap = []): Lesson
+    private function cloneLesson(Lesson $lesson, Unit $targetUnit, array $vocabularyMap = [], bool $markAsCopy = true): Lesson
     {
         $lesson->loadMissing([
             'vocabularyTerms',
@@ -101,7 +96,7 @@ class CourseContentDuplicator
 
         $copy = $lesson->replicate();
         $copy->unit_id = $targetUnit->id;
-        $copy->title = $this->copyTitle($lesson->title);
+        $copy->title = $markAsCopy ? $this->copyTitle($lesson->title) : $lesson->title;
         $copy->slug = $this->uniqueLessonSlug($targetUnit->id, Str::slug($copy->title) ?: 'lesson-copy');
         $copy->sort_order = ((int) Lesson::query()->where('unit_id', $targetUnit->id)->max('sort_order')) + 1;
         $copy->is_published = false;
@@ -171,39 +166,39 @@ class CourseContentDuplicator
 
     private function uniqueCourseSlug(int $subjectId, string $base): string
     {
-        return $this->uniqueSlug($base, fn (string $slug) => Course::query()->where('subject_id', $subjectId)->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 180, fn (string $slug) => Course::query()->where('subject_id', $subjectId)->where('slug', $slug)->exists());
     }
 
     private function uniqueUnitSlug(int $courseId, string $base): string
     {
-        return $this->uniqueSlug($base, fn (string $slug) => Unit::query()->where('course_id', $courseId)->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 200, fn (string $slug) => Unit::query()->where('course_id', $courseId)->where('slug', $slug)->exists());
     }
 
     private function uniqueLessonSlug(int $unitId, string $base): string
     {
-        return $this->uniqueSlug($base, fn (string $slug) => Lesson::query()->where('unit_id', $unitId)->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 200, fn (string $slug) => Lesson::query()->where('unit_id', $unitId)->where('slug', $slug)->exists());
     }
 
     private function uniquePracticeSlug(int $lessonId, string $base): string
     {
-        return $this->uniqueSlug($base, fn (string $slug) => PracticeResource::query()->where('lesson_id', $lessonId)->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 200, fn (string $slug) => PracticeResource::query()->where('lesson_id', $lessonId)->where('slug', $slug)->exists());
     }
 
     private function uniqueVocabularySlug(string $base): string
     {
-        return $this->uniqueSlug($base, fn (string $slug) => VocabularyTerm::query()->where('slug', $slug)->exists());
+        return $this->uniqueSlug($base, 200, fn (string $slug) => VocabularyTerm::query()->where('slug', $slug)->exists());
     }
 
-    private function uniqueSlug(string $base, callable $exists): string
+    private function uniqueSlug(string $base, int $maxLength, callable $exists): string
     {
-        $base = Str::limit(trim($base, '-'), 170, '');
+        $base = Str::limit(trim($base, '-'), $maxLength - 10, '');
         $slug = $base !== '' ? $base : 'copy';
         $candidate = $slug;
         $suffix = 2;
 
         while ($exists($candidate)) {
             $suffixText = '-'.$suffix++;
-            $candidate = Str::limit($slug, 180 - strlen($suffixText), '').$suffixText;
+            $candidate = Str::limit($slug, $maxLength - strlen($suffixText), '').$suffixText;
         }
 
         return $candidate;
