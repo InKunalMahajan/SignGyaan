@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\Subject;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ class LessonController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Lesson::query()->with('unit.course.subject');
+        $query = Lesson::query()->with(['unit.course.subject', 'mediaAsset']);
 
         if ($request->filled('q')) {
             $search = trim((string) $request->input('q'));
@@ -50,11 +51,19 @@ class LessonController extends Controller
         }
 
         if ($request->input('video') === 'with') {
-            $query->whereNotNull('isl_video_url')->where('isl_video_url', '!=', '');
-        } elseif ($request->input('video') === 'without') {
             $query->where(function ($builder) {
-                $builder->whereNull('isl_video_url')->orWhere('isl_video_url', '');
+                $builder
+                    ->whereNotNull('isl_media_asset_id')
+                    ->orWhere(function ($urlQuery) {
+                        $urlQuery->whereNotNull('isl_video_url')->where('isl_video_url', '!=', '');
+                    });
             });
+        } elseif ($request->input('video') === 'without') {
+            $query
+                ->whereNull('isl_media_asset_id')
+                ->where(function ($builder) {
+                    $builder->whereNull('isl_video_url')->orWhere('isl_video_url', '');
+                });
         }
 
         return view('admin.lessons.index', [
@@ -70,7 +79,15 @@ class LessonController extends Controller
             'totalLessons' => Lesson::query()->count(),
             'publishedLessons' => Lesson::query()->where('is_published', true)->count(),
             'draftLessons' => Lesson::query()->where('is_published', false)->count(),
-            'lessonsWithVideo' => Lesson::query()->whereNotNull('isl_video_url')->where('isl_video_url', '!=', '')->count(),
+            'lessonsWithVideo' => Lesson::query()
+                ->where(function ($builder) {
+                    $builder
+                        ->whereNotNull('isl_media_asset_id')
+                        ->orWhere(function ($urlQuery) {
+                            $urlQuery->whereNotNull('isl_video_url')->where('isl_video_url', '!=', '');
+                        });
+                })
+                ->count(),
         ]);
     }
 
@@ -79,6 +96,7 @@ class LessonController extends Controller
         return view('admin.lessons.create', [
             'units' => Unit::query()->with('course.subject')->orderBy('course_id')->orderBy('sort_order')->orderBy('title')->get(),
             'selectedUnitId' => $request->integer('unit') ?: null,
+            'mediaAssets' => $this->videoMediaAssets(),
         ]);
     }
 
@@ -101,8 +119,9 @@ class LessonController extends Controller
     public function edit(Lesson $lesson): View
     {
         return view('admin.lessons.edit', [
-            'lesson' => $lesson->load('unit.course.subject'),
+            'lesson' => $lesson->load(['unit.course.subject', 'mediaAsset']),
             'units' => Unit::query()->with('course.subject')->orderBy('course_id')->orderBy('sort_order')->orderBy('title')->get(),
+            'mediaAssets' => $this->videoMediaAssets(),
         ]);
     }
 
@@ -163,8 +182,22 @@ class LessonController extends Controller
             'key_points' => ['nullable', 'string', 'max:50000'],
             'example_content' => ['nullable', 'string', 'max:50000'],
             'isl_video_url' => ['nullable', 'url', 'max:2048'],
+            'isl_media_asset_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('media_assets', 'id')->where(fn ($query) => $query->where('media_type', 'video')),
+            ],
             'estimated_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:9999'],
         ]);
+    }
+
+    private function videoMediaAssets()
+    {
+        return MediaAsset::query()
+            ->where('media_type', 'video')
+            ->orderByDesc('is_published')
+            ->orderBy('title')
+            ->get();
     }
 }
