@@ -159,6 +159,235 @@ const enhanceForms = () => {
     }
 };
 
+const formatVideoTime = (seconds) => {
+    if (!Number.isFinite(seconds) || seconds < 0) {
+        return '0:00';
+    }
+
+    const totalSeconds = Math.floor(seconds);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const remainder = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
+    }
+
+    return `${minutes}:${String(remainder).padStart(2, '0')}`;
+};
+
+const enhanceAccessibleIslVideos = () => {
+    document.querySelectorAll('#lesson-video video').forEach((video, index) => {
+        if (!(video instanceof HTMLVideoElement) || video.dataset.accessiblePlayerReady === 'true') {
+            return;
+        }
+
+        video.dataset.accessiblePlayerReady = 'true';
+        video.controls = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('tabindex', '0');
+        video.setAttribute('aria-keyshortcuts', 'Space K J L ArrowLeft ArrowRight M F');
+
+        const controlsId = `isl-video-controls-${index + 1}`;
+        const helpId = `isl-video-help-${index + 1}`;
+        const statusId = `isl-video-status-${index + 1}`;
+        const wrapper = document.createElement('div');
+        wrapper.id = controlsId;
+        wrapper.dataset.accessibleVideoControls = 'true';
+        wrapper.className = 'border-t border-sign-border bg-white p-3 sm:p-4';
+        wrapper.setAttribute('aria-label', 'ISL video controls');
+
+        const toolbar = document.createElement('div');
+        toolbar.className = 'flex flex-wrap items-center gap-2';
+        toolbar.setAttribute('role', 'group');
+        toolbar.setAttribute('aria-label', 'Video playback controls');
+
+        const makeButton = (label, shortLabel = label) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-sign-soft px-3 py-2 text-sm font-semibold text-sign-primary transition hover:border-sign-cyan hover:bg-sign-light';
+            button.textContent = shortLabel;
+            button.setAttribute('aria-label', label);
+            return button;
+        };
+
+        const playButton = makeButton('Play video', 'Play');
+        const backButton = makeButton('Rewind 10 seconds', '−10s');
+        const forwardButton = makeButton('Forward 10 seconds', '+10s');
+        const muteButton = makeButton('Mute video', 'Mute');
+        const captionsButton = makeButton('Turn captions on', 'CC');
+        captionsButton.hidden = true;
+        const fullscreenButton = makeButton('Enter full screen', 'Full screen');
+
+        const speedLabel = document.createElement('label');
+        speedLabel.className = 'inline-flex min-h-11 items-center gap-2 rounded-xl border border-sign-border bg-white px-3 text-sm font-semibold text-sign-primary';
+        speedLabel.textContent = 'Speed';
+
+        const speedSelect = document.createElement('select');
+        speedSelect.className = 'min-h-9 rounded-lg border border-sign-border bg-white px-2 text-base text-sign-text focus:border-sign-cyan';
+        speedSelect.setAttribute('aria-label', 'Playback speed');
+        [0.5, 0.75, 1, 1.25, 1.5, 2].forEach((rate) => {
+            const option = document.createElement('option');
+            option.value = String(rate);
+            option.textContent = `${rate}×`;
+            option.selected = rate === 1;
+            speedSelect.append(option);
+        });
+        speedLabel.append(speedSelect);
+
+        const timeStatus = document.createElement('span');
+        timeStatus.id = statusId;
+        timeStatus.className = 'ml-auto text-xs font-semibold text-sign-muted';
+        timeStatus.setAttribute('role', 'status');
+        timeStatus.setAttribute('aria-live', 'off');
+        timeStatus.textContent = '0:00 / 0:00';
+
+        toolbar.append(
+            playButton,
+            backButton,
+            forwardButton,
+            muteButton,
+            captionsButton,
+            speedLabel,
+            fullscreenButton,
+            timeStatus,
+        );
+
+        const help = document.createElement('details');
+        help.id = helpId;
+        help.className = 'mt-3 rounded-xl bg-sign-soft px-4 py-3 text-xs leading-5 text-sign-muted';
+        help.innerHTML = '<summary class="cursor-pointer font-semibold text-sign-primary">Keyboard shortcuts</summary><p class="mt-2">Space or K: play/pause · J or Left Arrow: back 10 seconds · L or Right Arrow: forward 10 seconds · M: mute · F: full screen.</p>';
+
+        wrapper.append(toolbar, help);
+        video.insertAdjacentElement('afterend', wrapper);
+        video.setAttribute('aria-describedby', helpId);
+
+        const updatePlayState = () => {
+            const playing = !video.paused && !video.ended;
+            playButton.textContent = playing ? 'Pause' : 'Play';
+            playButton.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
+        };
+
+        const updateMuteState = () => {
+            muteButton.textContent = video.muted ? 'Unmute' : 'Mute';
+            muteButton.setAttribute('aria-label', video.muted ? 'Unmute video' : 'Mute video');
+        };
+
+        const updateTime = () => {
+            timeStatus.textContent = `${formatVideoTime(video.currentTime)} / ${formatVideoTime(video.duration)}`;
+        };
+
+        const getCaptionTrack = () => Array.from(video.textTracks || []).find((track) => ['captions', 'subtitles'].includes(track.kind));
+
+        const updateCaptionState = () => {
+            const track = getCaptionTrack();
+            if (!track) {
+                captionsButton.hidden = true;
+                return;
+            }
+
+            captionsButton.hidden = false;
+            const showing = track.mode === 'showing';
+            captionsButton.textContent = showing ? 'CC On' : 'CC';
+            captionsButton.setAttribute('aria-pressed', showing ? 'true' : 'false');
+            captionsButton.setAttribute('aria-label', showing ? 'Turn captions off' : 'Turn captions on');
+        };
+
+        const togglePlay = () => {
+            if (video.paused || video.ended) {
+                void video.play();
+            } else {
+                video.pause();
+            }
+        };
+
+        const seekBy = (seconds) => {
+            const duration = Number.isFinite(video.duration) ? video.duration : Number.MAX_SAFE_INTEGER;
+            video.currentTime = Math.max(0, Math.min(video.currentTime + seconds, duration));
+        };
+
+        const toggleFullscreen = async () => {
+            try {
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                } else if (typeof video.requestFullscreen === 'function') {
+                    await video.requestFullscreen();
+                }
+            } catch {
+                // Keep native controls available when Fullscreen API is unavailable.
+            }
+        };
+
+        playButton.addEventListener('click', togglePlay);
+        backButton.addEventListener('click', () => seekBy(-10));
+        forwardButton.addEventListener('click', () => seekBy(10));
+        muteButton.addEventListener('click', () => {
+            video.muted = !video.muted;
+            updateMuteState();
+        });
+        captionsButton.addEventListener('click', () => {
+            const track = getCaptionTrack();
+            if (!track) {
+                return;
+            }
+
+            track.mode = track.mode === 'showing' ? 'hidden' : 'showing';
+            updateCaptionState();
+        });
+        fullscreenButton.addEventListener('click', toggleFullscreen);
+        speedSelect.addEventListener('change', () => {
+            video.playbackRate = Number(speedSelect.value) || 1;
+        });
+
+        video.addEventListener('play', updatePlayState);
+        video.addEventListener('pause', updatePlayState);
+        video.addEventListener('ended', updatePlayState);
+        video.addEventListener('volumechange', updateMuteState);
+        video.addEventListener('loadedmetadata', () => {
+            updateTime();
+            updateCaptionState();
+        });
+        video.addEventListener('durationchange', updateTime);
+        video.addEventListener('timeupdate', updateTime);
+        video.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) {
+                return;
+            }
+
+            const key = event.key.toLowerCase();
+            const actions = {
+                ' ': togglePlay,
+                k: togglePlay,
+                j: () => seekBy(-10),
+                l: () => seekBy(10),
+                arrowleft: () => seekBy(-10),
+                arrowright: () => seekBy(10),
+                m: () => {
+                    video.muted = !video.muted;
+                    updateMuteState();
+                },
+                f: toggleFullscreen,
+            };
+
+            if (actions[key]) {
+                event.preventDefault();
+                actions[key]();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const active = document.fullscreenElement === video;
+            fullscreenButton.textContent = active ? 'Exit full screen' : 'Full screen';
+            fullscreenButton.setAttribute('aria-label', active ? 'Exit full screen' : 'Enter full screen');
+        });
+
+        updatePlayState();
+        updateMuteState();
+        updateTime();
+        updateCaptionState();
+    });
+};
+
 const returnFocusFromHeaderSearch = (input) => {
     const isDesktopSearch = input.id === 'desktop-search-input';
     const isMobileSearch = input.id === 'mobile-search-input';
@@ -379,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     enhanceForms();
     enhancePublicShell();
     enhanceAdminShell();
+    enhanceAccessibleIslVideos();
 });
 
 document.addEventListener('keydown', (event) => {
