@@ -13,21 +13,19 @@ class MediaPickerController extends Controller
     {
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'type' => ['nullable', 'in:image,video,audio,document'],
+            'type' => ['nullable', 'in:image,video,audio,document,link'],
             'isl' => ['nullable', 'boolean'],
         ]);
 
-        $query = MediaAsset::query()
-            ->select([
-                'id', 'title', 'media_type', 'is_isl', 'source', 'file_path',
-                'external_url', 'alt_text', 'caption', 'duration_seconds',
-                'file_size', 'is_published', 'created_at',
-            ]);
+        $query = MediaAsset::query()->select([
+            'id', 'title', 'media_type', 'is_isl', 'source', 'file_path',
+            'external_url', 'alt_text', 'caption', 'duration_seconds',
+            'file_size', 'is_published', 'created_at',
+        ]);
 
         if ($search = trim((string) ($validated['q'] ?? ''))) {
             $query->where(function ($builder) use ($search) {
-                $builder
-                    ->where('title', 'like', "%{$search}%")
+                $builder->where('title', 'like', "%{$search}%")
                     ->orWhere('alt_text', 'like', "%{$search}%")
                     ->orWhere('caption', 'like', "%{$search}%");
             });
@@ -41,11 +39,7 @@ class MediaPickerController extends Controller
             $query->where('is_isl', $request->boolean('isl'));
         }
 
-        $assets = $query
-            ->orderByDesc('is_published')
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get()
+        $assets = $query->orderByDesc('is_published')->orderByDesc('created_at')->limit(100)->get()
             ->map(fn (MediaAsset $asset) => [
                 'id' => $asset->id,
                 'title' => $asset->title,
