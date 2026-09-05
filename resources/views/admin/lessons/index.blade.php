@@ -115,6 +115,9 @@
                             </thead>
                             <tbody class="divide-y divide-sign-border">
                                 @foreach ($lessons as $lesson)
+                                    @php
+                                        $hasIslVideo = filled($lesson->isl_video_url) || $lesson->isl_media_asset_id;
+                                    @endphp
                                     <tr class="align-top">
                                         <td class="px-5 py-4 font-semibold text-sign-muted">{{ $lesson->sort_order }}</td>
                                         <td class="px-5 py-4">
@@ -128,8 +131,13 @@
                                             <p class="mt-1 text-xs font-semibold text-sign-cyan-dark">{{ $lesson->unit?->course?->subject?->name ?? 'Missing subject' }}</p>
                                         </td>
                                         <td class="px-5 py-4">
-                                            @if ($lesson->isl_video_url)
-                                                <span class="inline-flex rounded-full bg-sign-light px-2.5 py-1 text-xs font-semibold text-sign-primary">Video linked</span>
+                                            @if ($lesson->isl_media_asset_id)
+                                                <span class="inline-flex rounded-full bg-sign-light px-2.5 py-1 text-xs font-semibold text-sign-primary">Media Library</span>
+                                                @if ($lesson->mediaAsset)
+                                                    <p class="mt-1 max-w-40 truncate text-xs text-sign-muted">{{ $lesson->mediaAsset->title }}</p>
+                                                @endif
+                                            @elseif ($lesson->isl_video_url)
+                                                <span class="inline-flex rounded-full bg-sign-light px-2.5 py-1 text-xs font-semibold text-sign-primary">URL linked</span>
                                             @else
                                                 <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-sign-muted">No video</span>
                                             @endif
@@ -159,6 +167,9 @@
 
                     <div class="divide-y divide-sign-border lg:hidden">
                         @foreach ($lessons as $lesson)
+                            @php
+                                $hasIslVideo = filled($lesson->isl_video_url) || $lesson->isl_media_asset_id;
+                            @endphp
                             <article class="p-5">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
@@ -175,7 +186,9 @@
                                 <p class="mt-3 text-sm leading-6 text-sign-muted">{{ $lesson->short_description ?: 'No short description yet.' }}</p>
                                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
                                     <span class="rounded-full bg-sign-soft px-2.5 py-1 text-sign-primary">Order {{ $lesson->sort_order }}</span>
-                                    <span class="rounded-full bg-sign-soft px-2.5 py-1 text-sign-primary">{{ $lesson->isl_video_url ? 'ISL video linked' : 'No ISL video' }}</span>
+                                    <span class="rounded-full bg-sign-soft px-2.5 py-1 text-sign-primary">
+                                        {{ $hasIslVideo ? ($lesson->isl_media_asset_id ? 'Media Library video' : 'ISL video URL') : 'No ISL video' }}
+                                    </span>
                                 </div>
                                 <div class="mt-4 flex justify-end gap-2 border-t border-sign-border pt-4">
                                     <a href="{{ route('admin.lessons.edit', $lesson) }}" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-sign-border px-3 py-2 text-xs font-semibold text-sign-primary">Edit</a>
