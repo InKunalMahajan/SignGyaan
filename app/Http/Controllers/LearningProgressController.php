@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LearningProgress;
 use App\Services\LearnerActivityService;
 use App\Services\LearningProgressCatalog;
+use App\Services\LearningProgressNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,8 +14,12 @@ use Illuminate\Validation\ValidationException;
 
 class LearningProgressController extends Controller
 {
-    public function store(Request $request, LearningProgressCatalog $catalog, LearnerActivityService $activity): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        LearningProgressCatalog $catalog,
+        LearnerActivityService $activity,
+        LearningProgressNotificationService $progressNotifications,
+    ): RedirectResponse {
         $validated = $request->validate([
             'subject_slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
             'course_slug' => ['required', 'string', 'max:140', 'regex:/^[a-z0-9-]+$/'],
@@ -96,6 +101,21 @@ class LearningProgressController extends Controller
                 'progress_percent' => $progress->progressPercent(),
             ],
         ]);
+
+        if ($validated['action'] === 'complete') {
+            $progressNotifications->lessonCompleted(
+                $request->user(),
+                $progress,
+                $currentEntry,
+                $nextEntry,
+            );
+        } else {
+            $progressNotifications->saved(
+                $request->user(),
+                $progress,
+                $currentEntry,
+            );
+        }
 
         if ($validated['action'] === 'complete' && $nextEntry) {
             return redirect()
