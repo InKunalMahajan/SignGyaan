@@ -43,6 +43,14 @@ class MediaController extends Controller
             $query->where('media_type', $request->input('type'));
         }
 
+        if ($request->input('isl') === 'yes') {
+            $query->where('media_type', 'video')->where('is_isl', true);
+        } elseif ($request->input('isl') === 'no') {
+            $query->where(function ($builder) {
+                $builder->where('media_type', '!=', 'video')->orWhere('is_isl', false);
+            });
+        }
+
         if ($request->filled('source')) {
             $query->where('source', $request->input('source'));
         }
@@ -79,6 +87,7 @@ class MediaController extends Controller
         $validated = $this->validateAsset($request);
         $validated['uploaded_by'] = $request->user()->id;
         $validated['is_published'] = $request->boolean('is_published');
+        $validated['is_isl'] = $validated['media_type'] === 'video' && $request->boolean('is_isl');
 
         if ($validated['source'] === 'upload') {
             $file = $request->file('file');
@@ -113,6 +122,7 @@ class MediaController extends Controller
     {
         $validated = $this->validateAsset($request, $mediaAsset);
         $validated['is_published'] = $request->boolean('is_published');
+        $validated['is_isl'] = $validated['media_type'] === 'video' && $request->boolean('is_isl');
 
         if ($validated['source'] === 'external') {
             $this->deleteStoredFile($mediaAsset);
@@ -176,6 +186,8 @@ class MediaController extends Controller
             'external_url' => [$source === 'external' ? 'required' : 'nullable', 'url', 'max:2048'],
             'alt_text' => ['nullable', 'string', 'max:255'],
             'caption' => ['nullable', 'string', 'max:5000'],
+            'language_code' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9-]+$/'],
+            'duration_seconds' => ['nullable', 'integer', 'min:1', 'max:86400'],
         ]);
     }
 
