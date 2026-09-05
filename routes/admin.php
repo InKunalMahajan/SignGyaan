@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\CoursePreviewController;
 use App\Http\Controllers\Admin\CoursePublishingChecklistController;
 use App\Http\Controllers\Admin\CoursePublishingController;
+use App\Http\Controllers\Admin\LearnerController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
@@ -70,6 +71,9 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
     Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/{teacher}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
     Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])->middleware('throttle:30,1')->name('teachers.update');
+
+    Route::get('/learners', [LearnerController::class, 'index'])->name('learners.index');
+    Route::get('/learners/{learner}', [LearnerController::class, 'show'])->name('learners.show');
 
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
         ->middleware('throttle:30,1')
