@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CourseBuilderDuplicateController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\CoursePreviewController;
 use App\Http\Controllers\Admin\CoursePublishingChecklistController;
+use App\Http\Controllers\Admin\CoursePublishingController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
@@ -27,6 +28,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/courses/{course}/builder', CourseBuilderController::class)->name('courses.builder');
     Route::get('/courses/{course}/preview', CoursePreviewController::class)->name('courses.preview');
     Route::get('/courses/{course}/publishing-checklist', CoursePublishingChecklistController::class)->name('courses.publishing-checklist');
+    Route::post('/courses/{course}/publish-all', [CoursePublishingController::class, 'publish'])->middleware('throttle:10,1')->name('courses.publish-all');
+    Route::post('/courses/{course}/unpublish-all', [CoursePublishingController::class, 'unpublish'])->middleware('throttle:10,1')->name('courses.unpublish-all');
     Route::post('/courses/{course}/builder/quick-lesson', [CourseBuilderController::class, 'quickLesson'])->middleware('throttle:30,1')->name('courses.builder.quick-lesson');
     Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])->middleware('throttle:60,1')->name('courses.builder.reorder');
     Route::post('/courses/{course}/builder/duplicate', [CourseBuilderDuplicateController::class, 'course'])->middleware('throttle:10,1')->name('courses.builder.duplicate-course');
