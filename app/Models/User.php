@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,11 +15,25 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_LEARNER = 'learner';
+
+    public const ROLE_ADMIN = 'admin';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_SUSPENDED = 'suspended';
+
+    public const STATUS_DISABLED = 'disabled';
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
+        'status',
+        'last_login_at',
+        'suspended_at',
+        'admin_note',
         'accessibility_preferences',
         'notification_preferences',
     ];
@@ -33,6 +48,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
+            'suspended_at' => 'datetime',
             'accessibility_preferences' => 'array',
             'notification_preferences' => 'array',
         ];
@@ -74,6 +91,36 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isLearner(): bool
+    {
+        return $this->role === self::ROLE_LEARNER;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === self::STATUS_SUSPENDED;
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->status === self::STATUS_DISABLED;
+    }
+
+    public function scopeWithRole(Builder $query, string $role): Builder
+    {
+        return $query->where('role', $role);
+    }
+
+    public function scopeWithStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('status', $status);
     }
 }
