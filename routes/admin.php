@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AssessmentController;
 use App\Http\Controllers\Admin\AssessmentQuestionController;
 use App\Http\Controllers\Admin\AssessmentResultController;
+use App\Http\Controllers\Admin\CourseBuilderContentBlockController;
 use App\Http\Controllers\Admin\CourseBuilderController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
@@ -32,6 +33,15 @@ Route::middleware(['auth', 'admin'])
         Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])
             ->middleware('throttle:60,1')
             ->name('courses.builder.reorder');
+        Route::post('/courses/{course}/builder/lessons/{lesson}/content-blocks', [CourseBuilderContentBlockController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('courses.builder.content-blocks.store');
+        Route::put('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'update'])
+            ->middleware('throttle:60,1')
+            ->name('courses.builder.content-blocks.update');
+        Route::delete('/courses/{course}/builder/lessons/{lesson}/content-blocks/{contentBlock}', [CourseBuilderContentBlockController::class, 'destroy'])
+            ->middleware('throttle:60,1')
+            ->name('courses.builder.content-blocks.destroy');
 
         Route::resource('courses', CourseController::class)
             ->except('show');
