@@ -60,6 +60,13 @@ class Lesson extends Model
             ->orderBy('title');
     }
 
+    public function contentBlocks(): HasMany
+    {
+        return $this->hasMany(LessonContentBlock::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
     public function vocabularyTerms(): BelongsToMany
     {
         return $this->belongsToMany(VocabularyTerm::class, 'lesson_vocabulary_term')
