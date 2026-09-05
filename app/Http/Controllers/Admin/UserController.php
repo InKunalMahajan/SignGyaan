@@ -67,7 +67,9 @@ class UserController extends Controller
             'statusOptions' => $userManagement->statuses(),
             'totalUsers' => User::query()->count(),
             'learnerCount' => User::query()->where('role', User::ROLE_LEARNER)->count(),
+            'teacherCount' => User::query()->where('role', User::ROLE_TEACHER)->count(),
             'adminCount' => User::query()->where('role', User::ROLE_ADMIN)->count(),
+            'superAdminCount' => User::query()->where('role', User::ROLE_SUPER_ADMIN)->count(),
             'activeCount' => User::query()->where('status', User::STATUS_ACTIVE)->count(),
             'suspendedCount' => User::query()->where('status', User::STATUS_SUSPENDED)->count(),
             'disabledCount' => User::query()->where('status', User::STATUS_DISABLED)->count(),
@@ -93,7 +95,7 @@ class UserController extends Controller
             'managedUser' => $user,
             'completedLessons' => $completedLessons,
             'completedCourses' => $user->learningProgress->whereNotNull('completed_at')->count(),
-            'adminCount' => User::query()->where('role', User::ROLE_ADMIN)->count(),
+            'adminCount' => $userManagement->administratorCount(),
             'roleOptions' => $userManagement->roles(),
             'statusOptions' => $userManagement->statuses(),
         ]);
@@ -113,22 +115,39 @@ class UserController extends Controller
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $actor = $request->user();
         $validated['email'] = strtolower(trim($validated['email']));
         $validated['name'] = trim($validated['name']);
         $validated['admin_note'] = filled($validated['admin_note'] ?? null)
             ? trim((string) $validated['admin_note'])
             : null;
 
-        if ($user->is($request->user()) && $validated['role'] !== User::ROLE_ADMIN) {
+        if (($user->isSuperAdmin() || $validated['role'] === User::ROLE_SUPER_ADMIN) && ! $actor?->isSuperAdmin()) {
+            return back()
+                ->withInput()
+                ->withErrors(['role' => 'Only a Super Administrator can manage the Super Administrator role.']);
+        }
+
+        if ($user->is($actor) && ! in_array($validated['role'], [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)) {
             return back()
                 ->withInput()
                 ->withErrors(['role' => 'You cannot remove your own administrator access.']);
         }
 
-        if ($user->isAdmin() && $validated['role'] !== User::ROLE_ADMIN && User::query()->where('role', User::ROLE_ADMIN)->count() <= 1) {
+        if ($user->isAdmin()
+            && ! in_array($validated['role'], [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN], true)
+            && $userManagement->administratorCount() <= 1) {
             return back()
                 ->withInput()
                 ->withErrors(['role' => 'At least one administrator account must remain.']);
+        }
+
+        if ($user->isSuperAdmin()
+            && $validated['role'] !== User::ROLE_SUPER_ADMIN
+            && User::query()->where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
+            return back()
+                ->withInput()
+                ->withErrors(['role' => 'At least one Super Administrator account must remain.']);
         }
 
         $user->update($validated);
@@ -138,15 +157,27 @@ class UserController extends Controller
             ->with('status', 'User profile updated successfully.');
     }
 
-    public function destroy(Request $request, User $user): RedirectResponse
+    public function destroy(Request $request, User $user, UserManagementService $userManagement): RedirectResponse
     {
-        if ($user->is($request->user())) {
+        $actor = $request->user();
+
+        if ($user->is($actor)) {
             return redirect()
                 ->route('admin.users.index')
                 ->with('status', 'You cannot delete your own signed-in administrator account.');
         }
 
-        if ($user->isAdmin() && User::query()->where('role', User::ROLE_ADMIN)->count() <= 1) {
+        if ($user->isSuperAdmin() && ! $actor?->isSuperAdmin()) {
+            abort(403, 'Only a Super Administrator can manage another Super Administrator.');
+        }
+
+        if ($user->isSuperAdmin() && User::query()->where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('status', 'The final Super Administrator account cannot be deleted.');
+        }
+
+        if ($user->isAdmin() && $userManagement->administratorCount() <= 1) {
             return redirect()
                 ->route('admin.users.index')
                 ->with('status', 'The final administrator account cannot be deleted.');
