@@ -26,6 +26,9 @@ Route::middleware(['auth', 'admin'])
 
         Route::get('/courses/{course}/builder', CourseBuilderController::class)
             ->name('courses.builder');
+        Route::post('/courses/{course}/builder/quick-lesson', [CourseBuilderController::class, 'quickLesson'])
+            ->middleware('throttle:30,1')
+            ->name('courses.builder.quick-lesson');
         Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])
             ->middleware('throttle:60,1')
             ->name('courses.builder.reorder');
