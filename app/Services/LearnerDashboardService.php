@@ -12,6 +12,7 @@ class LearnerDashboardService
     public function __construct(
         private LearningProgressCatalog $catalog,
         private LearnerActivityService $activity,
+        private LearnerRecommendationService $recommendations,
     ) {
     }
 
@@ -33,6 +34,7 @@ class LearnerDashboardService
         $activeAssessment = $assessmentAttempts->firstWhere('status', 'in-progress');
         $continueLearning = $this->continueLearning($activeCourses);
         $activitySummary = $this->activity->summary($user);
+        $recommendedNextLessons = $this->recommendations->nextLessons($user, $progressRecords);
 
         return [
             'progressRecords' => $progressRecords,
@@ -49,6 +51,7 @@ class LearnerDashboardService
             'continueLearning' => $continueLearning,
             'primaryContinueLearning' => $continueLearning->first(),
             'activitySummary' => $activitySummary,
+            'recommendedNextLessons' => $recommendedNextLessons,
             'dashboardSummary' => [
                 'courses_in_progress' => $activeCourses->count(),
                 'courses_completed' => $completedCourses->count(),
