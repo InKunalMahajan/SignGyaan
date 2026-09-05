@@ -22,6 +22,7 @@
                     <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Update course information, learning level, publishing and display settings.</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('admin.courses.publishing-checklist', $course) }}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl bg-sign-dark px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-primary">Publishing Checklist</a>
                     <a href="{{ route('admin.courses.preview', $course) }}" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-sign-primary bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Preview Draft</a>
                     <a href="{{ route('admin.courses.builder', $course) }}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Open Course Builder</a>
                 </div>
