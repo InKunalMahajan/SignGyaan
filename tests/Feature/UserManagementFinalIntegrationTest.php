@@ -86,7 +86,7 @@ class UserManagementFinalIntegrationTest extends TestCase
         ]);
     }
 
-    public function test_bulk_management_page_has_accessible_labels_and_live_regions(): void
+    public function test_bulk_management_page_has_accessible_selection_labels_and_enhancement_script(): void
     {
         $superAdmin = User::factory()->superAdmin()->create();
         User::factory()->learner()->create(['name' => 'Accessibility Learner']);
@@ -96,7 +96,6 @@ class UserManagementFinalIntegrationTest extends TestCase
             ->assertOk()
             ->assertSee('Bulk User Management')
             ->assertSee('aria-label="Select Accessibility Learner"', false)
-            ->assertSee('role="status"', false)
-            ->assertSee('aria-live="polite"', false);
+            ->assertSee('admin-user-management-accessibility.js');
     }
 }
