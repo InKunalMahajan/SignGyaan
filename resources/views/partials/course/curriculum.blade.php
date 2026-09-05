@@ -95,6 +95,11 @@
                                                     'lesson' => $lessonKey,
                                                 ]);
                                                 $hasNotes = filled($lesson->content) || filled($lesson->key_points) || filled($lesson->learning_objectives);
+                                                $hasIslVideo = filled($lesson->isl_video_url)
+                                                    || ($lesson->relationLoaded('mediaAsset')
+                                                        && $lesson->mediaAsset
+                                                        && $lesson->mediaAsset->is_published
+                                                        && $lesson->mediaAsset->media_type === 'video');
                                             @endphp
 
                                             <a
@@ -122,7 +127,7 @@
                                                         </span>
 
                                                         <span class="flex shrink-0 flex-wrap items-center gap-1.5 sm:gap-2">
-                                                            @if ($lesson->isl_video_url)
+                                                            @if ($hasIslVideo)
                                                                 <span class="rounded-full bg-sign-light px-2.5 py-1 text-[10px] font-semibold text-sign-primary sm:text-[11px]">ISL</span>
                                                             @endif
                                                             @if ($hasNotes)
