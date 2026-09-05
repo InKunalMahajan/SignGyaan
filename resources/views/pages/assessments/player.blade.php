@@ -90,7 +90,7 @@
 
                         @if ($errors->any())
                             <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite" data-error-summary>
-                                <p class="text-sm font-semibold text-red-800">Please check your saved answers.</p>
+                                <p class="text-sm font-semibold text-red-800">Please check your answers before continuing.</p>
                                 <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
                                     @foreach ($errors->all() as $error)
                                         <li>{{ $error }}</li>
@@ -99,14 +99,16 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('assessment-attempts.save', [$assessment, $attempt]) }}">
+                        <form id="assessment-answer-form" method="POST" action="{{ route('assessment-attempts.save', [$assessment, $attempt]) }}">
                             @csrf
 
                             @foreach ($questions as $questionIndex => $question)
                                 @php
                                     $savedResponse = $savedAnswers->get($question->id)?->response ?? [];
-                                    $savedOptionIds = collect($savedResponse['option_ids'] ?? [])->map(fn ($id) => (int) $id);
-                                    $savedText = (string) ($savedResponse['text'] ?? '');
+                                    $currentResponse = old('answers.'.$question->id, $savedResponse);
+                                    $currentResponse = is_array($currentResponse) ? $currentResponse : [];
+                                    $savedOptionIds = collect($currentResponse['option_ids'] ?? [])->map(fn ($id) => (int) $id);
+                                    $savedText = (string) ($currentResponse['text'] ?? '');
                                     $typeLabel = match ($question->question_type) {
                                         'single-choice' => 'Single Choice',
                                         'multiple-choice' => 'Multiple Choice',
@@ -129,6 +131,8 @@
                                         <span class="rounded-full bg-sign-soft px-3 py-1.5 text-sign-muted">{{ number_format((float) $question->points, 2) }} {{ (float) $question->points === 1.0 ? 'point' : 'points' }}</span>
                                         @if ($question->is_required)
                                             <span class="rounded-full bg-sign-soft px-3 py-1.5 text-sign-cyan-dark">Required</span>
+                                        @else
+                                            <span class="rounded-full bg-sign-soft px-3 py-1.5 text-sign-muted">Optional</span>
                                         @endif
                                     </div>
 
@@ -202,13 +206,22 @@
                                             Next question →
                                         </button>
 
-                                        <button
-                                            type="submit"
-                                            x-show="current === total - 1"
-                                            class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
-                                        >
-                                            Save Answers
-                                        </button>
+                                        <div x-show="current === total - 1" class="flex flex-col gap-2 sm:flex-row">
+                                            <button
+                                                type="submit"
+                                                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
+                                            >
+                                                Save Progress
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                formaction="{{ route('assessment-attempts.submit', [$assessment, $attempt]) }}"
+                                                onclick="return confirm('Submit this assessment now? You will not be able to change answers in this attempt after submission.');"
+                                                class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
+                                            >
+                                                Submit Assessment
+                                            </button>
+                                        </div>
                                     </div>
                                 </article>
                             @endforeach
@@ -220,13 +233,16 @@
                             <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Questions</p>
                             <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-8 xl:grid-cols-4">
                                 @foreach ($questions as $questionIndex => $question)
+                                    @php
+                                        $hasStoredOrOldAnswer = $savedAnswers->has($question->id) || old('answers.'.$question->id) !== null;
+                                    @endphp
                                     <button
                                         type="button"
                                         @click="goTo({{ $questionIndex }})"
                                         @class([
                                             'flex h-10 w-full items-center justify-center rounded-xl border text-xs font-semibold transition',
-                                            'border-sign-cyan bg-sign-light text-sign-primary' => $savedAnswers->has($question->id),
-                                            'border-sign-border bg-sign-soft text-sign-muted' => ! $savedAnswers->has($question->id),
+                                            'border-sign-cyan bg-sign-light text-sign-primary' => $hasStoredOrOldAnswer,
+                                            'border-sign-border bg-sign-soft text-sign-muted' => ! $hasStoredOrOldAnswer,
                                         ])
                                         :class="current === {{ $questionIndex }} ? 'ring-2 ring-sign-primary ring-offset-2' : ''"
                                         aria-label="Go to question {{ $questionIndex + 1 }}"
@@ -236,8 +252,8 @@
                                 @endforeach
                             </div>
                             <div class="mt-4 flex flex-wrap gap-3 text-[11px] text-sign-muted">
-                                <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-sign-light ring-1 ring-sign-cyan" aria-hidden="true"></span> Saved</span>
-                                <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-sign-soft ring-1 ring-sign-border" aria-hidden="true"></span> Not saved</span>
+                                <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-sign-light ring-1 ring-sign-cyan" aria-hidden="true"></span> Saved / entered</span>
+                                <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-sign-soft ring-1 ring-sign-border" aria-hidden="true"></span> No answer</span>
                             </div>
                         </div>
 
@@ -248,7 +264,10 @@
                                 <div class="flex justify-between gap-3"><dt class="text-sign-muted">Started</dt><dd class="text-right font-semibold text-sign-primary">{{ $attempt->started_at?->format('d M, H:i') }}</dd></div>
                                 <div class="flex justify-between gap-3"><dt class="text-sign-muted">Status</dt><dd class="font-semibold text-sign-primary">In progress</dd></div>
                             </dl>
-                            <p class="mt-4 rounded-xl bg-sign-soft p-3 text-xs leading-5 text-sign-muted">Use <strong class="text-sign-primary">Save Answers</strong> on the final question to store your current responses.</p>
+                            <div class="mt-4 space-y-2 rounded-xl bg-sign-soft p-3 text-xs leading-5 text-sign-muted">
+                                <p><strong class="text-sign-primary">Save Progress</strong> stores answers without grading them.</p>
+                                <p><strong class="text-sign-primary">Submit Assessment</strong> validates required questions, grades the attempt and closes it.</p>
+                            </div>
                         </div>
 
                         <a href="{{ $lessonUrl }}" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-sign-border bg-white px-4 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Back to lesson</a>
