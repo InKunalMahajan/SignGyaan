@@ -15,7 +15,11 @@ class InAppNotificationService
         ?string $url = null,
         ?string $actionLabel = null,
         array $meta = [],
-    ): void {
+    ): bool {
+        if (! $user->wantsNotificationCategory($category)) {
+            return false;
+        }
+
         $user->notify(new SignGyaanNotification(
             category: $category,
             title: $title,
@@ -24,6 +28,8 @@ class InAppNotificationService
             actionLabel: $actionLabel,
             meta: $meta,
         ));
+
+        return true;
     }
 
     public function sendOnce(
@@ -36,6 +42,10 @@ class InAppNotificationService
         ?string $actionLabel = null,
         array $meta = [],
     ): bool {
+        if (! $user->wantsNotificationCategory($category)) {
+            return false;
+        }
+
         $alreadySent = $user->notifications()
             ->where('data->meta->dedupe_key', $dedupeKey)
             ->exists();
@@ -44,7 +54,7 @@ class InAppNotificationService
             return false;
         }
 
-        $this->send(
+        return $this->send(
             user: $user,
             category: $category,
             title: $title,
@@ -53,7 +63,5 @@ class InAppNotificationService
             actionLabel: $actionLabel,
             meta: array_merge($meta, ['dedupe_key' => $dedupeKey]),
         );
-
-        return true;
     }
 }
