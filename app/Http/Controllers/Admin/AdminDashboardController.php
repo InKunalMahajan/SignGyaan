@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
+use App\Models\AssessmentAttempt;
 use App\Models\Course;
 use App\Models\LearningActivity;
 use App\Models\LearningProgress;
@@ -108,14 +109,8 @@ class AdminDashboardController extends Controller
             'completed_lessons' => $completedLessons,
             'tracked_lessons' => $totalTrackedLessons,
             'learners_with_progress' => $progressRecords->pluck('user_id')->filter()->unique()->count(),
-            'active_learners_7_days' => LearningActivity::query()
-                ->where('occurred_at', '>=', $sevenDaysAgo)
-                ->distinct('user_id')
-                ->count('user_id'),
-            'active_learners_30_days' => LearningActivity::query()
-                ->where('occurred_at', '>=', $thirtyDaysAgo)
-                ->distinct('user_id')
-                ->count('user_id'),
+            'active_learners_7_days' => LearningActivity::query()->where('occurred_at', '>=', $sevenDaysAgo)->distinct('user_id')->count('user_id'),
+            'active_learners_30_days' => LearningActivity::query()->where('occurred_at', '>=', $thirtyDaysAgo)->distinct('user_id')->count('user_id'),
             'activities_7_days' => LearningActivity::query()->where('occurred_at', '>=', $sevenDaysAgo)->count(),
             'activities_30_days' => LearningActivity::query()->where('occurred_at', '>=', $thirtyDaysAgo)->count(),
         ];
@@ -123,7 +118,6 @@ class AdminDashboardController extends Controller
         $learningStats['course_completion_rate'] = $learningStats['tracked_courses'] > 0
             ? round(($learningStats['completed_courses'] / $learningStats['tracked_courses']) * 100, 1)
             : 0.0;
-
         $learningStats['lesson_completion_rate'] = $learningStats['tracked_lessons'] > 0
             ? round(($learningStats['completed_lessons'] / $learningStats['tracked_lessons']) * 100, 1)
             : 0.0;
@@ -139,6 +133,39 @@ class AdminDashboardController extends Controller
             ->whereNotNull('last_accessed_at')
             ->latest('last_accessed_at')
             ->limit(6)
+            ->get();
+
+        $submittedAttempts = AssessmentAttempt::query()->where('status', 'submitted');
+        $submittedCount = (clone $submittedAttempts)->count();
+        $passedCount = (clone $submittedAttempts)->where('passed', true)->count();
+        $failedCount = (clone $submittedAttempts)->where('passed', false)->count();
+
+        $assessmentStats = [
+            'assessments' => Assessment::query()->count(),
+            'published_assessments' => Assessment::query()->where('is_published', true)->count(),
+            'total_attempts' => AssessmentAttempt::query()->count(),
+            'submitted_attempts' => $submittedCount,
+            'in_progress_attempts' => AssessmentAttempt::query()->where('status', 'in-progress')->count(),
+            'expired_attempts' => AssessmentAttempt::query()->where('status', 'expired')->count(),
+            'passed_attempts' => $passedCount,
+            'failed_attempts' => $failedCount,
+            'attempts_7_days' => AssessmentAttempt::query()->where('started_at', '>=', $sevenDaysAgo)->count(),
+            'attempts_30_days' => AssessmentAttempt::query()->where('started_at', '>=', $thirtyDaysAgo)->count(),
+            'participating_learners' => AssessmentAttempt::query()->whereNotNull('user_id')->distinct('user_id')->count('user_id'),
+            'average_percentage' => round((float) ((clone $submittedAttempts)->avg('percentage') ?? 0), 1),
+        ];
+
+        $assessmentStats['pass_rate'] = $submittedCount > 0
+            ? round(($passedCount / $submittedCount) * 100, 1)
+            : 0.0;
+
+        $recentAssessmentAttempts = AssessmentAttempt::query()
+            ->with([
+                'user:id,name,email',
+                'assessment.practiceResource:id,title',
+            ])
+            ->latest('started_at')
+            ->limit(8)
             ->get();
 
         $managementAreas = [
@@ -161,6 +188,8 @@ class AdminDashboardController extends Controller
             'learningStats',
             'recentLearningActivities',
             'recentLearningProgress',
+            'assessmentStats',
+            'recentAssessmentAttempts',
             'managementAreas'
         ));
     }
