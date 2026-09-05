@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
+use App\Services\LearnerDashboardService;
 use App\Services\LearningProgressCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -11,32 +12,9 @@ use Illuminate\View\View;
 
 class LearningController extends Controller
 {
-    public function dashboard(Request $request, LearningProgressCatalog $catalog): View
+    public function dashboard(Request $request, LearnerDashboardService $dashboard): View
     {
-        $progressRecords = $this->validatedProgressRecords($request, $catalog);
-        $assessmentAttempts = $this->validatedAssessmentAttempts($request);
-        $starterCourses = $this->starterCourses();
-
-        $activeCourses = $progressRecords->whereNull('completed_at')->values();
-        $completedCourses = $progressRecords->whereNotNull('completed_at')->values();
-        $completedLessons = $progressRecords->sum(fn ($progress) => $progress->completedLessonsCount());
-        $totalLessons = $progressRecords->sum('total_lessons');
-        $overallProgress = $totalLessons > 0
-            ? (int) min(100, round(($completedLessons / $totalLessons) * 100))
-            : 0;
-
-        $assessmentSummary = $this->assessmentSummary($assessmentAttempts);
-
-        return view('dashboard', compact(
-            'progressRecords',
-            'activeCourses',
-            'completedCourses',
-            'completedLessons',
-            'overallProgress',
-            'assessmentAttempts',
-            'assessmentSummary',
-            'starterCourses',
-        ));
+        return view('dashboard', $dashboard->build($request->user()));
     }
 
     public function index(Request $request, LearningProgressCatalog $catalog): View
