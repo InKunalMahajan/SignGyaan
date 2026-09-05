@@ -54,6 +54,27 @@ class ProfileController extends Controller
         return back()->with('profile_status', 'Your profile details were updated successfully.');
     }
 
+    public function updateAccessibility(Request $request): RedirectResponse
+    {
+        $validated = $request->validateWithBag('accessibility', [
+            'captions' => ['nullable', Rule::in(['prefer', 'manual'])],
+            'transcript' => ['nullable', Rule::in(['show', 'hide'])],
+            'simple_summary' => ['nullable', Rule::in(['show', 'hide'])],
+            'reduced_motion' => ['nullable', Rule::in(['on', 'system'])],
+        ]);
+
+        $request->user()->update([
+            'accessibility_preferences' => [
+                'captions' => $validated['captions'] ?? 'manual',
+                'transcript' => $validated['transcript'] ?? 'show',
+                'simple_summary' => $validated['simple_summary'] ?? 'show',
+                'reduced_motion' => $validated['reduced_motion'] ?? 'system',
+            ],
+        ]);
+
+        return back()->with('accessibility_status', 'Accessibility preferences were saved.');
+    }
+
     public function updatePassword(Request $request): RedirectResponse
     {
         $validated = $request->validateWithBag('password', [
