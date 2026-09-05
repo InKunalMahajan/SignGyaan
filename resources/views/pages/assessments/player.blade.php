@@ -53,7 +53,7 @@
                     <span aria-hidden="true">/</span>
                     <a href="{{ route('assessments.show', $assessment) }}" class="transition hover:text-sign-primary">{{ $practice->title }}</a>
                     <span aria-hidden="true">/</span>
-                    <span class="font-semibold text-sign-primary">Attempt {{ $attempt->attempt_number }}</span>
+                    <span class="font-semibold text-sign-primary" aria-current="page">Attempt {{ $attempt->attempt_number }}</span>
                 </nav>
 
                 <div class="mt-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -64,9 +64,10 @@
                     </div>
 
                     @if ($attempt->expires_at)
-                        <div class="w-fit rounded-2xl border border-sign-border bg-sign-soft px-4 py-3" role="timer" aria-live="off">
+                        <div class="w-fit rounded-2xl border border-sign-border bg-sign-soft px-4 py-3" role="timer" aria-label="Assessment time remaining">
                             <p class="text-[11px] font-semibold uppercase tracking-wider text-sign-muted">Time remaining</p>
                             <p class="mt-1 font-heading text-xl font-semibold text-sign-primary" x-text="timeLabel()"></p>
+                            <p class="sr-only">The page will close this attempt automatically when the timer reaches zero.</p>
                         </div>
                     @endif
                 </div>
@@ -74,14 +75,14 @@
                 <div class="mt-5 h-2 overflow-hidden rounded-full bg-sign-light" role="progressbar" aria-label="Assessment question progress" aria-valuemin="1" aria-valuemax="{{ $questions->count() }}" :aria-valuenow="current + 1">
                     <div class="h-full rounded-full bg-sign-primary transition-all" :style="`width: ${((current + 1) / total) * 100}%`"></div>
                 </div>
-                <p class="mt-2 text-xs font-semibold text-sign-muted">Question <span x-text="current + 1"></span> of {{ $questions->count() }}</p>
+                <p class="mt-2 text-xs font-semibold text-sign-muted" aria-live="polite">Question <span x-text="current + 1"></span> of {{ $questions->count() }}</p>
             </x-container>
         </section>
 
         <section class="py-7 sm:py-10 lg:py-12">
             <x-container>
                 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-8">
-                    <main class="min-w-0">
+                    <main class="min-w-0" id="assessment-main-content">
                         @if (session('status'))
                             <div class="mb-5 rounded-2xl border border-sign-cyan bg-sign-light px-4 py-3 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">
                                 {{ session('status') }}
@@ -89,7 +90,7 @@
                         @endif
 
                         @if ($errors->any())
-                            <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="polite" data-error-summary>
+                            <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3" role="alert" aria-live="assertive" data-error-summary tabindex="-1">
                                 <p class="text-sm font-semibold text-red-800">Please check your answers before continuing.</p>
                                 <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
                                     @foreach ($errors->all() as $error)
@@ -99,7 +100,7 @@
                             </div>
                         @endif
 
-                        <form id="assessment-answer-form" method="POST" action="{{ route('assessment-attempts.save', [$assessment, $attempt]) }}">
+                        <form id="assessment-answer-form" method="POST" action="{{ route('assessment-attempts.save', [$assessment, $attempt]) }}" novalidate>
                             @csrf
 
                             @foreach ($questions as $questionIndex => $question)
@@ -141,32 +142,20 @@
 
                                     @if (in_array($question->question_type, ['single-choice', 'true-false'], true))
                                         <fieldset class="mt-6 space-y-3">
-                                            <legend class="sr-only">Choose one answer</legend>
+                                            <legend class="sr-only">Choose one answer for question {{ $questionIndex + 1 }}</legend>
                                             @foreach ($question->options as $option)
                                                 <label class="flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border border-sign-border bg-sign-soft p-4 transition hover:border-sign-cyan hover:bg-sign-light/50 has-[:checked]:border-sign-primary has-[:checked]:bg-sign-light">
-                                                    <input
-                                                        type="radio"
-                                                        name="answers[{{ $question->id }}][option_ids][]"
-                                                        value="{{ $option->id }}"
-                                                        @checked($savedOptionIds->contains((int) $option->id))
-                                                        class="mt-0.5 h-5 w-5 shrink-0 border-sign-border accent-sign-primary"
-                                                    >
+                                                    <input type="radio" name="answers[{{ $question->id }}][option_ids][]" value="{{ $option->id }}" @checked($savedOptionIds->contains((int) $option->id)) class="mt-0.5 h-5 w-5 shrink-0 border-sign-border accent-sign-primary">
                                                     <span class="text-sm font-semibold leading-6 text-sign-text">{{ $option->option_text }}</span>
                                                 </label>
                                             @endforeach
                                         </fieldset>
                                     @elseif ($question->question_type === 'multiple-choice')
                                         <fieldset class="mt-6 space-y-3">
-                                            <legend class="mb-3 text-sm font-medium text-sign-muted">Select all answers that apply.</legend>
+                                            <legend class="mb-3 text-sm font-medium text-sign-muted">Select all answers that apply for question {{ $questionIndex + 1 }}.</legend>
                                             @foreach ($question->options as $option)
                                                 <label class="flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border border-sign-border bg-sign-soft p-4 transition hover:border-sign-cyan hover:bg-sign-light/50 has-[:checked]:border-sign-primary has-[:checked]:bg-sign-light">
-                                                    <input
-                                                        type="checkbox"
-                                                        name="answers[{{ $question->id }}][option_ids][]"
-                                                        value="{{ $option->id }}"
-                                                        @checked($savedOptionIds->contains((int) $option->id))
-                                                        class="mt-0.5 h-5 w-5 shrink-0 rounded border-sign-border accent-sign-primary"
-                                                    >
+                                                    <input type="checkbox" name="answers[{{ $question->id }}][option_ids][]" value="{{ $option->id }}" @checked($savedOptionIds->contains((int) $option->id)) class="mt-0.5 h-5 w-5 shrink-0 rounded border-sign-border accent-sign-primary">
                                                     <span class="text-sm font-semibold leading-6 text-sign-text">{{ $option->option_text }}</span>
                                                 </label>
                                             @endforeach
@@ -174,53 +163,19 @@
                                     @elseif ($question->question_type === 'fill-blank')
                                         <div class="mt-6">
                                             <label for="assessment-answer-{{ $question->id }}" class="mb-2 block text-sm font-semibold text-sign-primary">Your answer</label>
-                                            <input
-                                                id="assessment-answer-{{ $question->id }}"
-                                                type="text"
-                                                name="answers[{{ $question->id }}][text]"
-                                                value="{{ $savedText }}"
-                                                maxlength="5000"
-                                                autocomplete="off"
-                                                class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light"
-                                            >
+                                            <input id="assessment-answer-{{ $question->id }}" type="text" name="answers[{{ $question->id }}][text]" value="{{ $savedText }}" maxlength="5000" autocomplete="off" class="min-h-12 w-full rounded-xl border border-sign-border bg-white px-4 py-3 text-base text-sign-text outline-none transition focus:border-sign-cyan focus:ring-4 focus:ring-sign-light">
                                         </div>
                                     @endif
 
                                     <div class="mt-8 flex flex-col-reverse gap-3 border-t border-sign-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-                                        <button
-                                            type="button"
-                                            @click="goTo(current - 1)"
-                                            x-show="current > 0"
-                                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
-                                        >
-                                            ← Previous
-                                        </button>
+                                        <button type="button" @click="goTo(current - 1)" x-show="current > 0" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">← Previous</button>
                                         <span x-show="current === 0" class="hidden sm:block"></span>
 
-                                        <button
-                                            type="button"
-                                            @click="goTo(current + 1)"
-                                            x-show="current < total - 1"
-                                            class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
-                                        >
-                                            Next question →
-                                        </button>
+                                        <button type="button" @click="goTo(current + 1)" x-show="current < total - 1" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Next question →</button>
 
                                         <div x-show="current === total - 1" class="flex flex-col gap-2 sm:flex-row">
-                                            <button
-                                                type="submit"
-                                                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft"
-                                            >
-                                                Save Progress
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                formaction="{{ route('assessment-attempts.submit', [$assessment, $attempt]) }}"
-                                                onclick="return confirm('Submit this assessment now? You will not be able to change answers in this attempt after submission.');"
-                                                class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark"
-                                            >
-                                                Submit Assessment
-                                            </button>
+                                            <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-sign-border bg-white px-5 py-3 text-sm font-semibold text-sign-primary transition hover:bg-sign-soft">Save Progress</button>
+                                            <button type="submit" formaction="{{ route('assessment-attempts.submit', [$assessment, $attempt]) }}" onclick="return confirm('Submit this assessment now? You will not be able to change answers in this attempt after submission.');" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Submit Assessment</button>
                                         </div>
                                     </div>
                                 </article>
@@ -231,7 +186,7 @@
                     <aside class="space-y-4 xl:sticky xl:top-28" aria-label="Assessment navigation">
                         <div class="rounded-2xl border border-sign-border bg-white p-5 sm:rounded-3xl">
                             <p class="text-xs font-semibold uppercase tracking-wider text-sign-cyan-dark">Questions</p>
-                            <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-8 xl:grid-cols-4">
+                            <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-8 xl:grid-cols-4" role="navigation" aria-label="Question navigation">
                                 @foreach ($questions as $questionIndex => $question)
                                     @php
                                         $hasStoredOrOldAnswer = $savedAnswers->has($question->id) || old('answers.'.$question->id) !== null;
@@ -240,12 +195,13 @@
                                         type="button"
                                         @click="goTo({{ $questionIndex }})"
                                         @class([
-                                            'flex h-10 w-full items-center justify-center rounded-xl border text-xs font-semibold transition',
+                                            'flex min-h-11 w-full items-center justify-center rounded-xl border text-xs font-semibold transition',
                                             'border-sign-cyan bg-sign-light text-sign-primary' => $hasStoredOrOldAnswer,
                                             'border-sign-border bg-sign-soft text-sign-muted' => ! $hasStoredOrOldAnswer,
                                         ])
                                         :class="current === {{ $questionIndex }} ? 'ring-2 ring-sign-primary ring-offset-2' : ''"
-                                        aria-label="Go to question {{ $questionIndex + 1 }}"
+                                        :aria-current="current === {{ $questionIndex }} ? 'step' : null"
+                                        aria-label="Go to question {{ $questionIndex + 1 }}{{ $hasStoredOrOldAnswer ? ', answer saved or entered' : ', no answer saved' }}"
                                     >
                                         {{ $questionIndex + 1 }}
                                     </button>
