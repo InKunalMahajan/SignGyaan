@@ -5,7 +5,7 @@
             <h2 id="dashboard-continue-heading" class="mt-2 font-heading text-2xl font-semibold text-sign-primary sm:text-3xl">Continue learning</h2>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-sign-muted">Resume exactly where you stopped. Your saved lesson and video position stay connected to each course.</p>
         </div>
-        <a href="{{ route('my-learning') }}" class="inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">View My Learning →</a>
+        <a href="{{ route('my-courses') }}" class="inline-flex min-h-11 items-center text-sm font-semibold text-sign-primary hover:text-sign-cyan-dark">View My Courses →</a>
     </div>
 
     @if ($continueLearning->isNotEmpty())
