@@ -22,6 +22,7 @@ class Lesson extends Model
         'key_points',
         'example_content',
         'isl_video_url',
+        'isl_media_asset_id',
         'estimated_duration_minutes',
         'sort_order',
         'is_published',
@@ -39,6 +40,11 @@ class Lesson extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function mediaAsset(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class, 'isl_media_asset_id');
     }
 
     public function practiceResources(): HasMany
