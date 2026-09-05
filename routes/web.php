@@ -42,6 +42,11 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('assessment')
         ->middleware('throttle:60,1')
         ->name('assessment-attempts.save');
+
+    Route::post('/assessments/{assessment}/attempts/{attempt}/submit', [PublicAssessmentController::class, 'submit'])
+        ->whereNumber('assessment')
+        ->middleware('throttle:20,1')
+        ->name('assessment-attempts.submit');
 });
 
 Route::get('/explore', [PublicCatalogController::class, 'explore'])
