@@ -121,6 +121,18 @@ class PracticeResourceController extends Controller
         ]);
 
         $validated = $this->validateItem($request, $practiceResource);
+
+        if (
+            $practiceResource->assessment()->exists()
+            && ($validated['kind'] !== 'practice' || ! in_array($validated['resource_type'], ['quiz', 'exercise'], true))
+        ) {
+            return back()
+                ->withErrors([
+                    'resource_type' => 'This item is linked to an assessment. Keep it as a Practice item with type Quiz or Exercise, or remove the assessment first.',
+                ])
+                ->withInput();
+        }
+
         $validated['is_published'] = $request->boolean('is_published');
 
         $practiceResource->update($validated);
@@ -132,6 +144,10 @@ class PracticeResourceController extends Controller
 
     public function destroy(PracticeResource $practiceResource): RedirectResponse
     {
+        if ($practiceResource->assessment()->exists()) {
+            return back()->with('status', 'This practice item is linked to an assessment. Delete the assessment first before deleting the practice item.');
+        }
+
         $practiceResource->delete();
 
         return redirect()
