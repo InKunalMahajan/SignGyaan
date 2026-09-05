@@ -1,6 +1,6 @@
 <header
-    x-data="{ mobileMenuOpen: false, searchOpen: false, accountOpen: false }"
-    @keydown.escape.window="mobileMenuOpen = false; searchOpen = false; accountOpen = false"
+    x-data="{ mobileMenuOpen: false, searchOpen: false, accountOpen: false, notificationOpen: false }"
+    @keydown.escape.window="mobileMenuOpen = false; searchOpen = false; accountOpen = false; notificationOpen = false"
     class="sticky top-0 z-50 border-b border-sign-border bg-white/95 backdrop-blur"
 >
     <x-container>
@@ -83,7 +83,7 @@
 
                 <button
                     type="button"
-                    @click="searchOpen = ! searchOpen; accountOpen = false; mobileMenuOpen = false; if (searchOpen) { $nextTick(() => $refs.desktopSearch.focus()) }"
+                    @click="searchOpen = ! searchOpen; accountOpen = false; notificationOpen = false; mobileMenuOpen = false; if (searchOpen) { $nextTick(() => $refs.desktopSearch.focus()) }"
                     @class([
                         'inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition xl:px-4',
                         'bg-sign-soft text-sign-primary' => request()->routeIs('search'),
@@ -124,15 +124,17 @@
                         $headerInitial = strtoupper(substr(trim($headerUser->name), 0, 1));
                     @endphp
 
+                    @include('partials.notifications.bell')
+
                     <div class="relative">
                         <button
                             x-ref="accountButton"
                             type="button"
-                            @click="accountOpen = ! accountOpen; searchOpen = false; mobileMenuOpen = false"
+                            @click="accountOpen = ! accountOpen; searchOpen = false; notificationOpen = false; mobileMenuOpen = false"
                             @class([
                                 'inline-flex min-h-11 items-center gap-2 rounded-xl border px-2.5 py-2 text-sm font-semibold transition xl:px-3',
-                                'border-sign-primary bg-sign-soft text-sign-primary' => request()->routeIs('dashboard', 'my-learning', 'profile'),
-                                'border-sign-border bg-white text-sign-primary hover:border-sign-cyan hover:bg-sign-soft' => ! request()->routeIs('dashboard', 'my-learning', 'profile'),
+                                'border-sign-primary bg-sign-soft text-sign-primary' => request()->routeIs('dashboard', 'my-learning', 'profile', 'notifications.*'),
+                                'border-sign-border bg-white text-sign-primary hover:border-sign-cyan hover:bg-sign-soft' => ! request()->routeIs('dashboard', 'my-learning', 'profile', 'notifications.*'),
                             ])
                             :aria-expanded="accountOpen"
                             aria-controls="desktop-account-menu"
@@ -197,6 +199,23 @@
                                 >
                                     <span>My Learning</span>
                                     <span aria-hidden="true">→</span>
+                                </a>
+
+                                <a
+                                    href="{{ route('notifications.index') }}"
+                                    @class([
+                                        'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                        'bg-sign-soft text-sign-primary' => request()->routeIs('notifications.*'),
+                                        'text-sign-text hover:bg-sign-soft hover:text-sign-primary' => ! request()->routeIs('notifications.*'),
+                                    ])
+                                    @if (request()->routeIs('notifications.*')) aria-current="page" @endif
+                                >
+                                    <span>Notifications</span>
+                                    @if ($headerUser->unreadNotifications()->exists())
+                                        <span class="rounded-full bg-sign-primary px-2 py-0.5 text-xs font-bold text-white">{{ min(99, $headerUser->unreadNotifications()->count()) }}</span>
+                                    @else
+                                        <span aria-hidden="true">→</span>
+                                    @endif
                                 </a>
 
                                 <a
@@ -284,42 +303,62 @@
 
             </div>
 
-            {{-- Mobile Menu Button --}}
-            <button
-                type="button"
-                @click="mobileMenuOpen = ! mobileMenuOpen; searchOpen = false; accountOpen = false"
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft lg:hidden"
-                aria-label="Toggle navigation"
-                aria-controls="mobile-navigation"
-                :aria-expanded="mobileMenuOpen"
-            >
-                <svg
-                    x-show="! mobileMenuOpen"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="h-6 w-6"
-                    aria-hidden="true"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+            {{-- Mobile Actions --}}
+            <div class="flex items-center gap-1 lg:hidden">
+                @auth
+                    @php
+                        $mobileBellUnreadCount = auth()->user()->unreadNotifications()->count();
+                    @endphp
+                    <a
+                        href="{{ route('notifications.index') }}"
+                        class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft"
+                        aria-label="Notifications{{ $mobileBellUnreadCount > 0 ? ', '.$mobileBellUnreadCount.' unread' : '' }}"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-5 w-5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                        </svg>
+                        @if ($mobileBellUnreadCount > 0)
+                            <span class="absolute right-0.5 top-0.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-sign-primary px-1 text-[9px] font-bold leading-none text-white" aria-hidden="true">{{ $mobileBellUnreadCount > 9 ? '9+' : $mobileBellUnreadCount }}</span>
+                        @endif
+                    </a>
+                @endauth
 
-                <svg
-                    x-show="mobileMenuOpen"
-                    x-cloak
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="h-6 w-6"
-                    aria-hidden="true"
+                <button
+                    type="button"
+                    @click="mobileMenuOpen = ! mobileMenuOpen; searchOpen = false; accountOpen = false; notificationOpen = false"
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sign-primary transition hover:bg-sign-soft"
+                    aria-label="Toggle navigation"
+                    aria-controls="mobile-navigation"
+                    :aria-expanded="mobileMenuOpen"
                 >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-            </button>
+                    <svg
+                        x-show="! mobileMenuOpen"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+
+                    <svg
+                        x-show="mobileMenuOpen"
+                        x-cloak
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="h-6 w-6"
+                        aria-hidden="true"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
         </div>
 
@@ -439,6 +478,7 @@
                     @php
                         $mobileUser = auth()->user();
                         $mobileInitial = strtoupper(substr(trim($mobileUser->name), 0, 1));
+                        $mobileUnreadCount = $mobileUser->unreadNotifications()->count();
                     @endphp
 
                     <div class="mt-2 rounded-2xl border border-sign-border bg-sign-soft p-3">
@@ -474,6 +514,24 @@
                                 ])
                                 @if (request()->routeIs('my-learning')) aria-current="page" @endif
                             ><span>My Learning</span><span aria-hidden="true">→</span></a>
+
+                            <a
+                                href="{{ route('notifications.index') }}"
+                                @click="mobileMenuOpen = false"
+                                @class([
+                                    'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition',
+                                    'bg-white text-sign-primary' => request()->routeIs('notifications.*'),
+                                    'text-sign-text hover:bg-white hover:text-sign-primary' => ! request()->routeIs('notifications.*'),
+                                ])
+                                @if (request()->routeIs('notifications.*')) aria-current="page" @endif
+                            >
+                                <span>Notifications</span>
+                                @if ($mobileUnreadCount > 0)
+                                    <span class="rounded-full bg-sign-primary px-2 py-0.5 text-xs font-bold text-white">{{ $mobileUnreadCount > 99 ? '99+' : $mobileUnreadCount }}</span>
+                                @else
+                                    <span aria-hidden="true">→</span>
+                                @endif
+                            </a>
 
                             <a
                                 href="{{ route('profile') }}"
