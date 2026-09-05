@@ -22,6 +22,7 @@ class PracticeResource extends Model
         'content',
         'answer_key',
         'resource_url',
+        'media_asset_id',
         'estimated_duration_minutes',
         'sort_order',
         'is_published',
@@ -39,6 +40,11 @@ class PracticeResource extends Model
     public function lesson(): BelongsTo
     {
         return $this->belongsTo(Lesson::class);
+    }
+
+    public function mediaAsset(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class);
     }
 
     public function scopePublished(Builder $query): Builder
