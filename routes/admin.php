@@ -26,6 +26,9 @@ Route::middleware(['auth', 'admin'])
 
         Route::get('/courses/{course}/builder', CourseBuilderController::class)
             ->name('courses.builder');
+        Route::post('/courses/{course}/builder/reorder', [CourseBuilderController::class, 'reorder'])
+            ->middleware('throttle:60,1')
+            ->name('courses.builder.reorder');
 
         Route::resource('courses', CourseController::class)
             ->except('show');
