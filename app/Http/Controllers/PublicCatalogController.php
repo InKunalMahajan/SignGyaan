@@ -90,9 +90,52 @@ class PublicCatalogController extends Controller
             'life-skills' => 'LS',
         ];
 
-        $firstPublishedLesson = $courseModel->units
-            ->flatMap(fn ($unit) => $unit->lessons)
-            ->first();
+        $lessonMap = collect();
+
+        foreach ($courseModel->units as $unitIndex => $unit) {
+            $unitNumber = $unitIndex + 1;
+
+            foreach ($unit->lessons as $lessonIndex => $lessonModel) {
+                $lessonNumber = $lessonIndex + 1;
+
+                $lessonMap->push([
+                    'key' => 'unit-'.$unitNumber.'-lesson-'.$lessonNumber,
+                    'unit_number' => $unitNumber,
+                    'lesson_number' => $lessonNumber,
+                    'unit' => $unit,
+                    'lesson' => $lessonModel,
+                ]);
+            }
+        }
+
+        $firstLessonEntry = $lessonMap->first();
+        $requestedLessonKey = trim((string) request()->query('lesson', ''));
+        $currentLessonEntry = null;
+        $previousLessonEntry = null;
+        $nextLessonEntry = null;
+        $currentLessonIndex = null;
+
+        if ($requestedLessonKey !== '') {
+            $currentLessonIndex = $lessonMap->search(
+                fn (array $entry) => $entry['key'] === $requestedLessonKey
+            );
+
+            abort_if($currentLessonIndex === false, 404);
+
+            $currentLessonEntry = $lessonMap->get($currentLessonIndex);
+            $previousLessonEntry = $currentLessonIndex > 0
+                ? $lessonMap->get($currentLessonIndex - 1)
+                : null;
+            $nextLessonEntry = $currentLessonIndex < $lessonMap->count() - 1
+                ? $lessonMap->get($currentLessonIndex + 1)
+                : null;
+        }
+
+        $currentPosition = $currentLessonIndex === null ? null : $currentLessonIndex + 1;
+        $totalLessons = $lessonMap->count();
+        $positionProgressPercent = $currentPosition
+            ? (int) round(($currentPosition / max(1, $totalLessons)) * 100)
+            : 0;
 
         return view('pages.course', [
             'subject' => [
@@ -116,8 +159,17 @@ class PublicCatalogController extends Controller
             'courseSlug' => $courseModel->slug,
             'courseModel' => $courseModel,
             'publishedUnits' => $courseModel->units,
-            'firstPublishedLesson' => $firstPublishedLesson,
-            'firstLessonKey' => $firstPublishedLesson ? 'unit-1-lesson-1' : null,
+            'lessonMap' => $lessonMap,
+            'firstPublishedLesson' => $firstLessonEntry['lesson'] ?? null,
+            'firstLessonKey' => $firstLessonEntry['key'] ?? null,
+            'currentLessonEntry' => $currentLessonEntry,
+            'previousLessonEntry' => $previousLessonEntry,
+            'nextLessonEntry' => $nextLessonEntry,
+            'currentLessonModel' => $currentLessonEntry['lesson'] ?? null,
+            'currentUnitModel' => $currentLessonEntry['unit'] ?? null,
+            'currentPosition' => $currentPosition,
+            'totalLessons' => $totalLessons,
+            'positionProgressPercent' => $positionProgressPercent,
         ]);
     }
 }
