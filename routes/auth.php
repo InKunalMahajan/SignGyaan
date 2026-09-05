@@ -14,7 +14,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:6,1')->name('register.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard', [LearningController::class, 'dashboard'])->name('dashboard');
     Route::get('/my-learning', [LearningController::class, 'index'])->name('my-learning');
     Route::get('/my-courses', [LearningController::class, 'myCourses'])->name('my-courses');
