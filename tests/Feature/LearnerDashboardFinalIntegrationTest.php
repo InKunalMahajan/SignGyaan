@@ -64,7 +64,7 @@ class LearnerDashboardFinalIntegrationTest extends TestCase
             ->assertSee('Your learning streak')
             ->assertSee('My Courses')
             ->assertSee('Learning History')
-            ->assertSee('Assessment Performance')
+            ->assertSee('View Performance')
             ->assertSee('data-learner-dashboard', false)
             ->assertSee('data-dashboard-quick-nav', false);
 
