@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Subject;
+use App\Services\LearningProgressCatalog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PublicCatalogController extends Controller
 {
-    public function home(Request $request): View
+    public function home(Request $request, LearningProgressCatalog $progressCatalog): View
     {
         $subjects = Subject::query()
             ->published()
@@ -57,38 +59,38 @@ class PublicCatalogController extends Controller
             $progressItems = $request->user()
                 ->learningProgress()
                 ->latest('last_accessed_at')
-                ->limit(3)
+                ->limit(25)
                 ->get();
 
-            $continueLearning = $progressItems->map(function ($progress) {
-                $course = Course::query()
-                    ->published()
-                    ->where('slug', $progress->course_slug)
-                    ->whereHas('subject', fn ($query) => $query
-                        ->published()
-                        ->where('slug', $progress->subject_slug))
-                    ->with('subject')
-                    ->first();
+            $continueLearning = $progressItems
+                ->map(function ($progress) use ($progressCatalog) {
+                    $state = $progressCatalog->resolve($progress->subject_slug, $progress->course_slug);
 
-                if (! $course) {
-                    return null;
-                }
+                    if (! $state || $state['entries']->isEmpty()) {
+                        return null;
+                    }
 
-                $parameters = [
-                    'subject' => $course->subject->slug,
-                    'course' => $course->slug,
-                ];
+                    $progress = $progressCatalog->synchronizeRecord($progress, $state);
 
-                if ($progress->current_lesson_key) {
-                    $parameters['lesson'] = $progress->current_lesson_key;
-                }
+                    if ($progress->completed_at || ! $progress->current_lesson_key) {
+                        return null;
+                    }
 
-                return [
-                    'progress' => $progress,
-                    'course' => $course,
-                    'url' => route('courses.show', $parameters),
-                ];
-            })->filter()->values();
+                    $course = $state['course'];
+
+                    return [
+                        'progress' => $progress,
+                        'course' => $course,
+                        'url' => route('courses.show', [
+                            'subject' => $state['subject']->slug,
+                            'course' => $course->slug,
+                            'lesson' => $progress->current_lesson_key,
+                        ]),
+                    ];
+                })
+                ->filter()
+                ->take(3)
+                ->values();
         }
 
         return view('home', compact(
@@ -332,7 +334,7 @@ class PublicCatalogController extends Controller
         ]);
     }
 
-    public function course(string $subject, string $course): View
+    public function course(string $subject, string $course): View|RedirectResponse
     {
         $subjectModel = Subject::query()
             ->published()
@@ -350,10 +352,12 @@ class PublicCatalogController extends Controller
                         'lessons' => fn ($lessonQuery) => $lessonQuery
                             ->published()
                             ->with([
-                                'mediaAsset',
+                                'mediaAsset' => fn ($mediaQuery) => $mediaQuery->published(),
                                 'practiceResources' => fn ($practiceQuery) => $practiceQuery
                                     ->published()
-                                    ->with('mediaAsset')
+                                    ->with([
+                                        'mediaAsset' => fn ($mediaQuery) => $mediaQuery->published(),
+                                    ])
                                     ->orderBy('sort_order')
                                     ->orderBy('title'),
                             ])
@@ -387,9 +391,13 @@ class PublicCatalogController extends Controller
 
             foreach ($unit->lessons as $lessonIndex => $lessonModel) {
                 $lessonNumber = $lessonIndex + 1;
+                $stableKey = 'lesson-'.$lessonModel->id;
+                $legacyKey = 'unit-'.$unitNumber.'-lesson-'.$lessonNumber;
 
                 $lessonMap->push([
-                    'key' => 'unit-'.$unitNumber.'-lesson-'.$lessonNumber,
+                    'key' => $stableKey,
+                    'stable_key' => $stableKey,
+                    'legacy_key' => $legacyKey,
                     'unit_number' => $unitNumber,
                     'lesson_number' => $lessonNumber,
                     'unit' => $unit,
@@ -406,20 +414,23 @@ class PublicCatalogController extends Controller
         $currentLessonIndex = null;
 
         if ($requestedLessonKey !== '') {
-            if (preg_match('/^lesson-(\d+)$/', $requestedLessonKey, $matches)) {
-                $requestedLessonId = (int) $matches[1];
-                $currentLessonIndex = $lessonMap->search(
-                    fn (array $entry) => (int) $entry['lesson']->id === $requestedLessonId
-                );
-            } else {
-                $currentLessonIndex = $lessonMap->search(
-                    fn (array $entry) => $entry['key'] === $requestedLessonKey
-                );
-            }
+            $currentLessonIndex = $lessonMap->search(
+                fn (array $entry) => $entry['stable_key'] === $requestedLessonKey
+                    || $entry['legacy_key'] === $requestedLessonKey
+            );
 
             abort_if($currentLessonIndex === false, 404);
 
             $currentLessonEntry = $lessonMap->get($currentLessonIndex);
+
+            if ($requestedLessonKey !== $currentLessonEntry['stable_key']) {
+                return redirect()->route('courses.show', [
+                    'subject' => $subjectModel->slug,
+                    'course' => $courseModel->slug,
+                    'lesson' => $currentLessonEntry['stable_key'],
+                ], 301);
+            }
+
             $previousLessonEntry = $currentLessonIndex > 0
                 ? $lessonMap->get($currentLessonIndex - 1)
                 : null;
@@ -458,7 +469,7 @@ class PublicCatalogController extends Controller
             'publishedUnits' => $courseModel->units,
             'lessonMap' => $lessonMap,
             'firstPublishedLesson' => $firstLessonEntry['lesson'] ?? null,
-            'firstLessonKey' => $firstLessonEntry['key'] ?? null,
+            'firstLessonKey' => $firstLessonEntry['stable_key'] ?? null,
             'currentLessonEntry' => $currentLessonEntry,
             'previousLessonEntry' => $previousLessonEntry,
             'nextLessonEntry' => $nextLessonEntry,
