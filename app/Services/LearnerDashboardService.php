@@ -29,6 +29,7 @@ class LearnerDashboardService
         $assessmentSummary = $this->assessmentSummary($assessmentAttempts);
         $latestProgress = $activeCourses->first() ?? $progressRecords->first();
         $activeAssessment = $assessmentAttempts->firstWhere('status', 'in-progress');
+        $continueLearning = $this->continueLearning($activeCourses);
 
         return [
             'progressRecords' => $progressRecords,
@@ -42,6 +43,8 @@ class LearnerDashboardService
             'starterCourses' => $this->starterCourses(),
             'latestProgress' => $latestProgress,
             'activeAssessment' => $activeAssessment,
+            'continueLearning' => $continueLearning,
+            'primaryContinueLearning' => $continueLearning->first(),
             'dashboardSummary' => [
                 'courses_in_progress' => $activeCourses->count(),
                 'courses_completed' => $completedCourses->count(),
@@ -64,9 +67,52 @@ class LearnerDashboardService
                     return null;
                 }
 
-                return $this->catalog->synchronizeRecord($progress, $state);
+                $progress = $this->catalog->synchronizeRecord($progress, $state);
+                $currentEntry = $state['entries']->first(
+                    fn (array $entry) => $entry['stable_key'] === $progress->current_lesson_key
+                );
+
+                $progress->setAttribute('current_lesson_duration', $currentEntry['lesson']->estimated_duration_minutes ?? null);
+                $progress->setAttribute('course_level', $state['course']->level ?: 'All levels');
+
+                return $progress;
             })
             ->filter()
+            ->values();
+    }
+
+    private function continueLearning(Collection $activeCourses): Collection
+    {
+        return $activeCourses
+            ->map(function ($progress) {
+                $lessonKey = (string) $progress->current_lesson_key;
+                $videoProgress = is_array($progress->video_progress) ? $progress->video_progress : [];
+                $video = is_array($videoProgress[$lessonKey] ?? null)
+                    ? $videoProgress[$lessonKey]
+                    : [];
+
+                return [
+                    'subject' => $progress->subject_name,
+                    'course_title' => $progress->course_title,
+                    'course_level' => $progress->course_level ?: 'All levels',
+                    'unit_title' => $progress->current_unit_title,
+                    'lesson_title' => $progress->current_lesson_title,
+                    'lesson_key' => $lessonKey,
+                    'lesson_duration' => $progress->current_lesson_duration,
+                    'completed_lessons' => $progress->completedLessonsCount(),
+                    'total_lessons' => (int) $progress->total_lessons,
+                    'progress_percent' => $progress->progressPercent(),
+                    'video_watched_percent' => isset($video['watched_percent'])
+                        ? (int) $video['watched_percent']
+                        : null,
+                    'last_accessed_at' => $progress->last_accessed_at,
+                    'resume_url' => route('courses.show', [
+                        'subject' => $progress->subject_slug,
+                        'course' => $progress->course_slug,
+                        'lesson' => $lessonKey,
+                    ]),
+                ];
+            })
             ->values();
     }
 
