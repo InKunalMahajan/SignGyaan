@@ -3,50 +3,75 @@
 namespace App\Http\Controllers;
 
 use App\Models\LearningProgress;
+use App\Services\LearningProgressCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class LearningProgressController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, LearningProgressCatalog $catalog): RedirectResponse
     {
         $validated = $request->validate([
             'subject_slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
-            'subject_name' => ['required', 'string', 'max:120'],
             'course_slug' => ['required', 'string', 'max:140', 'regex:/^[a-z0-9-]+$/'],
-            'course_title' => ['required', 'string', 'max:180'],
-            'total_lessons' => ['required', 'integer', 'min:1', 'max:500'],
-            'lesson_key' => ['required', 'string', 'max:120', 'regex:/^unit-[0-9]+-lesson-[0-9]+$/'],
-            'next_lesson_key' => ['nullable', 'string', 'max:120', 'regex:/^unit-[0-9]+-lesson-[0-9]+$/'],
+            'lesson_id' => ['required', 'integer', 'min:1'],
             'action' => ['required', Rule::in(['save', 'complete'])],
         ]);
 
+        $state = $catalog->resolve($validated['subject_slug'], $validated['course_slug']);
+
+        if (! $state || $state['entries']->isEmpty()) {
+            throw ValidationException::withMessages([
+                'course_slug' => 'This course is not currently available for saved learning progress.',
+            ]);
+        }
+
+        $currentIndex = $state['entries']->search(
+            fn (array $entry) => (int) $entry['lesson']->id === (int) $validated['lesson_id']
+        );
+
+        if ($currentIndex === false) {
+            throw ValidationException::withMessages([
+                'lesson_id' => 'This lesson is not a published lesson in the selected course.',
+            ]);
+        }
+
+        $currentEntry = $state['entries']->get($currentIndex);
+        $nextEntry = $currentIndex < $state['entries']->count() - 1
+            ? $state['entries']->get($currentIndex + 1)
+            : null;
+
         $progress = LearningProgress::firstOrNew([
             'user_id' => $request->user()->id,
-            'subject_slug' => $validated['subject_slug'],
-            'course_slug' => $validated['course_slug'],
+            'subject_slug' => $state['subject']->slug,
+            'course_slug' => $state['course']->slug,
         ]);
 
-        $completedLessons = collect($progress->completed_lessons ?? []);
+        $completedLessons = collect(
+            $catalog->normalizeCompleted($progress->completed_lessons ?? [], $state['entries'])
+        );
 
         if ($validated['action'] === 'complete') {
-            $completedLessons->push($validated['lesson_key']);
+            $completedLessons->push($currentEntry['stable_key']);
             $completedLessons = $completedLessons->unique()->values();
         }
 
+        $currentLessonKey = $validated['action'] === 'complete' && $nextEntry
+            ? $nextEntry['stable_key']
+            : $currentEntry['stable_key'];
+
         $progress->fill([
-            'subject_name' => $validated['subject_name'],
-            'course_title' => $validated['course_title'],
-            'total_lessons' => $validated['total_lessons'],
-            'current_lesson_key' => $validated['action'] === 'complete' && ! empty($validated['next_lesson_key'])
-                ? $validated['next_lesson_key']
-                : $validated['lesson_key'],
+            'subject_name' => $state['subject']->name,
+            'course_title' => $state['course']->title,
+            'total_lessons' => $state['entries']->count(),
+            'current_lesson_key' => $currentLessonKey,
             'completed_lessons' => $completedLessons->all(),
             'last_accessed_at' => now(),
         ]);
 
-        if ($completedLessons->count() >= $validated['total_lessons']) {
+        if ($completedLessons->count() >= $state['entries']->count()) {
             $progress->completed_at = $progress->completed_at ?? now();
         } else {
             $progress->completed_at = null;
@@ -54,12 +79,12 @@ class LearningProgressController extends Controller
 
         $progress->save();
 
-        if ($validated['action'] === 'complete' && ! empty($validated['next_lesson_key'])) {
+        if ($validated['action'] === 'complete' && $nextEntry) {
             return redirect()
                 ->route('courses.show', [
-                    'subject' => $validated['subject_slug'],
-                    'course' => $validated['course_slug'],
-                    'lesson' => $validated['next_lesson_key'],
+                    'subject' => $state['subject']->slug,
+                    'course' => $state['course']->slug,
+                    'lesson' => $nextEntry['stable_key'],
                 ])
                 ->with('status', 'Progress saved. Lesson completed.');
         }
@@ -67,8 +92,8 @@ class LearningProgressController extends Controller
         if ($validated['action'] === 'complete') {
             return redirect()
                 ->route('courses.show', [
-                    'subject' => $validated['subject_slug'],
-                    'course' => $validated['course_slug'],
+                    'subject' => $state['subject']->slug,
+                    'course' => $state['course']->slug,
                 ])
                 ->with('status', 'Course progress saved.');
         }
