@@ -19,6 +19,7 @@ class AdminDashboardController extends Controller
     public function __invoke(): View
     {
         $now = now();
+        $oneDayAgo = $now->copy()->subDay();
         $sevenDaysAgo = $now->copy()->subDays(7);
         $thirtyDaysAgo = $now->copy()->subDays(30);
 
@@ -213,6 +214,71 @@ class AdminDashboardController extends Controller
             ->limit(6)
             ->get(['id', 'name', 'email', 'status', 'last_login_at', 'updated_at']);
 
+        $adminActivityStats = [
+            'changes_24_hours' => User::query()->where('updated_at', '>=', $oneDayAgo)->count()
+                + Course::query()->where('updated_at', '>=', $oneDayAgo)->count()
+                + Lesson::query()->where('updated_at', '>=', $oneDayAgo)->count()
+                + Assessment::query()->where('updated_at', '>=', $oneDayAgo)->count(),
+            'changes_7_days' => User::query()->where('updated_at', '>=', $sevenDaysAgo)->count()
+                + Course::query()->where('updated_at', '>=', $sevenDaysAgo)->count()
+                + Lesson::query()->where('updated_at', '>=', $sevenDaysAgo)->count()
+                + Assessment::query()->where('updated_at', '>=', $sevenDaysAgo)->count(),
+            'users_7_days' => User::query()->where('updated_at', '>=', $sevenDaysAgo)->count(),
+            'courses_7_days' => Course::query()->where('updated_at', '>=', $sevenDaysAgo)->count(),
+            'lessons_7_days' => Lesson::query()->where('updated_at', '>=', $sevenDaysAgo)->count(),
+            'assessments_7_days' => Assessment::query()->where('updated_at', '>=', $sevenDaysAgo)->count(),
+        ];
+
+        $recentAdminActivity = collect()
+            ->concat(
+                User::query()->latest('updated_at')->limit(5)->get(['id', 'name', 'email', 'role', 'status', 'created_at', 'updated_at'])
+                    ->map(fn (User $user) => [
+                        'type' => 'User',
+                        'title' => $user->name,
+                        'description' => ucfirst(str_replace('_', ' ', $user->role)).' · '.ucfirst($user->status),
+                        'action' => $user->created_at?->equalTo($user->updated_at) ? 'Created' : 'Updated',
+                        'occurred_at' => $user->updated_at,
+                        'url' => route('admin.users.edit', $user),
+                    ])
+            )
+            ->concat(
+                Course::query()->latest('updated_at')->limit(5)->get(['id', 'title', 'is_published', 'created_at', 'updated_at'])
+                    ->map(fn (Course $course) => [
+                        'type' => 'Course',
+                        'title' => $course->title,
+                        'description' => $course->is_published ? 'Published course' : 'Draft course',
+                        'action' => $course->created_at?->equalTo($course->updated_at) ? 'Created' : 'Updated',
+                        'occurred_at' => $course->updated_at,
+                        'url' => route('admin.courses.edit', $course),
+                    ])
+            )
+            ->concat(
+                Lesson::query()->latest('updated_at')->limit(5)->get(['id', 'title', 'is_published', 'created_at', 'updated_at'])
+                    ->map(fn (Lesson $lesson) => [
+                        'type' => 'Lesson',
+                        'title' => $lesson->title,
+                        'description' => $lesson->is_published ? 'Published lesson' : 'Draft lesson',
+                        'action' => $lesson->created_at?->equalTo($lesson->updated_at) ? 'Created' : 'Updated',
+                        'occurred_at' => $lesson->updated_at,
+                        'url' => route('admin.lessons.edit', $lesson),
+                    ])
+            )
+            ->concat(
+                Assessment::query()->with('practiceResource:id,title')->latest('updated_at')->limit(5)->get()
+                    ->map(fn (Assessment $assessment) => [
+                        'type' => 'Assessment',
+                        'title' => $assessment->practiceResource?->title ?? 'Assessment #'.$assessment->id,
+                        'description' => $assessment->is_published ? 'Published assessment' : 'Draft assessment',
+                        'action' => $assessment->created_at?->equalTo($assessment->updated_at) ? 'Created' : 'Updated',
+                        'occurred_at' => $assessment->updated_at,
+                        'url' => route('admin.assessments.edit', $assessment),
+                    ])
+            )
+            ->filter(fn (array $activity) => $activity['occurred_at'] !== null)
+            ->sortByDesc('occurred_at')
+            ->take(12)
+            ->values();
+
         $managementAreas = [
             ['label' => 'Users', 'description' => 'Accounts, roles, status and bulk management.', 'route' => 'admin.users.index'],
             ['label' => 'Learners', 'description' => 'Learner profiles, progress and assessment activity.', 'route' => 'admin.learners.index'],
@@ -237,6 +303,8 @@ class AdminDashboardController extends Controller
             'recentAssessmentAttempts',
             'teacherStats',
             'recentTeachers',
+            'adminActivityStats',
+            'recentAdminActivity',
             'managementAreas'
         ));
     }
