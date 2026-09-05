@@ -1,27 +1,10 @@
 @php
-    $requestedLessonKeyForProgress = request('lesson', 'unit-1-lesson-1');
-    $unitCountForProgress = max(1, (int) $course['units']);
-    $lessonCountForProgress = max($unitCountForProgress, (int) $course['lessons']);
-    $baseLessonsForProgress = intdiv($lessonCountForProgress, $unitCountForProgress);
-    $extraLessonsForProgress = $lessonCountForProgress % $unitCountForProgress;
-    $lessonKeysForProgress = [];
+    $lessonKeysForProgress = collect($lessonMap ?? [])
+        ->pluck('key')
+        ->values();
 
-    for ($unit = 1; $unit <= $unitCountForProgress; $unit++) {
-        $lessonsInUnit = $baseLessonsForProgress + ($unit <= $extraLessonsForProgress ? 1 : 0);
-
-        for ($lesson = 1; $lesson <= $lessonsInUnit; $lesson++) {
-            $lessonKeysForProgress[] = 'unit-' . $unit . '-lesson-' . $lesson;
-        }
-    }
-
-    $currentProgressIndex = array_search($requestedLessonKeyForProgress, $lessonKeysForProgress, true);
-
-    if ($currentProgressIndex === false) {
-        $currentProgressIndex = 0;
-    }
-
-    $currentProgressLessonKey = $lessonKeysForProgress[$currentProgressIndex];
-    $nextProgressLessonKey = $lessonKeysForProgress[$currentProgressIndex + 1] ?? null;
+    $currentProgressLessonKey = $currentLessonEntry['key'];
+    $nextProgressLessonKey = $nextLessonEntry['key'] ?? null;
     $existingProgress = auth()->check()
         ? auth()->user()->learningProgress()
             ->where('subject_slug', $subjectSlug)
@@ -37,7 +20,7 @@
     <x-container>
         <div class="mx-auto max-w-5xl">
             @if (session('status'))
-                <div class="mb-5 rounded-2xl border border-sign-cyan bg-sign-light px-4 py-3 text-sm font-semibold text-sign-primary" role="status">
+                <div class="mb-5 rounded-2xl border border-sign-cyan bg-sign-light px-4 py-3 text-sm font-semibold text-sign-primary" role="status" aria-live="polite">
                     {{ session('status') }}
                 </div>
             @endif
@@ -50,7 +33,7 @@
 
                         @auth
                             <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">
-                                Save this lesson as your current position, or mark it complete and continue to the next lesson.
+                                Save this lesson as your current position, or mark it complete and continue to the next published lesson.
                             </p>
 
                             <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold">
@@ -71,7 +54,7 @@
                                     <input type="hidden" name="subject_name" value="{{ $subject['name'] }}">
                                     <input type="hidden" name="course_slug" value="{{ $courseSlug }}">
                                     <input type="hidden" name="course_title" value="{{ $course['title'] }}">
-                                    <input type="hidden" name="total_lessons" value="{{ count($lessonKeysForProgress) }}">
+                                    <input type="hidden" name="total_lessons" value="{{ $lessonKeysForProgress->count() }}">
                                     <input type="hidden" name="lesson_key" value="{{ $currentProgressLessonKey }}">
                                     @if ($nextProgressLessonKey)
                                         <input type="hidden" name="next_lesson_key" value="{{ $nextProgressLessonKey }}">
@@ -89,7 +72,7 @@
                                     <input type="hidden" name="subject_name" value="{{ $subject['name'] }}">
                                     <input type="hidden" name="course_slug" value="{{ $courseSlug }}">
                                     <input type="hidden" name="course_title" value="{{ $course['title'] }}">
-                                    <input type="hidden" name="total_lessons" value="{{ count($lessonKeysForProgress) }}">
+                                    <input type="hidden" name="total_lessons" value="{{ $lessonKeysForProgress->count() }}">
                                     <input type="hidden" name="lesson_key" value="{{ $currentProgressLessonKey }}">
                                     @if ($nextProgressLessonKey)
                                         <input type="hidden" name="next_lesson_key" value="{{ $nextProgressLessonKey }}">
