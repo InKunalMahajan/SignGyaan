@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AssessmentController;
 use App\Http\Controllers\Admin\AssessmentQuestionController;
+use App\Http\Controllers\Admin\AssessmentResultController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
@@ -52,6 +53,12 @@ Route::middleware(['auth', 'admin'])
             ->name('assessments.questions.update');
         Route::delete('/assessments/{assessment}/questions/{question}', [AssessmentQuestionController::class, 'destroy'])
             ->name('assessments.questions.destroy');
+
+        Route::get('/assessment-results', [AssessmentResultController::class, 'index'])
+            ->name('assessment-results.index');
+        Route::get('/assessment-results/{attempt}', [AssessmentResultController::class, 'show'])
+            ->whereNumber('attempt')
+            ->name('assessment-results.show');
 
         Route::resource('media', MediaController::class)
             ->parameters(['media' => 'mediaAsset'])
