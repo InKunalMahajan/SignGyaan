@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AssessmentController;
+use App\Http\Controllers\Admin\AssessmentQuestionController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\LessonController;
 use App\Http\Controllers\Admin\MediaController;
@@ -38,6 +39,19 @@ Route::middleware(['auth', 'admin'])
 
         Route::resource('assessments', AssessmentController::class)
             ->except('show');
+
+        Route::get('/assessments/{assessment}/questions', [AssessmentQuestionController::class, 'index'])
+            ->name('assessments.questions.index');
+        Route::get('/assessments/{assessment}/questions/create', [AssessmentQuestionController::class, 'create'])
+            ->name('assessments.questions.create');
+        Route::post('/assessments/{assessment}/questions', [AssessmentQuestionController::class, 'store'])
+            ->name('assessments.questions.store');
+        Route::get('/assessments/{assessment}/questions/{question}/edit', [AssessmentQuestionController::class, 'edit'])
+            ->name('assessments.questions.edit');
+        Route::put('/assessments/{assessment}/questions/{question}', [AssessmentQuestionController::class, 'update'])
+            ->name('assessments.questions.update');
+        Route::delete('/assessments/{assessment}/questions/{question}', [AssessmentQuestionController::class, 'destroy'])
+            ->name('assessments.questions.destroy');
 
         Route::resource('media', MediaController::class)
             ->parameters(['media' => 'mediaAsset'])
