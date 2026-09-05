@@ -26,7 +26,9 @@ class LessonController extends Controller
                 $builder
                     ->where('title', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhere('short_description', 'like', "%{$search}%");
+                    ->orWhere('short_description', 'like', "%{$search}%")
+                    ->orWhere('simplified_summary', 'like', "%{$search}%")
+                    ->orWhere('key_vocabulary', 'like', "%{$search}%");
             });
         }
 
@@ -177,6 +179,7 @@ class LessonController extends Controller
                 $uniqueSlug,
             ],
             'short_description' => ['nullable', 'string', 'max:255'],
+            'simplified_summary' => ['nullable', 'string', 'max:10000'],
             'learning_objectives' => ['nullable', 'string', 'max:50000'],
             'content' => ['nullable', 'string', 'max:100000'],
             'key_points' => ['nullable', 'string', 'max:50000'],
@@ -184,6 +187,8 @@ class LessonController extends Controller
             'isl_video_url' => ['nullable', 'url', 'max:2048'],
             'isl_video_title' => ['nullable', 'string', 'max:180'],
             'isl_video_caption' => ['nullable', 'string', 'max:5000'],
+            'isl_transcript' => ['nullable', 'string', 'max:100000'],
+            'key_vocabulary' => ['nullable', 'string', 'max:50000'],
             'isl_media_asset_id' => [
                 'nullable',
                 'integer',
