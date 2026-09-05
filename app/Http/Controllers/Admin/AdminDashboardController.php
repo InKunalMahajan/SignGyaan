@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\Course;
+use App\Models\LearningActivity;
 use App\Models\LearningProgress;
 use App\Models\Lesson;
 use App\Models\Subject;
@@ -24,9 +25,7 @@ class AdminDashboardController extends Controller
             'total' => User::query()->count(),
             'learners' => User::query()->where('role', User::ROLE_LEARNER)->count(),
             'teachers' => User::query()->where('role', User::ROLE_TEACHER)->count(),
-            'administrators' => User::query()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN])
-                ->count(),
+            'administrators' => User::query()->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUPER_ADMIN])->count(),
             'active' => User::query()->where('status', User::STATUS_ACTIVE)->count(),
             'suspended' => User::query()->where('status', User::STATUS_SUSPENDED)->count(),
             'disabled' => User::query()->where('status', User::STATUS_DISABLED)->count(),
@@ -37,13 +36,8 @@ class AdminDashboardController extends Controller
             'logged_in_30_days' => User::query()->where('last_login_at', '>=', $thirtyDaysAgo)->count(),
         ];
 
-        $userStats['active_rate'] = $userStats['total'] > 0
-            ? round(($userStats['active'] / $userStats['total']) * 100, 1)
-            : 0.0;
-
-        $userStats['verification_rate'] = $userStats['total'] > 0
-            ? round(($userStats['verified'] / $userStats['total']) * 100, 1)
-            : 0.0;
+        $userStats['active_rate'] = $userStats['total'] > 0 ? round(($userStats['active'] / $userStats['total']) * 100, 1) : 0.0;
+        $userStats['verification_rate'] = $userStats['total'] > 0 ? round(($userStats['verified'] / $userStats['total']) * 100, 1) : 0.0;
 
         $recentUsers = User::query()
             ->latest('created_at')
@@ -71,12 +65,9 @@ class AdminDashboardController extends Controller
             'lessons' => Lesson::query()->count(),
             'lessons_published' => Lesson::query()->where('is_published', true)->count(),
             'lessons_draft' => Lesson::query()->where('is_published', false)->count(),
-            'lessons_with_isl' => Lesson::query()
-                ->where(function ($query) {
-                    $query->whereNotNull('isl_media_asset_id')
-                        ->orWhereNotNull('isl_video_url');
-                })
-                ->count(),
+            'lessons_with_isl' => Lesson::query()->where(function ($query) {
+                $query->whereNotNull('isl_media_asset_id')->orWhereNotNull('isl_video_url');
+            })->count(),
             'assessments' => Assessment::query()->count(),
             'assessments_published' => Assessment::query()->where('is_published', true)->count(),
             'assessments_draft' => Assessment::query()->where('is_published', false)->count(),
@@ -98,10 +89,57 @@ class AdminDashboardController extends Controller
             ->limit(5)
             ->get(['id', 'subject_id', 'title', 'slug', 'is_published', 'is_featured', 'updated_at']);
 
+        $progressRecords = LearningProgress::query()->get([
+            'user_id',
+            'course_slug',
+            'course_title',
+            'total_lessons',
+            'completed_lessons',
+            'last_accessed_at',
+            'completed_at',
+        ]);
+
+        $completedLessons = $progressRecords->sum(fn (LearningProgress $progress) => $progress->completedLessonsCount());
+        $totalTrackedLessons = $progressRecords->sum(fn (LearningProgress $progress) => max(0, (int) $progress->total_lessons));
+
         $learningStats = [
-            'tracked_courses' => LearningProgress::query()->count(),
-            'completed_courses' => LearningProgress::query()->whereNotNull('completed_at')->count(),
+            'tracked_courses' => $progressRecords->count(),
+            'completed_courses' => $progressRecords->whereNotNull('completed_at')->count(),
+            'completed_lessons' => $completedLessons,
+            'tracked_lessons' => $totalTrackedLessons,
+            'learners_with_progress' => $progressRecords->pluck('user_id')->filter()->unique()->count(),
+            'active_learners_7_days' => LearningActivity::query()
+                ->where('occurred_at', '>=', $sevenDaysAgo)
+                ->distinct('user_id')
+                ->count('user_id'),
+            'active_learners_30_days' => LearningActivity::query()
+                ->where('occurred_at', '>=', $thirtyDaysAgo)
+                ->distinct('user_id')
+                ->count('user_id'),
+            'activities_7_days' => LearningActivity::query()->where('occurred_at', '>=', $sevenDaysAgo)->count(),
+            'activities_30_days' => LearningActivity::query()->where('occurred_at', '>=', $thirtyDaysAgo)->count(),
         ];
+
+        $learningStats['course_completion_rate'] = $learningStats['tracked_courses'] > 0
+            ? round(($learningStats['completed_courses'] / $learningStats['tracked_courses']) * 100, 1)
+            : 0.0;
+
+        $learningStats['lesson_completion_rate'] = $learningStats['tracked_lessons'] > 0
+            ? round(($learningStats['completed_lessons'] / $learningStats['tracked_lessons']) * 100, 1)
+            : 0.0;
+
+        $recentLearningActivities = LearningActivity::query()
+            ->with('user:id,name,email')
+            ->latest('occurred_at')
+            ->limit(8)
+            ->get(['id', 'user_id', 'activity_type', 'course_slug', 'lesson_id', 'title', 'occurred_at']);
+
+        $recentLearningProgress = LearningProgress::query()
+            ->with('user:id,name,email')
+            ->whereNotNull('last_accessed_at')
+            ->latest('last_accessed_at')
+            ->limit(6)
+            ->get();
 
         $managementAreas = [
             ['label' => 'Users', 'description' => 'Accounts, roles, status and bulk management.', 'route' => 'admin.users.index'],
@@ -121,6 +159,8 @@ class AdminDashboardController extends Controller
             'academicStats',
             'recentCourses',
             'learningStats',
+            'recentLearningActivities',
+            'recentLearningProgress',
             'managementAreas'
         ));
     }
