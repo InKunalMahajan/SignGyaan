@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\Subject;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\LearnerDashboardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -96,12 +97,21 @@ class ContinueLearningDashboardTest extends TestCase
             'completed_at' => now()->subDay(),
         ]);
 
+        $dashboard = app(LearnerDashboardService::class)->build($learner);
+
+        $this->assertSame(
+            [$courseB->title, $courseA->title],
+            $dashboard['continueLearning']->pluck('course_title')->all()
+        );
+        $this->assertSame($courseB->title, $dashboard['primaryContinueLearning']['course_title']);
+        $this->assertNotContains($courseC->title, $dashboard['continueLearning']->pluck('course_title')->all());
+
         $this->actingAs($learner)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSeeInOrder([$courseB->title, $courseA->title])
-            ->assertSee($courseC->title)
-            ->assertSee('Courses you finished');
+            ->assertSee('Courses you finished')
+            ->assertSee($courseC->title);
     }
 
     private function publishedCourse(string $subjectSlug, string $courseSlug): array
