@@ -41,7 +41,10 @@ class LearningProgress extends Model
 
     public function completedLessonsCount(): int
     {
-        return count($this->completed_lessons ?? []);
+        return collect($this->completed_lessons ?? [])
+            ->filter(fn ($key) => is_string($key) && trim($key) !== '')
+            ->unique()
+            ->count();
     }
 
     public function progressPercent(): int
