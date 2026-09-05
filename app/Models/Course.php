@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Course extends Model
 {
@@ -45,6 +46,11 @@ class Course extends Model
         return $this->hasMany(Unit::class)
             ->orderBy('sort_order')
             ->orderBy('title');
+    }
+
+    public function lessons(): HasManyThrough
+    {
+        return $this->hasManyThrough(Lesson::class, Unit::class);
     }
 
     public function scopePublished(Builder $query): Builder
