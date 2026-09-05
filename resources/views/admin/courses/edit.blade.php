@@ -15,10 +15,13 @@
                 <span class="font-semibold text-sign-primary">{{ $course->title }}</span>
             </nav>
 
-            <div class="mt-5">
-                <p class="text-sm font-semibold uppercase tracking-wider text-sign-cyan-dark">Content management</p>
-                <h2 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">Edit Course</h2>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Update course information, learning level, publishing and display settings.</p>
+            <div class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wider text-sign-cyan-dark">Content management</p>
+                    <h2 class="mt-2 font-heading text-3xl font-semibold text-sign-primary sm:text-4xl">Edit Course</h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-sign-muted">Update course information, learning level, publishing and display settings.</p>
+                </div>
+                <a href="{{ route('admin.courses.builder', $course) }}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl bg-sign-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-sign-dark">Open Course Builder</a>
             </div>
 
             <form method="POST" action="{{ route('admin.courses.update', $course) }}" class="mt-7">
