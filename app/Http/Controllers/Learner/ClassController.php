@@ -16,7 +16,8 @@ class ClassController extends Controller
             ->with(['teacher.teacherProfile'])
             ->withCount([
                 'courses as active_courses_count' => fn ($query) => $query
-                    ->where('courses.is_active', true),
+                    ->where('courses.is_active', true)
+                    ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true)),
             ])
             ->orderBy('learning_classes.name')
             ->paginate(12);
