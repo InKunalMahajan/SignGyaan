@@ -3,7 +3,10 @@
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Learner\ParentLinkRequestController;
 use App\Http\Controllers\Learner\ProfileController;
+use App\Http\Controllers\Parents\LearnerLinkController;
+use App\Http\Controllers\Parents\ProfileController as ParentProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -38,6 +41,20 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
         Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.destroy');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+        Route::get('/parent-links', [ParentLinkRequestController::class, 'index'])->name('parent-links.index');
+        Route::patch('/parent-links/{link}', [ParentLinkRequestController::class, 'respond'])->name('parent-links.respond');
+        Route::delete('/parent-links/{link}', [ParentLinkRequestController::class, 'destroy'])->name('parent-links.destroy');
+    });
+
+    Route::prefix('parents')->name('parents.')->middleware('parents')->group(function () {
+        Route::get('/profile', [ParentProfileController::class, 'show'])->name('profile.show');
+        Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [ParentProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+        Route::post('/learners', [LearnerLinkController::class, 'store'])->name('learners.store');
+        Route::get('/learners/{link}', [LearnerLinkController::class, 'show'])->name('learners.show');
+        Route::delete('/learners/{link}', [LearnerLinkController::class, 'destroy'])->name('learners.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
