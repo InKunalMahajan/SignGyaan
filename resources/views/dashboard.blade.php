@@ -47,6 +47,20 @@
                                 </span>
                                 My profile
                             </a>
+                            <a href="{{ route('learner.parent-links.index') }}" class="group flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200">
+                                <span class="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-600" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="size-4" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="11.5" cy="7" r="4"/><path d="m18 8 2 2 3-3"/></svg>
+                                </span>
+                                Parent access
+                            </a>
+                        @endif
+                        @if (auth()->user()->hasRole('parents'))
+                            <a href="{{ route('parents.profile.show') }}" class="group flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200">
+                                <span class="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-600" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="size-4" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M16 11h6"/></svg>
+                                </span>
+                                Parent profile
+                            </a>
                         @endif
                         @if (auth()->user()->hasRole('admin'))
                             <a href="{{ route('admin.users.index') }}" class="group flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200">
@@ -143,6 +157,8 @@
                                 <a href="{{ route('register') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 shadow-sm transition hover:bg-cyan-50 focus:outline-none focus:ring-4 focus:ring-white/40">Join SignGyaan</a>
                             @elseif ($role === 'admin')
                                 <a href="{{ route('admin.users.index') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 shadow-sm transition hover:bg-cyan-50 focus:outline-none focus:ring-4 focus:ring-white/40">Manage users & roles</a>
+                            @elseif ($role === 'parents')
+                                <a href="{{ route('parents.profile.show') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 shadow-sm transition hover:bg-cyan-50 focus:outline-none focus:ring-4 focus:ring-white/40">Manage linked learners</a>
                             @else
                                 <button type="button" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 shadow-sm transition hover:bg-cyan-50 focus:outline-none focus:ring-4 focus:ring-white/40">
                                     {{ $dashboard['primary_action'] }}
@@ -192,6 +208,11 @@
                                 <p class="mt-2 text-sm leading-6 text-slate-600">{{ $module['description'] }}</p>
                                 @if ($role === 'admin' && $module['title'] === 'Users & Roles')
                                     <a href="{{ route('admin.users.index') }}" class="mt-5 inline-flex items-center gap-2 rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">
+                                        Open
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+                                @elseif ($role === 'parents' && $module['title'] === 'Learner Progress')
+                                    <a href="{{ route('parents.profile.show') }}" class="mt-5 inline-flex items-center gap-2 rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">
                                         Open
                                         <span aria-hidden="true">→</span>
                                     </a>
