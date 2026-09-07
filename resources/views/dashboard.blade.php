@@ -30,6 +30,7 @@
                         <a href="{{ route('dashboard') }}" class="flex min-w-fit items-center gap-3 rounded-xl bg-blue-700 px-3 py-3 text-sm font-bold text-white shadow-sm focus:outline-none focus:ring-4 focus:ring-cyan-200" aria-current="page">My dashboard</a>
 
                         @if (auth()->user()->hasRole('learner'))
+                            <a href="{{ route('learner.classes.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">My Classes</a>
                             <a href="{{ route('learner.profile.show') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">My profile</a>
                             <a href="{{ route('learner.parent-links.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">Parent access</a>
                         @endif
@@ -100,6 +101,8 @@
                                 <a href="{{ route('parents.profile.show') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 focus:outline-none focus:ring-4 focus:ring-white/40">Manage linked learners</a>
                             @elseif ($role === 'teacher')
                                 <a href="{{ route('teacher.classes.index') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 focus:outline-none focus:ring-4 focus:ring-white/40">Open My Classes</a>
+                            @elseif ($role === 'learner')
+                                <a href="{{ route('learner.classes.index') }}" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 focus:outline-none focus:ring-4 focus:ring-white/40">Open My Classes</a>
                             @else
                                 <button type="button" class="rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 focus:outline-none focus:ring-4 focus:ring-white/40">{{ $dashboard['primary_action'] }}</button>
                             @endif
@@ -148,6 +151,8 @@
                                     <a href="{{ route('parents.profile.show') }}" class="mt-5 inline-flex rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open →</a>
                                 @elseif ($role === 'teacher' && $module['title'] === 'My Classes')
                                     <a href="{{ route('teacher.classes.index') }}" class="mt-5 inline-flex rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open →</a>
+                                @elseif ($role === 'learner' && in_array($module['title'], ['Continue Learning', 'My Courses'], true))
+                                    <a href="{{ route('learner.classes.index') }}" class="mt-5 inline-flex rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open →</a>
                                 @else
                                     <button type="button" class="mt-5 inline-flex rounded-lg text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open →</button>
                                 @endif
