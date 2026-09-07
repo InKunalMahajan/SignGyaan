@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\LearningClass;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ class ClassController extends Controller
     {
         $classes = LearningClass::query()
             ->where('teacher_id', $request->user()->id)
-            ->withCount('learners')
+            ->withCount(['learners', 'courses'])
             ->latest()
             ->paginate(12);
 
@@ -59,10 +60,22 @@ class ClassController extends Controller
             'learners' => fn ($query) => $query
                 ->with('learnerProfile')
                 ->orderBy('name'),
+            'courses' => fn ($query) => $query
+                ->with('subject')
+                ->orderBy('title'),
         ]);
+
+        $availableCourses = Course::query()
+            ->where('is_active', true)
+            ->whereHas('subject', fn ($query) => $query->where('is_active', true))
+            ->whereNotIn('id', $class->courses->pluck('id'))
+            ->with('subject')
+            ->orderBy('title')
+            ->get();
 
         return view('teacher.classes.show', [
             'class' => $class,
+            'availableCourses' => $availableCourses,
         ]);
     }
 
