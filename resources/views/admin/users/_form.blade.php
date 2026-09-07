@@ -25,7 +25,8 @@
 
     <div class="flex items-end">
         <label class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $managedUser->is_active ?? true)) class="size-4 rounded border-slate-300 text-blue-700 focus:ring-cyan-300">
+            <input type="hidden" name="is_active" value="0">
+            <input type="checkbox" name="is_active" value="1" @checked((bool) old('is_active', $managedUser->is_active ?? true)) class="size-4 rounded border-slate-300 text-blue-700 focus:ring-cyan-300">
             <span>
                 <span class="block text-sm font-black text-slate-800">Active account</span>
                 <span class="block text-xs text-slate-500">Inactive users cannot sign in.</span>
