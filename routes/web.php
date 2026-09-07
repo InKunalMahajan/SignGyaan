@@ -7,6 +7,8 @@ use App\Http\Controllers\Learner\ParentLinkRequestController;
 use App\Http\Controllers\Learner\ProfileController;
 use App\Http\Controllers\Parents\LearnerLinkController;
 use App\Http\Controllers\Parents\ProfileController as ParentProfileController;
+use App\Http\Controllers\Teacher\ClassController;
+use App\Http\Controllers\Teacher\ProfileController as TeacherProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -55,6 +57,22 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/learners', [LearnerLinkController::class, 'store'])->name('learners.store');
         Route::get('/learners/{link}', [LearnerLinkController::class, 'show'])->name('learners.show');
         Route::delete('/learners/{link}', [LearnerLinkController::class, 'destroy'])->name('learners.destroy');
+    });
+
+    Route::prefix('teacher')->name('teacher.')->middleware('teacher')->group(function () {
+        Route::get('/profile', [TeacherProfileController::class, 'show'])->name('profile.show');
+        Route::put('/profile', [TeacherProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [TeacherProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+        Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
+        Route::get('/classes/create', [ClassController::class, 'create'])->name('classes.create');
+        Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
+        Route::get('/classes/{class}', [ClassController::class, 'show'])->name('classes.show');
+        Route::get('/classes/{class}/edit', [ClassController::class, 'edit'])->name('classes.edit');
+        Route::put('/classes/{class}', [ClassController::class, 'update'])->name('classes.update');
+        Route::patch('/classes/{class}/status', [ClassController::class, 'toggleStatus'])->name('classes.status');
+        Route::post('/classes/{class}/learners', [ClassController::class, 'enrollLearner'])->name('classes.learners.store');
+        Route::delete('/classes/{class}/learners/{learner}', [ClassController::class, 'removeLearner'])->name('classes.learners.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
