@@ -40,6 +40,14 @@
                             </span>
                             My dashboard
                         </a>
+                        @if (auth()->user()->hasRole('learner'))
+                            <a href="{{ route('learner.profile.show') }}" class="group flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200">
+                                <span class="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-600" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="size-4" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                                </span>
+                                My profile
+                            </a>
+                        @endif
                         @if (auth()->user()->hasRole('admin'))
                             <a href="{{ route('admin.users.index') }}" class="group flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200">
                                 <span class="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-600" aria-hidden="true">
