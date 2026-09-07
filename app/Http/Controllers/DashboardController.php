@@ -2,16 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    private const ROLES = ['learner', 'parents', 'teacher', 'admin', 'guest'];
+    private const ROLES = ['learner', 'parents', 'teacher', 'admin'];
 
-    public function show(string $role = 'guest'): View
+    public function index(Request $request): RedirectResponse|View
+    {
+        if ($request->user()) {
+            return redirect()->route('dashboard.role', ['role' => $request->user()->role]);
+        }
+
+        return $this->render('guest');
+    }
+
+    public function guest(): View
+    {
+        return $this->render('guest');
+    }
+
+    public function show(Request $request, string $role): View
     {
         abort_unless(in_array($role, self::ROLES, true), 404);
+        abort_unless($request->user()?->hasRole($role), 403);
 
+        return $this->render($role);
+    }
+
+    private function render(string $role): View
+    {
         $dashboards = [
             'learner' => [
                 'label' => 'Learner',
@@ -130,7 +152,7 @@ class DashboardController extends Controller
                     ['title' => 'How SignGyaan Works', 'description' => 'Learn about Subjects → Courses → Units → Lessons.', 'tag' => 'Guide'],
                     ['title' => 'Accessibility', 'description' => 'Discover accessibility-first learning features.', 'tag' => 'Access'],
                     ['title' => 'For Families', 'description' => 'See how parents can follow and support progress.', 'tag' => 'Parents'],
-                    ['title' => 'Join SignGyaan', 'description' => 'Create an account when registration is connected.', 'tag' => 'Get Started'],
+                    ['title' => 'Join SignGyaan', 'description' => 'Create an account to start your role-based learning experience.', 'tag' => 'Get Started'],
                 ],
                 'updates' => [
                     ['title' => 'Start with Digital Basics', 'meta' => 'Beginner-friendly sample course'],
@@ -143,14 +165,6 @@ class DashboardController extends Controller
         return view('dashboard', [
             'role' => $role,
             'dashboard' => $dashboards[$role],
-            'roles' => self::ROLES,
-            'roleLabels' => [
-                'learner' => 'Learner',
-                'parents' => 'Parents',
-                'teacher' => 'Teacher',
-                'admin' => 'Admin',
-                'guest' => 'Guest',
-            ],
         ]);
     }
 }
