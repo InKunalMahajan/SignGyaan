@@ -14,11 +14,21 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    private const PROFILE_DEFAULTS = [
+        'preferred_language' => 'english',
+        'communication_mode' => 'both',
+        'captions_enabled' => true,
+        'high_contrast' => false,
+        'reduced_motion' => false,
+        'text_size' => 'standard',
+    ];
+
     public function show(Request $request): View
     {
-        $profile = LearnerProfile::firstOrCreate([
-            'user_id' => $request->user()->id,
-        ]);
+        $profile = LearnerProfile::firstOrCreate(
+            ['user_id' => $request->user()->id],
+            self::PROFILE_DEFAULTS
+        );
 
         return view('learner.profile', [
             'user' => $request->user(),
@@ -90,9 +100,10 @@ class ProfileController extends Controller
             'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $profile = LearnerProfile::firstOrCreate([
-            'user_id' => $request->user()->id,
-        ]);
+        $profile = LearnerProfile::firstOrCreate(
+            ['user_id' => $request->user()->id],
+            self::PROFILE_DEFAULTS
+        );
 
         $oldPath = $profile->avatar_path;
         $path = $validated['avatar']->store('learner-avatars', 'public');
