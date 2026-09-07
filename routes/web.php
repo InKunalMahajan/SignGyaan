@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Learner\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,6 +31,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard/{role}', [DashboardController::class, 'show'])
         ->whereIn('role', ['learner', 'parents', 'teacher', 'admin'])
         ->name('dashboard.role');
+
+    Route::prefix('learner')->name('learner.')->middleware('learner')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+        Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.destroy');
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
