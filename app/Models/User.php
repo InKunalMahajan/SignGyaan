@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -52,6 +53,21 @@ class User extends Authenticatable
     public function learnerProfile(): HasOne
     {
         return $this->hasOne(LearnerProfile::class);
+    }
+
+    public function parentProfile(): HasOne
+    {
+        return $this->hasOne(ParentProfile::class);
+    }
+
+    public function learnerLinks(): HasMany
+    {
+        return $this->hasMany(ParentLearnerLink::class, 'parent_user_id');
+    }
+
+    public function parentLinks(): HasMany
+    {
+        return $this->hasMany(ParentLearnerLink::class, 'learner_user_id');
     }
 
     /**
