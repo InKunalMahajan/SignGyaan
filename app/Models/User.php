@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'role',
+        'is_active',
         'password',
     ];
 
@@ -42,6 +43,11 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -51,6 +57,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'is_active' => 'boolean',
             'password' => 'hashed',
         ];
     }
