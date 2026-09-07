@@ -103,6 +103,12 @@ class ClassController extends Controller
     {
         $this->authorizeOwner($request, $class);
 
+        if (! $class->is_active) {
+            throw ValidationException::withMessages([
+                'learner_email' => 'Activate this class before adding Learners.',
+            ]);
+        }
+
         $validated = $request->validate([
             'learner_email' => ['required', 'email', 'max:255'],
         ]);
