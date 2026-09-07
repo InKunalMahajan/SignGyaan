@@ -7,7 +7,7 @@
         <div>
             <p class="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">Teaching workspace</p>
             <h1 class="mt-2 text-3xl font-black tracking-tight">My Classes</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create classes, manage rosters, and keep learner access organised.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create classes, manage rosters, assign courses, and keep learner access organised.</p>
         </div>
         <a href="{{ route('teacher.classes.create') }}" class="rounded-xl bg-blue-700 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-cyan-200">Create class</a>
     </div>
@@ -31,7 +31,7 @@
     @if ($classes->isEmpty())
         <section class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
             <h2 class="text-xl font-black">No classes yet</h2>
-            <p class="mt-2 text-sm text-slate-500">Create your first class and then add Learners using their SignGyaan email.</p>
+            <p class="mt-2 text-sm text-slate-500">Create your first class, add Learners, and assign the courses they should study.</p>
             <a href="{{ route('teacher.classes.create') }}" class="mt-5 inline-flex rounded-xl bg-blue-700 px-4 py-3 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">Create first class</a>
         </section>
     @else
@@ -49,6 +49,7 @@
                         <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Subject</dt><dd class="text-right font-black">{{ $class->subject ?: '—' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Level</dt><dd class="text-right font-black">{{ $class->level ?: '—' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Learners</dt><dd class="text-right font-black">{{ $class->learners_count }}</dd></div>
+                        <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Courses</dt><dd class="text-right font-black">{{ $class->courses_count }}</dd></div>
                     </dl>
                     <div class="mt-5 flex gap-2">
                         <a href="{{ route('teacher.classes.show', $class) }}" class="rounded-xl bg-blue-700 px-3 py-2 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">Open class</a>
