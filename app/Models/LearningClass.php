@@ -49,4 +49,19 @@ class LearningClass extends Model
             'learner_id'
         )->withPivot('enrolled_at')->withTimestamps();
     }
+
+    public function courseAssignments(): HasMany
+    {
+        return $this->hasMany(ClassCourseAssignment::class);
+    }
+
+    public function courses(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'class_course_assignments',
+            'learning_class_id',
+            'course_id'
+        )->withPivot('assigned_by', 'assigned_at')->withTimestamps();
+    }
 }
