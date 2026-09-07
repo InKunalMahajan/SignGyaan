@@ -37,13 +37,13 @@
 
     <div>
         <label for="password" class="text-sm font-black text-slate-700">Password {{ $isEdit ? '(optional)' : '' }}</label>
-        <input id="password" name="password" type="password" @required(! $isEdit) autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-cyan-100">
+        <input id="password" name="password" type="password" @if (! $isEdit) required @endif autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-cyan-100">
         <p class="mt-2 text-xs text-slate-500">Minimum 8 characters. {{ $isEdit ? 'Leave blank to keep the current password.' : '' }}</p>
         @error('password')<p class="mt-2 text-xs font-bold text-rose-700">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label for="password_confirmation" class="text-sm font-black text-slate-700">Confirm password</label>
-        <input id="password_confirmation" name="password_confirmation" type="password" @required(! $isEdit) autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-cyan-100">
+        <input id="password_confirmation" name="password_confirmation" type="password" @if (! $isEdit) required @endif autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-cyan-100">
     </div>
 </div>
