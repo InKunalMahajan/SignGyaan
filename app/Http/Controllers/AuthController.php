@@ -25,9 +25,11 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $credentials['is_active'] = true;
+
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'email' => 'The email or password is incorrect.',
+                'email' => 'The email or password is incorrect, or this account is inactive.',
             ]);
         }
 
@@ -55,6 +57,8 @@ class AuthController extends Controller
             'role' => ['required', Rule::in(['learner', 'parents', 'teacher'])],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
+
+        $validated['is_active'] = true;
 
         $user = User::create($validated);
 
