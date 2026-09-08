@@ -21,6 +21,7 @@
 
             <nav class="flex flex-wrap items-center gap-2" aria-label="Teacher workspace">
                 <a href="{{ route('teacher.classes.index') }}" class="rounded-xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">My Classes</a>
+                <a href="{{ route('teacher.courses.index') }}" class="rounded-xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">My Courses</a>
                 <a href="{{ route('teacher.profile.show') }}" class="rounded-xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">My Profile</a>
                 <a href="{{ route('dashboard') }}" class="rounded-xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">Dashboard</a>
                 <form method="POST" action="{{ route('logout') }}">
