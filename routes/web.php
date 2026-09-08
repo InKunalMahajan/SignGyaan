@@ -7,6 +7,7 @@ use App\Http\Controllers\Learner\ClassController as LearnerClassController;
 use App\Http\Controllers\Learner\LessonController;
 use App\Http\Controllers\Learner\ParentLinkRequestController;
 use App\Http\Controllers\Learner\ProfileController;
+use App\Http\Controllers\Parents\DashboardController as ParentDashboardController;
 use App\Http\Controllers\Parents\LearnerLinkController;
 use App\Http\Controllers\Parents\ProfileController as ParentProfileController;
 use App\Http\Controllers\Teacher\ClassController;
@@ -38,6 +39,10 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/dashboard/parents', ParentDashboardController::class)
+        ->middleware('parents')
+        ->name('dashboard.parents.live');
+
     Route::get('/dashboard/{role}', [DashboardController::class, 'show'])
         ->whereIn('role', ['learner', 'parents', 'teacher', 'admin'])
         ->name('dashboard.role');
