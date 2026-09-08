@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
+use App\Models\ReviewAuditEvent;
 use App\Models\User;
 use App\Notifications\ReviewWorkflowNotification;
+use App\Support\ReviewAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -31,7 +33,24 @@ class ReviewFeedbackController extends Controller
         return view('teacher.reviews.index',['lessons'=>$lessons,'pendingCount'=>(clone $baseQuery)->where('review_status','pending')->count(),'approvedCount'=>(clone $baseQuery)->where('review_status','approved')->count(),'changesRequestedCount'=>(clone $baseQuery)->where('review_status','changes_requested')->count()]);
     }
 
-    public function resubmit(Request $request, Lesson $lesson): RedirectResponse
+    public function history(Request $request, Lesson $lesson): View
+    {
+        $lesson->loadMissing('unit.course.subject');
+        abort_unless($lesson->unit?->course?->created_by === $request->user()->id, 403);
+
+        $events = ReviewAuditEvent::query()
+            ->where('lesson_id', $lesson->id)
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->paginate(25);
+
+        return view('teacher.reviews.history', [
+            'lesson' => $lesson,
+            'events' => $events,
+        ]);
+    }
+
+    public function resubmit(Request $request, Lesson $lesson, ReviewAuditLogger $audit): RedirectResponse
     {
         $lesson->loadMissing('unit.course');
         abort_unless($lesson->unit?->course?->created_by === $request->user()->id, 403);
@@ -39,7 +58,13 @@ class ReviewFeedbackController extends Controller
         if (! $lesson->isPublished()) throw ValidationException::withMessages(['teacher_response'=>'Publish the Lesson before resubmitting it for review.']);
         $validated=$request->validate(['teacher_response'=>['nullable','string','max:3000']]);
 
-        $lesson->update(['review_status'=>'pending','review_submitted_at'=>now(),'teacher_response'=>$validated['teacher_response'] ?? null]);
+        $teacherResponse = $validated['teacher_response'] ?? null;
+        $lesson->update(['review_status'=>'pending','review_submitted_at'=>now(),'teacher_response'=>$teacherResponse]);
+
+        $audit->record($lesson, $request->user(), 'review_resubmitted', 'changes_requested', 'pending', [
+            'teacher_response' => $teacherResponse,
+            'metadata' => ['source' => 'teacher_resubmit'],
+        ]);
 
         $admins=User::query()->where('role','admin')->where('is_active',true)->get();
         Notification::send($admins,new ReviewWorkflowNotification(
