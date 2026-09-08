@@ -14,6 +14,7 @@ use App\Http\Controllers\Teacher\ClassController;
 use App\Http\Controllers\Teacher\ClassProgressController;
 use App\Http\Controllers\Teacher\CourseAssignmentController;
 use App\Http\Controllers\Teacher\CurriculumController;
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\ProfileController as TeacherProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard/parents', ParentDashboardController::class)
         ->middleware('parents')
         ->name('dashboard.parents.live');
+
+    Route::get('/dashboard/teacher', TeacherDashboardController::class)
+        ->middleware('teacher')
+        ->name('dashboard.teacher.live');
 
     Route::get('/dashboard/{role}', [DashboardController::class, 'show'])
         ->whereIn('role', ['learner', 'parents', 'teacher', 'admin'])
