@@ -37,7 +37,7 @@
         </section>
 
         @unless ($class->is_active)
-            <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-bold text-amber-900">This class is archived. You can still review its assigned active courses, but your Teacher may no longer update the class.</div>
+            <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-bold text-amber-900">This class is archived. You can still review its assigned active courses.</div>
         @endunless
 
         <section class="grid gap-4 sm:grid-cols-4" aria-label="Class summary">
@@ -82,8 +82,8 @@
                                     @endif
                                 </div>
                                 <h3 class="mt-4 text-xl font-black">{{ $course->title }}</h3>
-                                <p class="mt-2 text-sm leading-6 text-slate-500">{{ $course->description ?: 'Course lessons and learning materials will appear here as SignGyaan content is added.' }}</p>
-                                <div class="mt-5 rounded-2xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900">Course assigned to this class</div>
+                                <p class="mt-2 text-sm leading-6 text-slate-500">{{ $course->description ?: 'Open the Course to view published Units and Lessons.' }}</p>
+                                <a href="{{ route('learner.classes.courses.show', [$class, $course]) }}" class="mt-5 inline-flex rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open Course →</a>
                             </article>
                         @endforeach
                     </div>
