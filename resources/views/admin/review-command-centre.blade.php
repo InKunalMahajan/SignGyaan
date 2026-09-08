@@ -10,7 +10,7 @@
     <main class="mx-auto max-w-7xl space-y-7 px-5 py-8 sm:px-8">
         <section class="flex flex-wrap items-start justify-between gap-4">
             <div><p class="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">Admin moderation</p><h1 class="mt-1 text-3xl font-black">Review Queue & Notification Dashboard</h1><p class="mt-2 max-w-3xl text-sm text-slate-600">Prioritise resubmissions, new submissions, unread alerts, and recent moderation decisions from one command centre.</p></div>
-            <div class="flex flex-wrap gap-2"><a href="{{ route('admin.curriculum.index') }}" class="rounded-xl border bg-white px-4 py-2.5 text-sm font-black">Curriculum Review</a><a href="{{ route('notifications.index') }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white">Notifications @if($unreadCount)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-blue-700">{{ $unreadCount }}</span>@endif</a></div>
+            <div class="flex flex-wrap gap-2"><a href="{{ route('admin.reviews.history') }}" class="rounded-xl border bg-white px-4 py-2.5 text-sm font-black">Audit Trail</a><a href="{{ route('admin.curriculum.index') }}" class="rounded-xl border bg-white px-4 py-2.5 text-sm font-black">Curriculum Review</a><a href="{{ route('notifications.index') }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white">Notifications @if($unreadCount)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-blue-700">{{ $unreadCount }}</span>@endif</a></div>
         </section>
 
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
