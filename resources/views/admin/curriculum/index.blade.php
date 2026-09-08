@@ -10,7 +10,8 @@
     <main class="mx-auto max-w-7xl space-y-6 px-5 py-8 sm:px-8">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><p class="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">Admin curriculum</p><h1 class="mt-1 text-3xl font-black">Curriculum Management & Content Review</h1></div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('admin.reviews.dashboard') }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white">Review Dashboard</a>
                 <a href="{{ route('notifications.index') }}" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black">Notifications @if(auth()->user()->unreadNotifications()->count())<span class="ml-1 rounded-full bg-blue-700 px-2 py-0.5 text-xs text-white">{{ auth()->user()->unreadNotifications()->count() }}</span>@endif</a>
                 <a href="{{ route('dashboard') }}" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black">Back to Dashboard</a>
             </div>

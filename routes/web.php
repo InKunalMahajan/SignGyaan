@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CurriculumReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ReviewCommandCentreController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -62,6 +63,7 @@ Route::middleware(['auth','active'])->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+        Route::get('/reviews', ReviewCommandCentreController::class)->name('reviews.dashboard');
         Route::get('/users',[UserManagementController::class,'index'])->name('users.index'); Route::get('/users/create',[UserManagementController::class,'create'])->name('users.create'); Route::post('/users',[UserManagementController::class,'store'])->name('users.store'); Route::get('/users/{user}',[UserManagementController::class,'show'])->name('users.show'); Route::get('/users/{user}/edit',[UserManagementController::class,'edit'])->name('users.edit'); Route::put('/users/{user}',[UserManagementController::class,'update'])->name('users.update'); Route::patch('/users/{user}/status',[UserManagementController::class,'toggleStatus'])->name('users.status');
         Route::get('/curriculum',[CurriculumReviewController::class,'index'])->name('curriculum.index'); Route::get('/curriculum/courses/{course}',[CurriculumReviewController::class,'show'])->name('curriculum.courses.show'); Route::patch('/curriculum/subjects/{subject}/status',[CurriculumReviewController::class,'toggleSubject'])->name('curriculum.subjects.status'); Route::patch('/curriculum/courses/{course}/status',[CurriculumReviewController::class,'toggleCourse'])->name('curriculum.courses.status'); Route::patch('/curriculum/lessons/{lesson}/review',[CurriculumReviewController::class,'reviewLesson'])->name('curriculum.lessons.review');
     });
