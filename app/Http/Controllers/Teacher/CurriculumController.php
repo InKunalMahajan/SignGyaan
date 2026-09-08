@@ -8,6 +8,7 @@ use App\Models\CourseUnit;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Notifications\ReviewWorkflowNotification;
+use App\Support\ReviewAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -59,7 +60,7 @@ class CurriculumController extends Controller
         return back()->with('status', 'Unit and its lessons were removed.');
     }
 
-    public function storeLesson(Request $request, Course $course, CourseUnit $unit): RedirectResponse
+    public function storeLesson(Request $request, Course $course, CourseUnit $unit, ReviewAuditLogger $audit): RedirectResponse
     {
         $this->authorizeCourseOwner($request, $course); $this->ensureUnitBelongsToCourse($course, $unit);
         $validated = $request->validate($this->lessonRules(false));
@@ -79,19 +80,23 @@ class CurriculumController extends Controller
         ]);
 
         if ($status === 'published') {
+            $audit->record($lesson, $request->user(), 'review_submitted', null, 'pending', [
+                'metadata' => ['source' => 'new_lesson_publish'],
+            ]);
             $this->notifyAdmins($lesson, 'review_submitted', 'New Lesson submitted for review', $request->user()->name.' submitted “'.$lesson->title.'” for Admin review.');
         }
 
         return back()->with('status', $status === 'published' ? 'Lesson saved and sent for Admin review.' : 'Lesson draft created successfully.');
     }
 
-    public function updateLesson(Request $request, Course $course, CourseUnit $unit, Lesson $lesson): RedirectResponse
+    public function updateLesson(Request $request, Course $course, CourseUnit $unit, Lesson $lesson, ReviewAuditLogger $audit): RedirectResponse
     {
         $this->authorizeCourseOwner($request, $course); $this->ensureUnitBelongsToCourse($course, $unit); $this->ensureLessonBelongsToUnit($unit, $lesson);
         $validated = $request->validate($this->lessonRules(true));
         $wasPublished = $lesson->isPublished();
         $willBePublished = $validated['status'] === 'published';
         $awaitingTeacherFixes = $lesson->changesRequested();
+        $previousReviewStatus = $lesson->review_status;
 
         $lesson->update([
             ...$validated,
@@ -102,6 +107,9 @@ class CurriculumController extends Controller
         ]);
 
         if ($willBePublished && ! $awaitingTeacherFixes) {
+            $audit->record($lesson, $request->user(), 'review_submitted', $previousReviewStatus, 'pending', [
+                'metadata' => ['source' => $wasPublished ? 'published_lesson_edit' : 'draft_publish'],
+            ]);
             $this->notifyAdmins($lesson, 'review_submitted', 'Lesson returned for review', $request->user()->name.' updated “'.$lesson->title.'” and returned it to Pending review.');
         }
 
