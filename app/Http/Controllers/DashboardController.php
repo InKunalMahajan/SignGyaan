@@ -126,7 +126,6 @@ class DashboardController extends Controller
                 $completed = $records->where('status', 'completed')->count();
                 $started = $records->count();
                 $percent = $total > 0 ? (int) round(($completed / $total) * 100) : 0;
-                $lastViewedAt = $records->max('last_viewed_at');
 
                 $state = match (true) {
                     $total > 0 && $completed === $total => 'Completed',
@@ -141,14 +140,18 @@ class DashboardController extends Controller
                     'started' => $started,
                     'percent' => $percent,
                     'state' => $state,
-                    'last_viewed_at' => $lastViewedAt,
                     'url' => route('learner.classes.courses.show', [$entry['class'], $entry['course']]),
                 ];
             })
-            ->sortBy([
-                fn ($item) => $item['state'] === 'In progress' ? 0 : ($item['state'] === 'Not started' ? 1 : 2),
-                fn ($item) => $item['course']->title,
-            ])
+            ->sortBy(function (array $item) {
+                $stateOrder = match ($item['state']) {
+                    'In progress' => 0,
+                    'Not started' => 1,
+                    default => 2,
+                };
+
+                return sprintf('%d-%s', $stateOrder, strtolower($item['course']->title));
+            })
             ->values();
 
         $inProgressCourseCount = $courseCards->where('state', 'In progress')->count();
@@ -225,31 +228,6 @@ class DashboardController extends Controller
     private function render(string $role): View
     {
         $dashboards = [
-            'learner' => [
-                'label' => 'Learner',
-                'eyebrow' => 'My Learning',
-                'title' => 'Keep learning, one lesson at a time.',
-                'description' => 'Continue courses, practise with quizzes, watch ISL lessons, and track your progress.',
-                'primary_action' => 'Continue learning',
-                'stats' => [
-                    ['label' => 'Courses in progress', 'value' => '3', 'helper' => '2 active this week'],
-                    ['label' => 'Lessons completed', 'value' => '18', 'helper' => '6 this month'],
-                    ['label' => 'Average quiz score', 'value' => '82%', 'helper' => 'Up 7%'],
-                ],
-                'modules' => [
-                    ['title' => 'Continue Learning', 'description' => 'Resume your latest lesson and ISL video.', 'tag' => 'Recommended'],
-                    ['title' => 'My Courses', 'description' => 'View enrolled subjects, courses, units, and lessons.', 'tag' => 'Learning'],
-                    ['title' => 'Practice & Quizzes', 'description' => 'Test your understanding with accessible practice.', 'tag' => 'Assessment'],
-                    ['title' => 'My Progress', 'description' => 'Track completion, scores, streaks, and learning goals.', 'tag' => 'Progress'],
-                    ['title' => 'Certificates', 'description' => 'View achievements and completed course certificates.', 'tag' => 'Achievement'],
-                    ['title' => 'Saved Lessons', 'description' => 'Open bookmarked videos, notes, and examples.', 'tag' => 'Library'],
-                ],
-                'updates' => [
-                    ['title' => 'Digital Basics · Unit 2', 'meta' => 'Next: Storage Devices · 12 min'],
-                    ['title' => 'English Communication · Practice', 'meta' => 'Quiz score: 8/10'],
-                    ['title' => 'Computer Skills · Unit 1', 'meta' => '75% complete'],
-                ],
-            ],
             'parents' => [
                 'label' => 'Parents',
                 'eyebrow' => 'Family Learning',
