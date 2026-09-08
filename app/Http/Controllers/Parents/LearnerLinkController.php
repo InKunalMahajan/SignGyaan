@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Parents;
 use App\Http\Controllers\Controller;
 use App\Models\ParentLearnerLink;
 use App\Models\User;
+use App\Support\LearnerProgressSummary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -65,17 +66,22 @@ class LearnerLinkController extends Controller
         return back()->with('status', 'Link request sent. The Learner must approve it before you can view their learning summary.');
     }
 
-    public function show(Request $request, ParentLearnerLink $link): View
-    {
+    public function show(
+        Request $request,
+        ParentLearnerLink $link,
+        LearnerProgressSummary $progressSummary
+    ): View {
         abort_unless($link->parent_user_id === $request->user()->id, 403);
         abort_unless($link->isApproved(), 403);
 
         $link->load(['learner.learnerProfile']);
+        $progress = $progressSummary->build($link->learner);
 
         return view('parents.learner', [
             'link' => $link,
             'learner' => $link->learner,
             'profile' => $link->learner->learnerProfile,
+            'progress' => $progress,
         ]);
     }
 
