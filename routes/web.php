@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -47,6 +48,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard/teacher', TeacherDashboardController::class)
         ->middleware('teacher')
         ->name('dashboard.teacher.live');
+
+    Route::get('/dashboard/admin', AdminDashboardController::class)
+        ->middleware('admin')
+        ->name('dashboard.admin.live');
 
     Route::get('/dashboard/{role}', [DashboardController::class, 'show'])
         ->whereIn('role', ['learner', 'parents', 'teacher', 'admin'])
