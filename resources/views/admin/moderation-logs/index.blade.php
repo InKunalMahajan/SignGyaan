@@ -64,7 +64,7 @@
                     @endif
                     @if($event->review_notes)<div class="mt-3 rounded-xl bg-slate-50 p-3 text-sm"><strong>Admin notes:</strong> {{ $event->review_notes }}</div>@endif
                     @if($event->teacher_response)<div class="mt-3 rounded-xl bg-cyan-50 p-3 text-sm text-cyan-950"><strong>Teacher response:</strong> {{ $event->teacher_response }}</div>@endif
-                    @if($event->lesson_id)<a href="{{ route('admin.curriculum.courses.show', ['course' => $event->lesson?->unit?->course_id ?? 0]) }}" class="mt-4 inline-flex text-sm font-black text-blue-700">Open current review context →</a>@endif
+                    @if($event->lesson?->unit?->course_id)<a href="{{ route('admin.curriculum.courses.show', $event->lesson->unit->course_id) }}" class="mt-4 inline-flex text-sm font-black text-blue-700">Open current review context →</a>@endif
                 </article>
             @empty
                 <div class="rounded-2xl border border-dashed bg-white p-10 text-center"><p class="font-black">No audit events match this filter.</p></div>
