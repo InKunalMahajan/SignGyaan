@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\LearningClass;
 use App\Models\LessonProgress;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ClassProgressController extends Controller
