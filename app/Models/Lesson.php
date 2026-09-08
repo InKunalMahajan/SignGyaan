@@ -28,6 +28,8 @@ class Lesson extends Model
         'reviewed_by',
         'reviewed_at',
         'review_notes',
+        'review_submitted_at',
+        'teacher_response',
         'published_at',
     ];
 
@@ -38,6 +40,7 @@ class Lesson extends Model
             'position' => 'integer',
             'published_at' => 'datetime',
             'reviewed_at' => 'datetime',
+            'review_submitted_at' => 'datetime',
         ];
     }
 
@@ -81,5 +84,10 @@ class Lesson extends Model
     public function needsReview(): bool
     {
         return $this->review_status === 'pending';
+    }
+
+    public function changesRequested(): bool
+    {
+        return $this->review_status === 'changes_requested';
     }
 }

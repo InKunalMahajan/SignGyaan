@@ -18,6 +18,7 @@ use App\Http\Controllers\Teacher\CourseAssignmentController;
 use App\Http\Controllers\Teacher\CurriculumController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\ProfileController as TeacherProfileController;
+use App\Http\Controllers\Teacher\ReviewFeedbackController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -92,6 +93,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/classes/{class}/courses', [CourseAssignmentController::class, 'store'])->name('classes.courses.store');
         Route::post('/classes/{class}/courses/new', [CourseAssignmentController::class, 'storeNew'])->name('classes.courses.store-new');
         Route::delete('/classes/{class}/courses/{course}', [CourseAssignmentController::class, 'destroy'])->name('classes.courses.destroy');
+
+        Route::get('/reviews', [ReviewFeedbackController::class, 'index'])->name('reviews.index');
+        Route::patch('/reviews/{lesson}/resubmit', [ReviewFeedbackController::class, 'resubmit'])->name('reviews.resubmit');
 
         Route::get('/courses', [CurriculumController::class, 'index'])->name('courses.index');
         Route::get('/courses/{course}/curriculum', [CurriculumController::class, 'show'])->name('courses.curriculum.show');
