@@ -22,10 +22,7 @@ class CurriculumReviewController extends Controller
 
         $query = Course::query()
             ->with(['subject', 'creator'])
-            ->withCount([
-                'units',
-                'units as lessons_count' => fn ($query) => $query->join('lessons', 'lessons.course_unit_id', '=', 'course_units.id'),
-            ]);
+            ->withCount('units');
 
         if (! empty($validated['q'])) {
             $term = $validated['q'];
@@ -101,9 +98,7 @@ class CurriculumReviewController extends Controller
         ]);
 
         if ($validated['review_status'] === 'changes_requested' && blank($validated['review_notes'] ?? null)) {
-            return back()->withErrors([
-                'review_notes' => 'Please explain what the Teacher should change.',
-            ]);
+            return back()->withErrors(['review_notes' => 'Please explain what the Teacher should change.']);
         }
 
         $lesson->update([
