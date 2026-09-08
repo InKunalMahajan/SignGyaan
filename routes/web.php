@@ -85,6 +85,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/classes/{class}/courses/new', [CourseAssignmentController::class, 'storeNew'])->name('classes.courses.store-new');
         Route::delete('/classes/{class}/courses/{course}', [CourseAssignmentController::class, 'destroy'])->name('classes.courses.destroy');
 
+        Route::get('/courses', [CurriculumController::class, 'index'])->name('courses.index');
         Route::get('/courses/{course}/curriculum', [CurriculumController::class, 'show'])->name('courses.curriculum.show');
         Route::post('/courses/{course}/units', [CurriculumController::class, 'storeUnit'])->name('courses.units.store');
         Route::put('/courses/{course}/units/{unit}', [CurriculumController::class, 'updateUnit'])->name('courses.units.update');
