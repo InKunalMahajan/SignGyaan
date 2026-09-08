@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CurriculumReviewController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
@@ -23,11 +24,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard');
-
-Route::get('/dashboard/guest', [DashboardController::class, 'guest'])
-    ->name('dashboard.guest');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/guest', [DashboardController::class, 'guest'])->name('dashboard.guest');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'createLogin'])->name('login');
@@ -41,17 +39,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'active'])->group(function () {
-    Route::get('/dashboard/parents', ParentDashboardController::class)
-        ->middleware('parents')
-        ->name('dashboard.parents.live');
-
-    Route::get('/dashboard/teacher', TeacherDashboardController::class)
-        ->middleware('teacher')
-        ->name('dashboard.teacher.live');
-
-    Route::get('/dashboard/admin', AdminDashboardController::class)
-        ->middleware('admin')
-        ->name('dashboard.admin.live');
+    Route::get('/dashboard/parents', ParentDashboardController::class)->middleware('parents')->name('dashboard.parents.live');
+    Route::get('/dashboard/teacher', TeacherDashboardController::class)->middleware('teacher')->name('dashboard.teacher.live');
+    Route::get('/dashboard/admin', AdminDashboardController::class)->middleware('admin')->name('dashboard.admin.live');
 
     Route::get('/dashboard/{role}', [DashboardController::class, 'show'])
         ->whereIn('role', ['learner', 'parents', 'teacher', 'admin'])
@@ -79,7 +69,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/profile', [ParentProfileController::class, 'show'])->name('profile.show');
         Route::put('/profile', [ParentProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ParentProfileController::class, 'updatePassword'])->name('profile.password.update');
-
         Route::post('/learners', [LearnerLinkController::class, 'store'])->name('learners.store');
         Route::get('/learners/{link}', [LearnerLinkController::class, 'show'])->name('learners.show');
         Route::delete('/learners/{link}', [LearnerLinkController::class, 'destroy'])->name('learners.destroy');
@@ -100,7 +89,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/classes/{class}/status', [ClassController::class, 'toggleStatus'])->name('classes.status');
         Route::post('/classes/{class}/learners', [ClassController::class, 'enrollLearner'])->name('classes.learners.store');
         Route::delete('/classes/{class}/learners/{learner}', [ClassController::class, 'removeLearner'])->name('classes.learners.destroy');
-
         Route::post('/classes/{class}/courses', [CourseAssignmentController::class, 'store'])->name('classes.courses.store');
         Route::post('/classes/{class}/courses/new', [CourseAssignmentController::class, 'storeNew'])->name('classes.courses.store-new');
         Route::delete('/classes/{class}/courses/{course}', [CourseAssignmentController::class, 'destroy'])->name('classes.courses.destroy');
@@ -123,5 +111,11 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/status', [UserManagementController::class, 'toggleStatus'])->name('users.status');
+
+        Route::get('/curriculum', [CurriculumReviewController::class, 'index'])->name('curriculum.index');
+        Route::get('/curriculum/courses/{course}', [CurriculumReviewController::class, 'show'])->name('curriculum.courses.show');
+        Route::patch('/curriculum/subjects/{subject}/status', [CurriculumReviewController::class, 'toggleSubject'])->name('curriculum.subjects.status');
+        Route::patch('/curriculum/courses/{course}/status', [CurriculumReviewController::class, 'toggleCourse'])->name('curriculum.courses.status');
+        Route::patch('/curriculum/lessons/{lesson}/review', [CurriculumReviewController::class, 'reviewLesson'])->name('curriculum.lessons.review');
     });
 });
