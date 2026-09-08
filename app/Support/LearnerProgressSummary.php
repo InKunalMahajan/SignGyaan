@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\LessonProgress;
 use App\Models\User;
-use Illuminate\Support\Collection;
 
 class LearnerProgressSummary
 {
@@ -110,10 +109,13 @@ class LearnerProgressSummary
                     'last_viewed_at' => $records->max('last_viewed_at'),
                 ];
             })
-            ->sortBy(fn ($item) => [
-                $item['state'] === 'In progress' ? 0 : ($item['state'] === 'Not started' ? 1 : 2),
-                $item['course']->title,
-            ])
+            ->sortBy(function ($item) {
+                $rank = $item['state'] === 'In progress'
+                    ? 0
+                    : ($item['state'] === 'Not started' ? 1 : 2);
+
+                return sprintf('%d|%s', $rank, strtolower($item['course']->title));
+            })
             ->values();
 
         $recentActivity = $progressRecords
