@@ -13,6 +13,20 @@ use Illuminate\View\View;
 
 class CurriculumController extends Controller
 {
+    public function index(Request $request): View
+    {
+        $courses = Course::query()
+            ->where('created_by', $request->user()->id)
+            ->with('subject')
+            ->withCount('units')
+            ->orderBy('title')
+            ->paginate(12);
+
+        return view('teacher.courses.index', [
+            'courses' => $courses,
+        ]);
+    }
+
     public function show(Request $request, Course $course): View
     {
         $this->authorizeCourseOwner($request, $course);
