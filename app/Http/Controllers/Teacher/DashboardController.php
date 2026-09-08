@@ -63,7 +63,7 @@ class DashboardController extends Controller
             ->values();
 
         $needsAttentionLearnerCount = $supportSignals
-            ->pluck('learner.id')
+            ->map(fn ($row) => $row['learner']->id)
             ->unique()
             ->count();
 
@@ -75,6 +75,7 @@ class DashboardController extends Controller
                 ]);
             })
             ->sortByDesc('last_viewed_at')
+            ->unique(fn ($activity) => $activity['learner']->id.':'.$activity['lesson']->id)
             ->take(8)
             ->values();
 
