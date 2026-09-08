@@ -27,7 +27,7 @@ class ModerationLogController extends Controller
             'q' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $query = ReviewAuditEvent::query();
+        $query = ReviewAuditEvent::query()->with('lesson.unit');
 
         if (! empty($validated['event'])) {
             $query->where('event_type', $validated['event']);
