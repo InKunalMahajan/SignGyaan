@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Learner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\LearningClass;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,10 +30,7 @@ class ClassController extends Controller
 
     public function show(Request $request, LearningClass $class): View
     {
-        abort_unless(
-            $request->user()->enrolledClasses()->whereKey($class->id)->exists(),
-            403
-        );
+        $this->authorizeEnrollment($request, $class);
 
         $class->load([
             'teacher.teacherProfile',
@@ -46,5 +44,48 @@ class ClassController extends Controller
         return view('learner.classes.show', [
             'class' => $class,
         ]);
+    }
+
+    public function course(Request $request, LearningClass $class, Course $course): View
+    {
+        $this->authorizeEnrollment($request, $class);
+
+        abort_unless(
+            $class->courses()
+                ->whereKey($course->id)
+                ->where('courses.is_active', true)
+                ->exists(),
+            403
+        );
+
+        $course->load([
+            'subject',
+            'units' => fn ($query) => $query
+                ->where('is_active', true)
+                ->with([
+                    'lessons' => fn ($lessonQuery) => $lessonQuery
+                        ->where('status', 'published')
+                        ->orderBy('position')
+                        ->orderBy('id'),
+                ])
+                ->orderBy('position')
+                ->orderBy('id'),
+        ]);
+
+        abort_unless($course->subject?->is_active, 404);
+
+        return view('learner.classes.course', [
+            'class' => $class->loadMissing('teacher.teacherProfile'),
+            'course' => $course,
+            'publishedLessonCount' => $course->units->sum(fn ($unit) => $unit->lessons->count()),
+        ]);
+    }
+
+    private function authorizeEnrollment(Request $request, LearningClass $class): void
+    {
+        abort_unless(
+            $request->user()->enrolledClasses()->whereKey($class->id)->exists(),
+            403
+        );
     }
 }
