@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Subject;
 use App\Notifications\ReviewWorkflowNotification;
+use App\Support\ReviewAuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -59,14 +60,27 @@ class CurriculumReviewController extends Controller
         return back()->with('status',$course->is_active?'Course activated.':'Course deactivated.');
     }
 
-    public function reviewLesson(Request $request, Lesson $lesson): RedirectResponse
+    public function reviewLesson(Request $request, Lesson $lesson, ReviewAuditLogger $audit): RedirectResponse
     {
         $validated = $request->validate(['review_status'=>['required',Rule::in(Lesson::REVIEW_STATUSES)],'review_notes'=>['nullable','string','max:5000']]);
         if ($validated['review_status']==='changes_requested' && blank($validated['review_notes'] ?? null)) {
             return back()->withErrors(['review_notes'=>'Please explain what the Teacher should change.']);
         }
 
+        $previousReviewStatus = $lesson->review_status;
         $lesson->update(['review_status'=>$validated['review_status'],'review_notes'=>$validated['review_notes'] ?? null,'reviewed_by'=>$request->user()->id,'reviewed_at'=>now()]);
+
+        $eventType = match ($lesson->review_status) {
+            'approved' => 'review_approved',
+            'changes_requested' => 'changes_requested',
+            default => 'review_returned_pending',
+        };
+
+        $audit->record($lesson, $request->user(), $eventType, $previousReviewStatus, $lesson->review_status, [
+            'review_notes' => $validated['review_notes'] ?? null,
+            'metadata' => ['source' => 'admin_review_action'],
+        ]);
+
         $lesson->loadMissing('unit.course.creator');
         $teacher = $lesson->unit?->course?->creator;
 
