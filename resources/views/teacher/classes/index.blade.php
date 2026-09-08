@@ -7,7 +7,7 @@
         <div>
             <p class="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">Teaching workspace</p>
             <h1 class="mt-2 text-3xl font-black tracking-tight">My Classes</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create classes, manage rosters, assign courses, and keep learner access organised.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create classes, manage rosters, assign courses, and track Learner Lesson progress.</p>
         </div>
         <a href="{{ route('teacher.classes.create') }}" class="rounded-xl bg-blue-700 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-cyan-200">Create class</a>
     </div>
@@ -51,8 +51,9 @@
                         <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Learners</dt><dd class="text-right font-black">{{ $class->learners_count }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="font-bold text-slate-500">Courses</dt><dd class="text-right font-black">{{ $class->courses_count }}</dd></div>
                     </dl>
-                    <div class="mt-5 flex gap-2">
+                    <div class="mt-5 flex flex-wrap gap-2">
                         <a href="{{ route('teacher.classes.show', $class) }}" class="rounded-xl bg-blue-700 px-3 py-2 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">Open class</a>
+                        <a href="{{ route('teacher.classes.progress', $class) }}" class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Progress</a>
                         <a href="{{ route('teacher.classes.edit', $class) }}" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Edit</a>
                     </div>
                 </article>
