@@ -65,6 +65,7 @@ class ClassController extends Controller
                 ->with([
                     'lessons' => fn ($lessonQuery) => $lessonQuery
                         ->where('status', 'published')
+                        ->where('review_status', 'approved')
                         ->orderBy('position')
                         ->orderBy('id'),
                 ])

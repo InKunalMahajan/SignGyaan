@@ -14,12 +14,8 @@ use Illuminate\View\View;
 
 class LessonController extends Controller
 {
-    public function show(
-        Request $request,
-        LearningClass $class,
-        Course $course,
-        Lesson $lesson
-    ): View {
+    public function show(Request $request, LearningClass $class, Course $course, Lesson $lesson): View
+    {
         $this->authorizeLessonAccess($request, $class, $course, $lesson);
 
         $progress = LessonProgress::firstOrNew([
@@ -58,12 +54,8 @@ class LessonController extends Controller
         ]);
     }
 
-    public function updateProgress(
-        Request $request,
-        LearningClass $class,
-        Course $course,
-        Lesson $lesson
-    ): RedirectResponse {
+    public function updateProgress(Request $request, LearningClass $class, Course $course, Lesson $lesson): RedirectResponse
+    {
         $this->authorizeLessonAccess($request, $class, $course, $lesson);
 
         $validated = $request->validate([
@@ -84,22 +76,12 @@ class LessonController extends Controller
         $progress->completed_at = $validated['status'] === 'completed' ? now() : null;
         $progress->save();
 
-        return back()->with(
-            'status',
-            $progress->isCompleted() ? 'Lesson marked complete.' : 'Lesson moved back to in progress.'
-        );
+        return back()->with('status', $progress->isCompleted() ? 'Lesson marked complete.' : 'Lesson moved back to in progress.');
     }
 
-    private function authorizeLessonAccess(
-        Request $request,
-        LearningClass $class,
-        Course $course,
-        Lesson $lesson
-    ): void {
-        abort_unless(
-            $request->user()->enrolledClasses()->whereKey($class->id)->exists(),
-            403
-        );
+    private function authorizeLessonAccess(Request $request, LearningClass $class, Course $course, Lesson $lesson): void
+    {
+        abort_unless($request->user()->enrolledClasses()->whereKey($class->id)->exists(), 403);
 
         abort_unless(
             $class->courses()
@@ -115,7 +97,7 @@ class LessonController extends Controller
         abort_unless(
             $lesson->unit?->course_id === $course->id
                 && $lesson->unit->is_active
-                && $lesson->isPublished(),
+                && $lesson->isLearnerVisible(),
             404
         );
     }
@@ -128,6 +110,7 @@ class LessonController extends Controller
             ->where('course_units.course_id', $course->id)
             ->where('course_units.is_active', true)
             ->where('lessons.status', 'published')
+            ->where('lessons.review_status', 'approved')
             ->orderBy('course_units.position')
             ->orderBy('course_units.id')
             ->orderBy('lessons.position')

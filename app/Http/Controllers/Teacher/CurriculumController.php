@@ -46,6 +46,15 @@ class CurriculumController extends Controller
             'publishedLessonCount' => $course->units->sum(
                 fn ($unit) => $unit->lessons->where('status', 'published')->count()
             ),
+            'approvedLessonCount' => $course->units->sum(
+                fn ($unit) => $unit->lessons
+                    ->where('status', 'published')
+                    ->where('review_status', 'approved')
+                    ->count()
+            ),
+            'pendingReviewCount' => $course->units->sum(
+                fn ($unit) => $unit->lessons->where('review_status', 'pending')->count()
+            ),
         ]);
     }
 
@@ -113,9 +122,18 @@ class CurriculumController extends Controller
             ...$validated,
             'position' => max(1, $position),
             'published_at' => $status === 'published' ? now() : null,
+            'review_status' => 'pending',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'review_notes' => null,
         ]);
 
-        return back()->with('status', 'Lesson created successfully.');
+        return back()->with(
+            'status',
+            $status === 'published'
+                ? 'Lesson saved and sent for Admin review.'
+                : 'Lesson draft created successfully.'
+        );
     }
 
     public function updateLesson(
@@ -139,9 +157,18 @@ class CurriculumController extends Controller
                 ! $willBePublished => null,
                 default => $lesson->published_at,
             },
+            'review_status' => 'pending',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'review_notes' => null,
         ]);
 
-        return back()->with('status', 'Lesson updated.');
+        return back()->with(
+            'status',
+            $willBePublished
+                ? 'Lesson updated and sent for Admin review.'
+                : 'Lesson draft updated.'
+        );
     }
 
     public function destroyLesson(
