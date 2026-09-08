@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LessonProgress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,37 +30,204 @@ class DashboardController extends Controller
         abort_unless(in_array($role, self::ROLES, true), 404);
         abort_unless($request->user()?->hasRole($role), 403);
 
+        if ($role === 'learner') {
+            return $this->renderLearnerDashboard($request);
+        }
+
         return $this->render($role);
+    }
+
+    private function renderLearnerDashboard(Request $request): View
+    {
+        $learner = $request->user();
+
+        $classes = $learner->enrolledClasses()
+            ->with([
+                'teacher.teacherProfile',
+                'courses' => fn ($query) => $query
+                    ->where('courses.is_active', true)
+                    ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true))
+                    ->with([
+                        'subject',
+                        'units' => fn ($unitQuery) => $unitQuery
+                            ->where('is_active', true)
+                            ->with([
+                                'lessons' => fn ($lessonQuery) => $lessonQuery
+                                    ->where('status', 'published')
+                                    ->orderBy('position')
+                                    ->orderBy('id'),
+                            ])
+                            ->orderBy('position')
+                            ->orderBy('id'),
+                    ])
+                    ->orderBy('title'),
+            ])
+            ->orderByDesc('learning_classes.is_active')
+            ->orderBy('learning_classes.name')
+            ->get();
+
+        $courseEntries = collect();
+        $lessonEntries = collect();
+
+        foreach ($classes as $class) {
+            foreach ($class->courses as $course) {
+                $courseLessonIds = $course->units
+                    ->flatMap(fn ($unit) => $unit->lessons)
+                    ->pluck('id')
+                    ->values();
+
+                if (! $courseEntries->has($course->id)) {
+                    $courseEntries->put($course->id, [
+                        'course' => $course,
+                        'class' => $class,
+                        'lesson_ids' => $courseLessonIds,
+                    ]);
+                }
+
+                foreach ($course->units as $unit) {
+                    foreach ($unit->lessons as $lesson) {
+                        if (! $lessonEntries->has($lesson->id)) {
+                            $lessonEntries->put($lesson->id, [
+                                'lesson' => $lesson,
+                                'unit' => $unit,
+                                'course' => $course,
+                                'class' => $class,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        $lessonIds = $lessonEntries->keys()->values();
+
+        $progressRecords = $lessonIds->isEmpty()
+            ? collect()
+            : LessonProgress::query()
+                ->where('learner_id', $learner->id)
+                ->whereIn('lesson_id', $lessonIds)
+                ->get();
+
+        $progressByLesson = $progressRecords->keyBy('lesson_id');
+        $completedLessonCount = $progressRecords->where('status', 'completed')->count();
+        $startedLessonCount = $progressRecords->count();
+        $totalLessonCount = $lessonIds->count();
+        $overallPercent = $totalLessonCount > 0
+            ? (int) round(($completedLessonCount / $totalLessonCount) * 100)
+            : 0;
+
+        $courseCards = $courseEntries
+            ->map(function (array $entry) use ($progressByLesson) {
+                $lessonIds = $entry['lesson_ids'];
+                $total = $lessonIds->count();
+                $records = $lessonIds
+                    ->map(fn ($lessonId) => $progressByLesson->get($lessonId))
+                    ->filter();
+                $completed = $records->where('status', 'completed')->count();
+                $started = $records->count();
+                $percent = $total > 0 ? (int) round(($completed / $total) * 100) : 0;
+
+                $state = match (true) {
+                    $total > 0 && $completed === $total => 'Completed',
+                    $started > 0 => 'In progress',
+                    default => 'Not started',
+                };
+
+                return [
+                    ...$entry,
+                    'total' => $total,
+                    'completed' => $completed,
+                    'started' => $started,
+                    'percent' => $percent,
+                    'state' => $state,
+                    'url' => route('learner.classes.courses.show', [$entry['class'], $entry['course']]),
+                ];
+            })
+            ->sortBy(function (array $item) {
+                $stateOrder = match ($item['state']) {
+                    'In progress' => 0,
+                    'Not started' => 1,
+                    default => 2,
+                };
+
+                return sprintf('%d-%s', $stateOrder, strtolower($item['course']->title));
+            })
+            ->values();
+
+        $inProgressCourseCount = $courseCards->where('state', 'In progress')->count();
+        $completedCourseCount = $courseCards->where('state', 'Completed')->count();
+
+        $resumeProgress = $progressRecords
+            ->where('status', 'in_progress')
+            ->sortByDesc('last_viewed_at')
+            ->first(fn ($record) => $lessonEntries->has($record->lesson_id));
+
+        $continueEntry = $resumeProgress
+            ? $lessonEntries->get($resumeProgress->lesson_id)
+            : $lessonEntries->first(function (array $entry) use ($progressByLesson) {
+                return optional($progressByLesson->get($entry['lesson']->id))->status !== 'completed';
+            });
+
+        $continueLearning = null;
+        if ($continueEntry) {
+            $continueProgress = $progressByLesson->get($continueEntry['lesson']->id);
+            $continueLearning = [
+                ...$continueEntry,
+                'is_resume' => (bool) $continueProgress,
+                'status' => $continueProgress?->status ?? 'not_started',
+                'url' => route('learner.classes.courses.lessons.show', [
+                    $continueEntry['class'],
+                    $continueEntry['course'],
+                    $continueEntry['lesson'],
+                ]),
+            ];
+        }
+
+        $recentActivity = $progressRecords
+            ->sortByDesc('last_viewed_at')
+            ->take(5)
+            ->map(function ($progress) use ($lessonEntries) {
+                $entry = $lessonEntries->get($progress->lesson_id);
+
+                if (! $entry) {
+                    return null;
+                }
+
+                return [
+                    ...$entry,
+                    'status' => $progress->status,
+                    'last_viewed_at' => $progress->last_viewed_at,
+                    'url' => route('learner.classes.courses.lessons.show', [
+                        $entry['class'],
+                        $entry['course'],
+                        $entry['lesson'],
+                    ]),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return view('learner.dashboard', [
+            'learner' => $learner,
+            'classes' => $classes,
+            'activeClassCount' => $classes->where('is_active', true)->count(),
+            'totalClassCount' => $classes->count(),
+            'courseCards' => $courseCards,
+            'courseCount' => $courseCards->count(),
+            'inProgressCourseCount' => $inProgressCourseCount,
+            'completedCourseCount' => $completedCourseCount,
+            'completedLessonCount' => $completedLessonCount,
+            'startedLessonCount' => $startedLessonCount,
+            'totalLessonCount' => $totalLessonCount,
+            'overallPercent' => $overallPercent,
+            'continueLearning' => $continueLearning,
+            'recentActivity' => $recentActivity,
+        ]);
     }
 
     private function render(string $role): View
     {
         $dashboards = [
-            'learner' => [
-                'label' => 'Learner',
-                'eyebrow' => 'My Learning',
-                'title' => 'Keep learning, one lesson at a time.',
-                'description' => 'Continue courses, practise with quizzes, watch ISL lessons, and track your progress.',
-                'primary_action' => 'Continue learning',
-                'stats' => [
-                    ['label' => 'Courses in progress', 'value' => '3', 'helper' => '2 active this week'],
-                    ['label' => 'Lessons completed', 'value' => '18', 'helper' => '6 this month'],
-                    ['label' => 'Average quiz score', 'value' => '82%', 'helper' => 'Up 7%'],
-                ],
-                'modules' => [
-                    ['title' => 'Continue Learning', 'description' => 'Resume your latest lesson and ISL video.', 'tag' => 'Recommended'],
-                    ['title' => 'My Courses', 'description' => 'View enrolled subjects, courses, units, and lessons.', 'tag' => 'Learning'],
-                    ['title' => 'Practice & Quizzes', 'description' => 'Test your understanding with accessible practice.', 'tag' => 'Assessment'],
-                    ['title' => 'My Progress', 'description' => 'Track completion, scores, streaks, and learning goals.', 'tag' => 'Progress'],
-                    ['title' => 'Certificates', 'description' => 'View achievements and completed course certificates.', 'tag' => 'Achievement'],
-                    ['title' => 'Saved Lessons', 'description' => 'Open bookmarked videos, notes, and examples.', 'tag' => 'Library'],
-                ],
-                'updates' => [
-                    ['title' => 'Digital Basics · Unit 2', 'meta' => 'Next: Storage Devices · 12 min'],
-                    ['title' => 'English Communication · Practice', 'meta' => 'Quiz score: 8/10'],
-                    ['title' => 'Computer Skills · Unit 1', 'meta' => '75% complete'],
-                ],
-            ],
             'parents' => [
                 'label' => 'Parents',
                 'eyebrow' => 'Family Learning',
