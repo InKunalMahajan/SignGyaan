@@ -25,7 +25,7 @@ class LiveTeacherDashboardTest extends TestCase
 
         [$class, $course, $unit, $firstLesson] = $this->makeLearningPath($teacher, $firstLearner);
         $class->learners()->attach($secondLearner->id, ['enrolled_at' => now()]);
-        $secondLesson = $this->makeLesson($unit, 'Second Lesson', 2);
+        $this->makeLesson($unit, 'Second Lesson', 2);
 
         LessonProgress::create([
             'learner_id' => $firstLearner->id,
@@ -73,7 +73,7 @@ class LiveTeacherDashboardTest extends TestCase
 
         $response->assertViewHas('needsAttentionLearnerCount', 1);
         $response->assertViewHas('supportSignals', function ($signals) use ($learnerAtFifty, $learnerBelow) {
-            $ids = $signals->pluck('learner.id');
+            $ids = $signals->map(fn ($signal) => $signal['learner']->id);
 
             return $ids->contains($learnerBelow->id)
                 && ! $ids->contains($learnerAtFifty->id);
@@ -130,17 +130,20 @@ class LiveTeacherDashboardTest extends TestCase
 
         $response->assertViewHas('publishedLessonCount', 1);
         $response->assertViewHas('activeCourseCount', 1);
-        $response->assertSee($visibleLesson->title);
-        $response->assertDontSee('Draft Lesson');
-        $response->assertDontSee('Hidden Lesson');
-        $response->assertDontSee('Inactive Course Lesson');
+        $response->assertViewHas('classCards', function ($cards) use ($visibleLesson) {
+            $summary = $cards->first();
+
+            return $summary
+                && $summary['published_lesson_count'] === 1
+                && $summary['lesson_ids']->contains($visibleLesson->id);
+        });
     }
 
     public function test_shared_course_and_learner_are_deduplicated_across_active_classes(): void
     {
         $teacher = User::factory()->create(['role' => 'teacher']);
         $learner = User::factory()->create(['role' => 'learner']);
-        [$firstClass, $course, $unit, $lesson] = $this->makeLearningPath($teacher, $learner);
+        [$firstClass, $course] = $this->makeLearningPath($teacher, $learner);
 
         $secondClass = $this->makeClass($teacher, 'Second Class');
         $secondClass->learners()->attach($learner->id, ['enrolled_at' => now()]);
