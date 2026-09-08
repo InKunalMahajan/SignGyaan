@@ -34,7 +34,7 @@ class CurriculumController extends Controller
         $course->load([
             'subject',
             'units' => fn ($query) => $query
-                ->with(['lessons' => fn ($lessonQuery) => $lessonQuery->orderBy('position')->orderBy('id')])
+                ->with(['lessons' => fn ($lessonQuery) => $lessonQuery->with('reviewer')->orderBy('position')->orderBy('id')])
                 ->orderBy('position')
                 ->orderBy('id'),
         ]);
@@ -126,6 +126,8 @@ class CurriculumController extends Controller
             'reviewed_by' => null,
             'reviewed_at' => null,
             'review_notes' => null,
+            'review_submitted_at' => $status === 'published' ? now() : null,
+            'teacher_response' => null,
         ]);
 
         return back()->with(
@@ -149,6 +151,7 @@ class CurriculumController extends Controller
         $validated = $request->validate($this->lessonRules(true));
         $wasPublished = $lesson->isPublished();
         $willBePublished = $validated['status'] === 'published';
+        $awaitingTeacherFixes = $lesson->changesRequested();
 
         $lesson->update([
             ...$validated,
@@ -157,17 +160,20 @@ class CurriculumController extends Controller
                 ! $willBePublished => null,
                 default => $lesson->published_at,
             },
-            'review_status' => 'pending',
-            'reviewed_by' => null,
-            'reviewed_at' => null,
-            'review_notes' => null,
+            'review_status' => $awaitingTeacherFixes ? 'changes_requested' : 'pending',
+            'review_submitted_at' => $awaitingTeacherFixes
+                ? $lesson->review_submitted_at
+                : ($willBePublished ? now() : null),
+            'teacher_response' => null,
         ]);
 
         return back()->with(
             'status',
-            $willBePublished
-                ? 'Lesson updated and sent for Admin review.'
-                : 'Lesson draft updated.'
+            match (true) {
+                $awaitingTeacherFixes => 'Lesson updated. Review feedback remains open until you resubmit it.',
+                $willBePublished => 'Lesson updated and returned to Pending review.',
+                default => 'Lesson draft updated.',
+            }
         );
     }
 
