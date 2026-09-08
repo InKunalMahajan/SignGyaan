@@ -17,11 +17,13 @@ class DashboardController extends Controller
         $links = ParentLearnerLink::query()
             ->where('parent_user_id', $parent->id)
             ->with(['learner.learnerProfile'])
-            ->orderByRaw("FIELD(status, 'approved', 'pending', 'declined')")
             ->orderByDesc('updated_at')
             ->get();
 
-        $approvedLinks = $links->where('status', 'approved')->values();
+        $approvedLinks = $links
+            ->where('status', 'approved')
+            ->filter(fn ($link) => $link->learner?->is_active)
+            ->values();
         $pendingCount = $links->where('status', 'pending')->count();
 
         $learnerCards = $approvedLinks->map(function (ParentLearnerLink $link) use ($progressSummary) {
