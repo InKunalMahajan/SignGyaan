@@ -20,6 +20,7 @@ class ReviewFeedbackController extends Controller
         ]);
 
         $baseQuery = Lesson::query()
+            ->where('status', 'published')
             ->whereHas('unit.course', fn ($query) => $query->where('created_by', $request->user()->id));
 
         $lessonsQuery = (clone $baseQuery)
