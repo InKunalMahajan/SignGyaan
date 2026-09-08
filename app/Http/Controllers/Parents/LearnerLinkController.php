@@ -75,6 +75,8 @@ class LearnerLinkController extends Controller
         abort_unless($link->isApproved(), 403);
 
         $link->load(['learner.learnerProfile']);
+        abort_unless($link->learner?->is_active, 403);
+
         $progress = $progressSummary->build($link->learner);
 
         return view('parents.learner', [
