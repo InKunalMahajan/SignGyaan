@@ -60,6 +60,14 @@
                             </div>
 
                             @if($lesson->review_notes)<div class="mt-4 rounded-xl bg-slate-50 p-3 text-sm"><strong>Review notes:</strong> {{ $lesson->review_notes }}</div>@endif
+                            @if($lesson->teacher_response)
+                                <div class="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
+                                    <strong>Teacher response:</strong> {{ $lesson->teacher_response }}
+                                    @if($lesson->review_submitted_at)<div class="mt-1 text-xs font-semibold text-blue-700">Resubmitted {{ $lesson->review_submitted_at->diffForHumans() }}</div>@endif
+                                </div>
+                            @elseif($lesson->review_submitted_at)
+                                <div class="mt-4 text-xs font-semibold text-slate-500">Submitted for review {{ $lesson->review_submitted_at->diffForHumans() }}</div>
+                            @endif
 
                             <form method="POST" action="{{ route('admin.curriculum.lessons.review', $lesson) }}" class="mt-4 grid gap-3 lg:grid-cols-[220px_1fr_auto]">
                                 @csrf @method('PATCH')
