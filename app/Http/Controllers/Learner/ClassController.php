@@ -74,10 +74,38 @@ class ClassController extends Controller
 
         abort_unless($course->subject?->is_active, 404);
 
+        $lessons = $course->units->flatMap(fn ($unit) => $unit->lessons)->values();
+        $lessonIds = $lessons->pluck('id');
+        $progressByLesson = $request->user()->lessonProgress()
+            ->whereIn('lesson_id', $lessonIds)
+            ->get()
+            ->keyBy('lesson_id');
+
+        $completedLessonIds = $progressByLesson
+            ->filter(fn ($progress) => $progress->status === 'completed')
+            ->keys();
+        $completedLessonCount = $completedLessonIds->count();
+        $publishedLessonCount = $lessons->count();
+
+        $recentInProgress = $progressByLesson
+            ->filter(fn ($progress) => $progress->status === 'in_progress')
+            ->sortByDesc('last_viewed_at')
+            ->first();
+
+        $continueLesson = $recentInProgress
+            ? $lessons->firstWhere('id', $recentInProgress->lesson_id)
+            : $lessons->first(fn ($lesson) => ! $completedLessonIds->contains($lesson->id));
+
         return view('learner.classes.course', [
             'class' => $class->loadMissing('teacher.teacherProfile'),
             'course' => $course,
-            'publishedLessonCount' => $course->units->sum(fn ($unit) => $unit->lessons->count()),
+            'publishedLessonCount' => $publishedLessonCount,
+            'completedLessonCount' => $completedLessonCount,
+            'progressPercent' => $publishedLessonCount > 0
+                ? (int) round(($completedLessonCount / $publishedLessonCount) * 100)
+                : 0,
+            'progressByLesson' => $progressByLesson,
+            'continueLesson' => $continueLesson,
         ]);
     }
 
