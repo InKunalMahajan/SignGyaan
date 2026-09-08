@@ -91,6 +91,11 @@ class User extends Authenticatable
         )->withPivot('enrolled_at')->withTimestamps();
     }
 
+    public function lessonProgress(): HasMany
+    {
+        return $this->hasMany(LessonProgress::class, 'learner_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
