@@ -21,6 +21,7 @@ class TeacherClassProgressSummary
                         ->with([
                             'lessons' => fn ($lessonQuery) => $lessonQuery
                                 ->where('status', 'published')
+                                ->where('review_status', 'approved')
                                 ->orderBy('position')
                                 ->orderBy('id'),
                         ])
@@ -37,13 +38,8 @@ class TeacherClassProgressSummary
             foreach ($course->units as $unit) {
                 foreach ($unit->lessons as $lesson) {
                     $ids->push($lesson->id);
-
                     if (! $lessonEntries->has($lesson->id)) {
-                        $lessonEntries->put($lesson->id, [
-                            'lesson' => $lesson,
-                            'unit' => $unit,
-                            'course' => $course,
-                        ]);
+                        $lessonEntries->put($lesson->id, ['lesson' => $lesson, 'unit' => $unit, 'course' => $course]);
                     }
                 }
             }
@@ -54,12 +50,10 @@ class TeacherClassProgressSummary
         $allLessonIds = $courseLessonIds->flatten()->unique()->values();
         $learnerIds = $class->learners->pluck('id')->values();
 
-        $progressRecords = ($learnerIds->isEmpty() || $allLessonIds->isEmpty())
-            ? collect()
-            : LessonProgress::query()
-                ->whereIn('learner_id', $learnerIds)
-                ->whereIn('lesson_id', $allLessonIds)
-                ->get();
+        $progressRecords = ($learnerIds->isEmpty() || $allLessonIds->isEmpty()) ? collect() : LessonProgress::query()
+            ->whereIn('learner_id', $learnerIds)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->get();
 
         $progressByLearner = $progressRecords->groupBy('learner_id');
 
@@ -72,9 +66,7 @@ class TeacherClassProgressSummary
             $courses = $class->courses->map(function ($course) use ($records, $courseLessonIds) {
                 $lessonIds = $courseLessonIds->get($course->id, collect());
                 $total = $lessonIds->count();
-                $completed = $lessonIds
-                    ->filter(fn ($lessonId) => optional($records->get($lessonId))->status === 'completed')
-                    ->count();
+                $completed = $lessonIds->filter(fn ($lessonId) => optional($records->get($lessonId))->status === 'completed')->count();
 
                 return [
                     'id' => $course->id,
@@ -97,27 +89,22 @@ class TeacherClassProgressSummary
             ];
         });
 
-        $recentActivity = $progressRecords
-            ->sortByDesc('last_viewed_at')
-            ->take(8)
-            ->map(function ($progress) use ($lessonEntries, $class) {
-                $entry = $lessonEntries->get($progress->lesson_id);
-                $learner = $class->learners->firstWhere('id', $progress->learner_id);
+        $recentActivity = $progressRecords->sortByDesc('last_viewed_at')->take(8)->map(function ($progress) use ($lessonEntries, $class) {
+            $entry = $lessonEntries->get($progress->lesson_id);
+            $learner = $class->learners->firstWhere('id', $progress->learner_id);
 
-                if (! $entry || ! $learner) {
-                    return null;
-                }
+            if (! $entry || ! $learner) {
+                return null;
+            }
 
-                return [
-                    ...$entry,
-                    'learner' => $learner,
-                    'status' => $progress->status,
-                    'last_viewed_at' => $progress->last_viewed_at,
-                    'completed_at' => $progress->completed_at,
-                ];
-            })
-            ->filter()
-            ->values();
+            return [
+                ...$entry,
+                'learner' => $learner,
+                'status' => $progress->status,
+                'last_viewed_at' => $progress->last_viewed_at,
+                'completed_at' => $progress->completed_at,
+            ];
+        })->filter()->values();
 
         $averagePercent = $learnerProgress->isNotEmpty() && $allLessonIds->isNotEmpty()
             ? (int) round($learnerProgress->avg('percent'))
@@ -132,12 +119,8 @@ class TeacherClassProgressSummary
             'learner_count' => $class->learners->count(),
             'course_count' => $class->courses->count(),
             'average_percent' => $averagePercent,
-            'completed_learner_count' => $learnerProgress
-                ->filter(fn ($row) => $row['total'] > 0 && $row['percent'] === 100)
-                ->count(),
-            'needs_attention_count' => $learnerProgress
-                ->filter(fn ($row) => $row['total'] > 0 && $row['percent'] < 50)
-                ->count(),
+            'completed_learner_count' => $learnerProgress->filter(fn ($row) => $row['total'] > 0 && $row['percent'] === 100)->count(),
+            'needs_attention_count' => $learnerProgress->filter(fn ($row) => $row['total'] > 0 && $row['percent'] < 50)->count(),
             'recent_activity' => $recentActivity,
         ];
     }
