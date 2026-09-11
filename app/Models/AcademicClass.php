@@ -7,38 +7,35 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Subject extends Model
+class AcademicClass extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'academic_class_id',
-        'created_by',
+        'board_id',
         'name',
         'slug',
+        'level',
         'description',
         'is_active',
+        'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'sort_order' => 'integer',
         ];
     }
 
-    public function academicClass(): BelongsTo
+    public function board(): BelongsTo
     {
-        return $this->belongsTo(AcademicClass::class);
+        return $this->belongsTo(Board::class);
     }
 
-    public function creator(): BelongsTo
+    public function subjects(): HasMany
     {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function courses(): HasMany
-    {
-        return $this->hasMany(Course::class);
+        return $this->hasMany(Subject::class)->orderBy('name');
     }
 }
