@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CurriculumCatalogController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -108,5 +109,19 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/status', [UserManagementController::class, 'toggleStatus'])->name('users.status');
+
+        Route::get('/curriculum', [CurriculumCatalogController::class, 'index'])->name('curriculum.index');
+
+        Route::post('/curriculum/boards', [CurriculumCatalogController::class, 'storeBoard'])->name('curriculum.boards.store');
+        Route::put('/curriculum/boards/{board}', [CurriculumCatalogController::class, 'updateBoard'])->name('curriculum.boards.update');
+        Route::delete('/curriculum/boards/{board}', [CurriculumCatalogController::class, 'destroyBoard'])->name('curriculum.boards.destroy');
+
+        Route::post('/curriculum/classes', [CurriculumCatalogController::class, 'storeAcademicClass'])->name('curriculum.classes.store');
+        Route::put('/curriculum/classes/{academicClass}', [CurriculumCatalogController::class, 'updateAcademicClass'])->name('curriculum.classes.update');
+        Route::delete('/curriculum/classes/{academicClass}', [CurriculumCatalogController::class, 'destroyAcademicClass'])->name('curriculum.classes.destroy');
+
+        Route::post('/curriculum/subjects', [CurriculumCatalogController::class, 'storeSubject'])->name('curriculum.subjects.store');
+        Route::put('/curriculum/subjects/{subject}', [CurriculumCatalogController::class, 'updateSubject'])->name('curriculum.subjects.update');
+        Route::delete('/curriculum/subjects/{subject}', [CurriculumCatalogController::class, 'destroySubject'])->name('curriculum.subjects.destroy');
     });
 });
