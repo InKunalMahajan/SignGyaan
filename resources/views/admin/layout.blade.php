@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="SignGyaan admin user management">
+    <meta name="description" content="SignGyaan admin console">
     <title>@yield('title', 'Admin') | SignGyaan</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -12,8 +12,8 @@
 
     <header class="border-b border-slate-200 bg-white">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-            <a href="{{ route('dashboard.role', 'admin') }}" class="flex items-center gap-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-200">
-                <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-blue-700 to-cyan-500 text-sm font-black text-white">SG</span>
+            <a href="{{ route('dashboard.role', 'admin') }}" class="flex items-center gap-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                <span class="grid size-11 place-items-center rounded-2xl bg-indigo-600 text-sm font-black text-white">SG</span>
                 <span>
                     <span class="block text-lg font-black tracking-tight">SignGyaan</span>
                     <span class="block text-xs font-semibold text-slate-500">Admin Console</span>
@@ -21,11 +21,12 @@
             </a>
 
             <nav class="flex flex-wrap items-center gap-2" aria-label="Admin navigation">
-                <a href="{{ route('dashboard.role', 'admin') }}" class="rounded-xl px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">Dashboard</a>
-                <a href="{{ route('admin.users.index') }}" class="rounded-xl bg-blue-50 px-3 py-2 text-sm font-black text-blue-700 focus:outline-none focus:ring-4 focus:ring-cyan-200">Users & Roles</a>
+                <a href="{{ route('dashboard.role', 'admin') }}" class="rounded-xl px-3 py-2 text-sm font-bold {{ request()->routeIs('dashboard.role') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-indigo-200">Dashboard</a>
+                <a href="{{ route('admin.users.index') }}" class="rounded-xl px-3 py-2 text-sm font-bold {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-indigo-200">Users & Roles</a>
+                <a href="{{ route('admin.curriculum.index') }}" class="rounded-xl px-3 py-2 text-sm font-bold {{ request()->routeIs('admin.curriculum.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-indigo-200">Curriculum</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-cyan-200">Sign out</button>
+                    <button type="submit" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-indigo-200">Sign out</button>
                 </form>
             </nav>
         </div>
