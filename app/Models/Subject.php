@@ -12,6 +12,7 @@ class Subject extends Model
     use HasFactory;
 
     protected $fillable = [
+        'academic_class_id',
         'created_by',
         'name',
         'slug',
@@ -24,6 +25,11 @@ class Subject extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    public function academicClass(): BelongsTo
+    {
+        return $this->belongsTo(AcademicClass::class);
     }
 
     public function creator(): BelongsTo
