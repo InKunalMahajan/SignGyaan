@@ -175,7 +175,7 @@ class CurriculumCatalogController extends Controller
         Subject::create([
             ...$validated,
             'created_by' => $request->user()->id,
-            'slug' => $this->uniqueSlug(Subject::class, $validated['name'], null, ['academic_class_id' => $validated['academic_class_id']]),
+            'slug' => $this->uniqueSlug(Subject::class, $validated['name']),
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -201,7 +201,7 @@ class CurriculumCatalogController extends Controller
 
         $subject->update([
             ...$validated,
-            'slug' => $this->uniqueSlug(Subject::class, $validated['name'], $subject->id, ['academic_class_id' => $validated['academic_class_id']]),
+            'slug' => $this->uniqueSlug(Subject::class, $validated['name'], $subject->id),
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -226,7 +226,7 @@ class CurriculumCatalogController extends Controller
         $counter = 2;
 
         while ($modelClass::query()
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->when($scope, function ($query) use ($scope) {
                 foreach ($scope as $column => $value) {
                     $query->where($column, $value);
