@@ -18,11 +18,6 @@ class User extends Authenticatable
 
     public const ROLES = ['learner', 'parents', 'teacher', 'admin'];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -31,11 +26,6 @@ class User extends Authenticatable
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
@@ -96,11 +86,16 @@ class User extends Authenticatable
         return $this->hasMany(LessonProgress::class, 'learner_id');
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function createdAssessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class, 'created_by');
+    }
+
+    public function assessmentAttempts(): HasMany
+    {
+        return $this->hasMany(AssessmentAttempt::class, 'learner_id');
+    }
+
     protected function casts(): array
     {
         return [
