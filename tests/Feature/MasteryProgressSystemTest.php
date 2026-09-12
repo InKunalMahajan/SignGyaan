@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
-use App\Models\CourseMastery;
 use App\Models\CourseUnit;
 use App\Models\LearningClass;
 use App\Models\Lesson;
@@ -20,7 +19,7 @@ class MasteryProgressSystemTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_course_mastery_combines_published_lesson_completion_and_weighted_assessment_evidence(): void
+    public function test_course_mastery_combines_published_lesson_completion_and_latest_weighted_assessment_evidence(): void
     {
         [$teacher, $learner, $course, $class, $lessons] = $this->fixture();
 
@@ -48,6 +47,21 @@ class MasteryProgressSystemTest extends TestCase
             'learner_id' => $learner->id,
             'attempt_number' => 1,
             'status' => 'completed',
+            'earned_marks' => 20,
+            'total_marks_snapshot' => 100,
+            'passing_marks_snapshot' => 40,
+            'percentage' => 20,
+            'passed' => false,
+            'started_at' => now()->subHours(3),
+            'submitted_at' => now()->subHours(2),
+            'reviewed_at' => now()->subHours(2),
+        ]);
+
+        AssessmentAttempt::create([
+            'assessment_id' => $assessment->id,
+            'learner_id' => $learner->id,
+            'attempt_number' => 2,
+            'status' => 'completed',
             'earned_marks' => 80,
             'total_marks_snapshot' => 100,
             'passing_marks_snapshot' => 40,
@@ -63,6 +77,7 @@ class MasteryProgressSystemTest extends TestCase
         $this->assertSame(1, $mastery->lessons_completed);
         $this->assertSame(2, $mastery->lessons_total);
         $this->assertSame('50.00', $mastery->lesson_completion_percentage);
+        $this->assertSame(1, $mastery->assessments_completed);
         $this->assertSame('80.00', $mastery->assessment_percentage);
         $this->assertSame('68.00', $mastery->mastery_score);
         $this->assertSame('good', $mastery->mastery_level);
