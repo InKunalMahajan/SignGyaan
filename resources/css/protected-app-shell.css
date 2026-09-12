@@ -36,7 +36,9 @@
 /* Shared header rhythm across all protected shells. */
 .sg-icon-sidebar-shell main#main-content > header,
 .sg-icon-sidebar-shell > div > header,
-.sg-app-header-fallback {
+.sg-app-header-fallback,
+body > .min-h-screen > main#main-content > header,
+body > .min-h-screen > .min-w-0 > header {
     min-height: 72px;
     background: #ffffff !important;
     border-bottom: 1px solid #e5e7eb !important;
@@ -44,10 +46,17 @@
 
 .sg-icon-sidebar-shell main#main-content > header > div,
 .sg-icon-sidebar-shell > div > header > div,
-.sg-app-header-fallback-inner {
+.sg-app-header-fallback-inner,
+body > .min-h-screen > main#main-content > header > div,
+body > .min-h-screen > .min-w-0 > header > div {
     min-height: 72px;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
 }
 
 /*
@@ -61,18 +70,22 @@
 .sg-icon-sidebar-shell main#main-content > header + div,
 .sg-icon-sidebar-shell > div > main#main-content,
 .sg-app-header-fallback-inner,
-.sg-app-shell-fallback-content > main#main-content {
+.sg-app-shell-fallback-content > main#main-content,
+body > .min-h-screen > main#main-content > header > div,
+body > .min-h-screen > .min-w-0 > header > div {
     width: 100% !important;
     max-width: none !important;
     margin-inline: 0 !important;
     box-sizing: border-box;
 }
 
-/* Keep a comfortable desktop gutter without wasting workspace width. */
+/* Keep one desktop gutter across Dashboard, Admin, Teacher, Learner and Parent shells. */
 @media (min-width: 1024px) {
     .sg-icon-sidebar-shell main#main-content > header > div,
     .sg-icon-sidebar-shell > div > header > div,
-    .sg-app-header-fallback-inner {
+    .sg-app-header-fallback-inner,
+    body > .min-h-screen > main#main-content > header > div,
+    body > .min-h-screen > .min-w-0 > header > div {
         padding-left: 2.5rem !important;
         padding-right: 2.5rem !important;
     }
@@ -133,6 +146,7 @@ main#main-content > div > section:first-child a[href='#workspace']:focus-visible
 
 /* Account menu should align consistently at the far right of every header. */
 .sg-account-menu {
+    margin-left: auto;
     flex: 0 0 auto;
 }
 
