@@ -39,6 +39,10 @@ class LearnerDashboardData
         $progressByLesson = $progressRecords->keyBy('lesson_id');
         $continueEntry = $this->continueEntry($lessonEntries, $progressRecords, $progressByLesson);
         $continue = $this->continueCard($continueEntry, $progressByLesson);
+        $completedThisMonth = $progressRecords
+            ->where('status', 'completed')
+            ->filter(fn (LessonProgress $progress) => $progress->completed_at?->gte(now()->startOfMonth()))
+            ->count();
 
         $courseCards = $courses->map(function (Course $course) use ($user, $courseContext) {
             $mastery = $this->mastery->calculateFor($user, $course);
@@ -112,12 +116,15 @@ class LearnerDashboardData
 
         $recommendations = $this->recommendations($user, $courseCards, $courseContext, $lessonEntries);
         $activity = $this->recentActivity($progressRecords, $lessonEntries, $attempts);
+        $lessonsCompleted = $progressRecords->where('status', 'completed')->count();
+        $lessonsInProgress = $progressRecords->where('status', 'in_progress')->count();
 
         return [
             'classes_count' => $classes->count(),
             'courses_count' => $courses->count(),
-            'lessons_completed' => $progressRecords->where('status', 'completed')->count(),
-            'lessons_in_progress' => $progressRecords->where('status', 'in_progress')->count(),
+            'lessons_completed' => $lessonsCompleted,
+            'lessons_in_progress' => $lessonsInProgress,
+            'completed_this_month' => $completedThisMonth,
             'overall_mastery' => $overallMastery,
             'overall_mastery_label' => $overallMastery !== null ? $this->mastery->labelFor($overallMastery) : 'No evidence yet',
             'average_assessment' => $averageAssessment,
@@ -129,6 +136,32 @@ class LearnerDashboardData
             'recommendations' => $recommendations,
             'activity' => $activity,
             'has_learning' => $courses->isNotEmpty() || $lessonEntries->isNotEmpty(),
+
+            // Backward-compatible Phase 4 dashboard contract.
+            'continue_url' => $continue['url'],
+            'continue_label' => $continue['label'],
+            'continue_lesson' => $continue['available'] ? $continue['title'] : null,
+            'has_available_lesson' => $continue['available'],
+            'stats' => [
+                [
+                    'label' => 'Enrolled courses',
+                    'value' => (string) $courses->count(),
+                    'helper' => $classes->count() === 1
+                        ? 'Across 1 active class'
+                        : 'Across '.$classes->count().' active classes',
+                ],
+                [
+                    'label' => 'Lessons completed',
+                    'value' => (string) $lessonsCompleted,
+                    'helper' => $completedThisMonth.' completed this month',
+                ],
+                [
+                    'label' => 'Lessons in progress',
+                    'value' => (string) $lessonsInProgress,
+                    'helper' => 'Current accessible lessons only',
+                ],
+            ],
+            'updates' => $activity,
         ];
     }
 
