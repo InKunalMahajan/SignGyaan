@@ -11,21 +11,18 @@ use Illuminate\View\View as BladeView;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Route::middleware('web')
             ->group(base_path('routes/teacher-assessments.php'));
+
+        Route::middleware('web')
+            ->group(base_path('routes/learner-assessments.php'));
 
         View::composer('dashboard', function (BladeView $view): void {
             $data = $view->getData();

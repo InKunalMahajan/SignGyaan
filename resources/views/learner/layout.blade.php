@@ -27,6 +27,7 @@
                 <div class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
                     <a href="{{ route('dashboard.role', 'learner') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('dashboard.role') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">My dashboard</a>
                     <a href="{{ route('learner.classes.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('learner.classes.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">My Classes</a>
+                    <a href="{{ route('learner.assessments.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('learner.assessments.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Assessments</a>
                     <a href="{{ route('learner.profile.show') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('learner.profile.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">My profile</a>
                     <a href="{{ route('learner.parent-links.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('learner.parent-links.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Parent access</a>
                     <a href="{{ route('dashboard.guest') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold text-slate-700 hover:bg-slate-100">Explore public</a>
@@ -56,6 +57,15 @@
             </header>
 
             <div class="mx-auto max-w-7xl px-5 py-7 sm:px-8 lg:px-10 lg:py-10">
+                @if (session('status'))
+                    <div class="mb-6 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-900" role="status">{{ session('status') }}</div>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-6 rounded-xl border border-slate-300 bg-slate-100 px-4 py-4 text-sm text-slate-900" role="alert">
+                        <p class="font-black">Please check your answers.</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                    </div>
+                @endif
                 @yield('content')
             </div>
         </main>
