@@ -49,6 +49,11 @@ class Course extends Model
         return $this->hasMany(Assessment::class)->orderBy('created_at')->orderBy('id');
     }
 
+    public function masteries(): HasMany
+    {
+        return $this->hasMany(CourseMastery::class);
+    }
+
     public function classes(): BelongsToMany
     {
         return $this->belongsToMany(
