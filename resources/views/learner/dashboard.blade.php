@@ -28,14 +28,15 @@
         </div>
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-2xl border border-slate-200 bg-white p-5">
-                <p class="text-sm font-bold text-slate-500">Active courses</p>
+                <p class="text-sm font-bold text-slate-500">Enrolled courses</p>
                 <p class="mt-3 text-3xl font-black">{{ $d['courses_count'] }}</p>
                 <p class="mt-2 text-xs text-slate-500">Across {{ $d['classes_count'] }} active {{ $d['classes_count'] === 1 ? 'class' : 'classes' }}</p>
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5">
                 <p class="text-sm font-bold text-slate-500">Lessons completed</p>
                 <p class="mt-3 text-3xl font-black">{{ $d['lessons_completed'] }}</p>
-                <p class="mt-2 text-xs text-slate-500">{{ $d['lessons_in_progress'] }} currently in progress</p>
+                <p class="mt-2 text-xs text-slate-500">{{ $d['completed_this_month'] }} completed this month</p>
+                <p class="mt-1 text-xs text-slate-500">Lessons in progress: {{ $d['lessons_in_progress'] }}</p>
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5">
                 <p class="text-sm font-bold text-slate-500">Overall mastery</p>
