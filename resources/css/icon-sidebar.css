@@ -1,0 +1,179 @@
+/* Compact monochrome app sidebar inspired by modern icon rails. */
+
+@media (min-width: 1024px) {
+    .sg-icon-sidebar-shell {
+        grid-template-columns: 72px minmax(0, 1fr) !important;
+    }
+
+    .sg-icon-sidebar,
+    .sg-app-sidebar-fallback.sg-icon-sidebar {
+        width: 72px;
+        min-width: 72px;
+        padding: 14px 10px !important;
+        border-right: 1px solid #e5e7eb;
+        background: #ffffff;
+        overflow: visible;
+    }
+
+    .sg-icon-sidebar > div:first-child,
+    .sg-icon-sidebar .sg-app-sidebar-brand {
+        padding: 0 !important;
+        margin: 0 0 16px !important;
+        display: flex;
+        justify-content: center;
+    }
+
+    .sg-icon-sidebar-brand {
+        width: 44px;
+        height: 44px;
+        margin-inline: auto !important;
+        display: grid !important;
+        place-items: center;
+        border-radius: 12px;
+        background: #111111;
+        color: #ffffff;
+        overflow: hidden;
+    }
+
+    .sg-icon-sidebar-brand > span:not(:first-child),
+    .sg-icon-sidebar .sg-app-sidebar-brand-copy,
+    .sg-icon-sidebar nav > p,
+    .sg-icon-sidebar > nav > p,
+    .sg-icon-sidebar nav + p,
+    .sg-icon-sidebar .sg-app-sidebar-label,
+    .sg-icon-sidebar-account-card,
+    .sg-icon-sidebar .sg-app-sidebar-footer {
+        display: none !important;
+    }
+
+    .sg-icon-sidebar-brand .sg-app-sidebar-mark,
+    .sg-icon-sidebar-brand > span:first-child {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px;
+        border-radius: 12px !important;
+        display: grid;
+        place-items: center;
+        background: #111111 !important;
+        color: #ffffff !important;
+        font-size: 11px !important;
+        font-weight: 800;
+    }
+
+    .sg-icon-sidebar nav,
+    .sg-icon-sidebar .sg-app-sidebar-nav,
+    .sg-icon-sidebar nav > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 8px !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .sg-icon-sidebar nav > div + p,
+    .sg-icon-sidebar nav p {
+        display: none !important;
+    }
+
+    .sg-icon-sidebar-link {
+        position: relative;
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 44px !important;
+        min-height: 44px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: grid !important;
+        place-items: center !important;
+        border-radius: 12px !important;
+        color: #525252 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
+    }
+
+    .sg-icon-sidebar-link:hover,
+    .sg-icon-sidebar-link:focus-visible {
+        background: #f3f4f6 !important;
+        color: #111111 !important;
+        outline: none !important;
+    }
+
+    .sg-icon-sidebar-link[aria-current='page'],
+    .sg-icon-sidebar-link.bg-slate-950,
+    .sg-icon-sidebar-link.bg-blue-700 {
+        background: #e5e7eb !important;
+        color: #111111 !important;
+        box-shadow: none !important;
+    }
+
+    .sg-sidebar-icon {
+        width: 20px;
+        height: 20px;
+        pointer-events: none;
+    }
+
+    .sg-icon-sidebar-text {
+        position: absolute;
+        left: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%) translateX(-4px);
+        z-index: 80;
+        max-width: 220px;
+        white-space: nowrap;
+        padding: 7px 9px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #111111;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        box-shadow: 0 6px 18px rgba(0,0,0,.08);
+        transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+    }
+
+    .sg-icon-sidebar-link:hover .sg-icon-sidebar-text,
+    .sg-icon-sidebar-link:focus-visible .sg-icon-sidebar-text {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    .sg-icon-sidebar nav > div {
+        width: 100%;
+    }
+
+    .sg-icon-sidebar nav > div + div,
+    .sg-icon-sidebar nav .mt-5 {
+        margin-top: 0 !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    .sg-sidebar-icon {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+    }
+
+    .sg-icon-sidebar-link {
+        gap: 8px !important;
+    }
+
+    .sg-icon-sidebar-text {
+        display: inline;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sg-icon-sidebar-link,
+    .sg-icon-sidebar-text {
+        transition: none !important;
+    }
+}
