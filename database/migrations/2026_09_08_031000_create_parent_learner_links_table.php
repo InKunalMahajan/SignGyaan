@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('parent_learner_links')) {
+            return;
+        }
+
         Schema::create('parent_learner_links', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_user_id')->constrained('users')->cascadeOnDelete();
