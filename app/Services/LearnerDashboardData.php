@@ -138,7 +138,9 @@ class LearnerDashboardData
 
         foreach ($classes as $class) {
             foreach ($class->courses as $course) {
-                $context->putIfAbsent($course->id, $class);
+                if (! $context->has($course->id)) {
+                    $context->put($course->id, $class);
+                }
             }
         }
 
@@ -204,11 +206,10 @@ class LearnerDashboardData
                     $url = route('learner.assessments.index');
                 }
 
-                $items->push([
-                    ...$recommendation,
+                $items->push(array_merge($recommendation, [
                     'course' => $card['course']->title,
                     'url' => $url,
-                ]);
+                ]));
             }
         }
 
