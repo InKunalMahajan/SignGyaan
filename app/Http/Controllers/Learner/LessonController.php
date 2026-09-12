@@ -55,6 +55,7 @@ class LessonController extends Controller
             'completedCount' => $completedCount,
             'totalLessons' => $totalLessons,
             'progressPercent' => $totalLessons > 0 ? (int) round(($completedCount / $totalLessons) * 100) : 0,
+            'isFinalLesson' => $currentIndex !== false && $currentIndex === $lessons->count() - 1,
         ]);
     }
 
@@ -84,10 +85,48 @@ class LessonController extends Controller
         $progress->completed_at = $validated['status'] === 'completed' ? now() : null;
         $progress->save();
 
-        return back()->with(
-            'status',
-            $progress->isCompleted() ? 'Lesson marked complete.' : 'Lesson moved back to in progress.'
-        );
+        if (! $progress->isCompleted()) {
+            return back()->with('status', 'Lesson moved back to in progress.');
+        }
+
+        $lessons = $this->publishedLessonsForCourse($course);
+        $lessonIds = $lessons->pluck('id');
+        $completedLessonIds = $request->user()->lessonProgress()
+            ->whereIn('lesson_id', $lessonIds)
+            ->where('status', 'completed')
+            ->pluck('lesson_id');
+
+        if ($lessons->isNotEmpty() && $completedLessonIds->count() === $lessons->count()) {
+            return redirect()
+                ->route('learner.classes.courses.show', [$class, $course])
+                ->with('status', 'Course completed! You finished all published lessons.');
+        }
+
+        $currentIndex = $lessons->search(fn (Lesson $item) => $item->id === $lesson->id);
+        $nextIncompleteLesson = null;
+
+        if ($currentIndex !== false) {
+            $nextIncompleteLesson = $lessons
+                ->slice($currentIndex + 1)
+                ->first(fn (Lesson $item) => ! $completedLessonIds->contains($item->id));
+        }
+
+        $nextIncompleteLesson ??= $lessons
+            ->first(fn (Lesson $item) => ! $completedLessonIds->contains($item->id));
+
+        if ($nextIncompleteLesson) {
+            return redirect()
+                ->route('learner.classes.courses.lessons.show', [$class, $course, $nextIncompleteLesson])
+                ->with('status', 'Lesson complete. Continue with the next lesson.');
+        }
+
+        $remaining = max(0, $lessons->count() - $completedLessonIds->count());
+
+        return redirect()
+            ->route('learner.classes.courses.show', [$class, $course])
+            ->with('status', $remaining > 0
+                ? "Lesson complete. {$remaining} lesson(s) remaining."
+                : 'Lesson complete.');
     }
 
     private function authorizeLessonAccess(

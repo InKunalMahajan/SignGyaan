@@ -183,6 +183,36 @@ class ClassController extends Controller
             ? $lessons->firstWhere('id', $recentInProgress->lesson_id)
             : $lessons->first(fn ($lesson) => ! $completedLessonIds->contains($lesson->id));
 
+        $unitProgress = $course->units->mapWithKeys(function ($unit) use ($progressByLesson) {
+            $unitLessonIds = $unit->lessons->pluck('id');
+            $unitLessonProgress = $progressByLesson->only($unitLessonIds->all());
+            $total = $unit->lessons->count();
+            $completed = $unitLessonProgress
+                ->filter(fn ($progress) => $progress->status === 'completed')
+                ->count();
+
+            if ($total > 0 && $completed === $total) {
+                $state = 'completed';
+                $label = 'Completed';
+            } elseif ($unitLessonProgress->isNotEmpty()) {
+                $state = 'in_progress';
+                $label = 'In progress';
+            } else {
+                $state = 'not_started';
+                $label = $total > 0 ? 'Not started' : 'No lessons';
+            }
+
+            return [
+                $unit->id => [
+                    'state' => $state,
+                    'label' => $label,
+                    'completed' => $completed,
+                    'total' => $total,
+                    'percent' => $total > 0 ? (int) round(($completed / $total) * 100) : 0,
+                ],
+            ];
+        });
+
         return view('learner.classes.course', [
             'class' => $class->loadMissing('teacher.teacherProfile'),
             'course' => $course,
@@ -193,6 +223,9 @@ class ClassController extends Controller
                 : 0,
             'progressByLesson' => $progressByLesson,
             'continueLesson' => $continueLesson,
+            'unitProgress' => $unitProgress,
+            'isCourseCompleted' => $publishedLessonCount > 0
+                && $completedLessonCount === $publishedLessonCount,
         ]);
     }
 
