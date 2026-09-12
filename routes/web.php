@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ArchitectureController;
 use App\Http\Controllers\Admin\CurriculumCatalogController;
 use App\Http\Controllers\Admin\CurriculumContentController;
 use App\Http\Controllers\Admin\UserManagementController;
@@ -22,11 +23,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard');
-
-Route::get('/dashboard/guest', [DashboardController::class, 'guest'])
-    ->name('dashboard.guest');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/guest', [DashboardController::class, 'guest'])->name('dashboard.guest');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'createLogin'])->name('login');
@@ -111,8 +109,17 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/status', [UserManagementController::class, 'toggleStatus'])->name('users.status');
 
+        // Academic Structure: Board → Academic Class → Subject.
         Route::get('/curriculum', [CurriculumCatalogController::class, 'index'])->name('curriculum.index');
+
+        // Course Content: Subject → Course → Chapter → Lesson.
         Route::get('/curriculum/content', [CurriculumContentController::class, 'index'])->name('curriculum.content.index');
+
+        // Teaching Delivery: Teacher → Class / Batch → Learners → Course Assignments.
+        Route::get('/teaching', [ArchitectureController::class, 'teaching'])->name('teaching.index');
+
+        // Learning Outcomes: Lesson Progress → Assessment → Mastery.
+        Route::get('/progress', [ArchitectureController::class, 'progress'])->name('progress.index');
 
         Route::post('/curriculum/boards', [CurriculumCatalogController::class, 'storeBoard'])->name('curriculum.boards.store');
         Route::put('/curriculum/boards/{board}', [CurriculumCatalogController::class, 'updateBoard'])->name('curriculum.boards.update');
