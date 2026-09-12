@@ -1,16 +1,21 @@
-/* Shared app header for protected pages that still use the fallback app shell. */
+/* Shared app header for protected pages that still use the fallback app shell.
+   Keep this geometry identical to the role layouts: full workspace width,
+   72px header rhythm, and the account menu anchored at the far right. */
 
 .sg-app-header-fallback {
+    width: 100%;
+    min-width: 0;
     border-bottom: 1px solid #e5e7eb;
     background: #ffffff;
 }
 
 .sg-app-header-fallback-inner {
     width: 100%;
-    max-width: 80rem;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     min-height: 72px;
-    padding: 14px 28px;
+    padding: 14px 20px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -40,13 +45,30 @@
 }
 
 .sg-app-header-fallback .sg-account-menu {
+    margin-left: auto;
     flex: 0 0 auto;
+}
+
+@media (min-width: 640px) {
+    .sg-app-header-fallback-inner {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sg-app-header-fallback-inner {
+        min-height: 72px;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
 }
 
 @media (max-width: 639px) {
     .sg-app-header-fallback-inner {
         min-height: 64px;
-        padding: 12px 16px;
+        padding-top: 12px;
+        padding-bottom: 12px;
     }
 
     .sg-app-header-eyebrow {
