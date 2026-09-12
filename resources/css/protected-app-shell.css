@@ -50,16 +50,32 @@
     align-items: center;
 }
 
-/* Keep page content and header aligned to the same 80rem professional grid. */
+/*
+ * Protected pages are application workspaces, not narrow marketing pages.
+ * Use the full content column after the 72px rail and let each page's existing
+ * responsive padding create the professional gutter. This removes the large
+ * empty bands that the previous 80rem cap created on wide monitors.
+ */
 .sg-icon-sidebar-shell main#main-content > header > div,
 .sg-icon-sidebar-shell > div > header > div,
 .sg-icon-sidebar-shell main#main-content > header + div,
 .sg-icon-sidebar-shell > div > main#main-content,
 .sg-app-header-fallback-inner,
 .sg-app-shell-fallback-content > main#main-content {
-    width: 100%;
-    max-width: 80rem !important;
-    margin-inline: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box;
+}
+
+/* Keep a comfortable desktop gutter without wasting workspace width. */
+@media (min-width: 1024px) {
+    .sg-icon-sidebar-shell main#main-content > header > div,
+    .sg-icon-sidebar-shell > div > header > div,
+    .sg-app-header-fallback-inner {
+        padding-left: 2.5rem !important;
+        padding-right: 2.5rem !important;
+    }
 }
 
 /* Neutral, consistent active state regardless of original Blade classes. */
