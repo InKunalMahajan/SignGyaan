@@ -357,11 +357,36 @@ function enhanceProtectedActions() {
     });
 }
 
+function enhanceLearnerContinueLearning() {
+    if (window.location.pathname !== '/dashboard/learner') {
+        return;
+    }
+
+    const main = document.querySelector('main#main-content');
+    if (!main) {
+        return;
+    }
+
+    main.querySelectorAll('a[href$="/learner/classes"]').forEach((link) => {
+        const label = link.textContent.replace(/\s+/g, ' ').trim();
+        const cardTitle = link.closest('article')?.querySelector('h3')?.textContent?.trim();
+
+        if (label === 'Open My Classes' || cardTitle === 'Continue Learning') {
+            link.href = '/learner/classes?continue=1';
+
+            if (label === 'Open My Classes') {
+                link.textContent = 'Continue Learning';
+            }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     installFallbackAppSidebar();
     installFallbackAppHeader();
     enhanceHeaderAccountMenu();
     enhanceProtectedActions();
+    enhanceLearnerContinueLearning();
 
     const path = window.location.pathname;
     const usesLiveDashboardData = path.includes('/dashboard/learner') || path.includes('/dashboard/admin');
