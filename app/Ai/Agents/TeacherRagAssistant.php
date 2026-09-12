@@ -2,15 +2,14 @@
 
 namespace App\Ai\Agents;
 
-use Laravel\Ai\Concerns\Promptable;
 use Laravel\Ai\Contracts\Agent;
-use Stringable;
+use Laravel\Ai\Promptable;
 
 class TeacherRagAssistant implements Agent
 {
     use Promptable;
 
-    public function instructions(): Stringable|string
+    public function instructions(): string
     {
         return <<<'PROMPT'
 You are the SignGyaan grounded teacher knowledge assistant.
