@@ -67,20 +67,47 @@ body > .min-h-screen > .min-w-0 > header > div {
 .sg-app-header-fallback-inner,
 .sg-app-shell-fallback-content > main#main-content,
 body > .min-h-screen > main#main-content > header > div,
-body > .min-h-screen > .min-w-0 > header > div {
+body > .min-h-screen > .min-w-0 > header > div,
+body > .min-h-screen > .min-w-0 > header + div {
     width: 100% !important;
     max-width: none !important;
     margin-inline: 0 !important;
     box-sizing: border-box;
 }
 
-/* Keep one desktop gutter across Dashboard, Admin, Teacher, Learner and Parent shells. */
-@media (min-width: 1024px) {
+/* Keep one gutter system across every protected dashboard and child page. */
+.sg-icon-sidebar-shell main#main-content > header > div,
+.sg-icon-sidebar-shell main#main-content > header + div,
+.sg-icon-sidebar-shell > div > header > div,
+.sg-app-header-fallback-inner,
+body > .min-h-screen > main#main-content > header > div,
+body > .min-h-screen > .min-w-0 > header > div,
+body > .min-h-screen > .min-w-0 > header + div {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+}
+
+@media (min-width: 640px) {
     .sg-icon-sidebar-shell main#main-content > header > div,
+    .sg-icon-sidebar-shell main#main-content > header + div,
     .sg-icon-sidebar-shell > div > header > div,
     .sg-app-header-fallback-inner,
     body > .min-h-screen > main#main-content > header > div,
-    body > .min-h-screen > .min-w-0 > header > div {
+    body > .min-h-screen > .min-w-0 > header > div,
+    body > .min-h-screen > .min-w-0 > header + div {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sg-icon-sidebar-shell main#main-content > header > div,
+    .sg-icon-sidebar-shell main#main-content > header + div,
+    .sg-icon-sidebar-shell > div > header > div,
+    .sg-app-header-fallback-inner,
+    body > .min-h-screen > main#main-content > header > div,
+    body > .min-h-screen > .min-w-0 > header > div,
+    body > .min-h-screen > .min-w-0 > header + div {
         padding-left: 2.5rem !important;
         padding-right: 2.5rem !important;
     }
