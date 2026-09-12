@@ -10,7 +10,7 @@
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
     <a href="#main-content" class="sr-only z-50 rounded-lg bg-slate-950 px-4 py-3 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to main content</a>
 
-    <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+    <div class="min-h-screen lg:grid lg:grid-cols-[290px_minmax(0,1fr)]">
         <aside class="border-b border-slate-200 bg-white lg:min-h-screen lg:border-b-0 lg:border-r">
             <div class="flex items-center justify-between gap-4 px-5 py-5 lg:px-6">
                 <a href="{{ route('dashboard.role', 'admin') }}" class="flex items-center gap-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-200" aria-label="SignGyaan admin dashboard home">
@@ -24,13 +24,23 @@
             </div>
 
             <nav class="px-4 pb-5 lg:px-5" aria-label="Admin navigation">
-                <p class="mb-2 hidden px-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 lg:block">Navigation</p>
+                <p class="mb-2 hidden px-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 lg:block">Platform</p>
                 <div class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
-                    <a href="{{ route('dashboard.role', 'admin') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('dashboard.role') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('dashboard.role')) aria-current="page" @endif>My dashboard</a>
+                    <a href="{{ route('dashboard.role', 'admin') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('dashboard.role') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('dashboard.role')) aria-current="page" @endif>My Dashboard</a>
                     <a href="{{ route('admin.users.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.users.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.users.*')) aria-current="page" @endif>Users &amp; Roles</a>
-                    <a href="{{ route('admin.curriculum.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.curriculum.index') || request()->routeIs('admin.curriculum.boards.*') || request()->routeIs('admin.curriculum.classes.*') || request()->routeIs('admin.curriculum.subjects.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.curriculum.index') || request()->routeIs('admin.curriculum.boards.*') || request()->routeIs('admin.curriculum.classes.*') || request()->routeIs('admin.curriculum.subjects.*')) aria-current="page" @endif>Curriculum Catalog</a>
+                </div>
+
+                <p class="mb-2 mt-5 hidden px-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 lg:block">1 · Academic Content</p>
+                <div class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
+                    <a href="{{ route('admin.curriculum.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.curriculum.index') || request()->routeIs('admin.curriculum.boards.*') || request()->routeIs('admin.curriculum.classes.*') || request()->routeIs('admin.curriculum.subjects.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.curriculum.index') || request()->routeIs('admin.curriculum.boards.*') || request()->routeIs('admin.curriculum.classes.*') || request()->routeIs('admin.curriculum.subjects.*')) aria-current="page" @endif>Academic Structure</a>
                     <a href="{{ route('admin.curriculum.content.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.curriculum.content.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.curriculum.content.*')) aria-current="page" @endif>Course Content</a>
-                    <a href="{{ route('dashboard.guest') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">Explore public</a>
+                </div>
+
+                <p class="mb-2 mt-5 hidden px-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 lg:block">2 · Delivery & Outcomes</p>
+                <div class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
+                    <a href="{{ route('admin.teaching.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.teaching.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.teaching.*')) aria-current="page" @endif>Teaching Management</a>
+                    <a href="{{ route('admin.progress.index') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('admin.progress.*') ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }} focus:outline-none focus:ring-4 focus:ring-cyan-200" @if(request()->routeIs('admin.progress.*')) aria-current="page" @endif>Progress &amp; Assessment</a>
+                    <a href="{{ route('dashboard.guest') }}" class="flex min-w-fit items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-cyan-200">Explore Public</a>
                 </div>
             </nav>
 
@@ -65,15 +75,11 @@
 
             <main id="main-content" class="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
                 @if (session('success'))
-                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900" role="status">
-                        {{ session('success') }}
-                    </div>
+                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900" role="status">{{ session('success') }}</div>
                 @endif
 
                 @if (session('status'))
-                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900" role="status">
-                        {{ session('status') }}
-                    </div>
+                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900" role="status">{{ session('status') }}</div>
                 @endif
 
                 @if ($errors->any())
