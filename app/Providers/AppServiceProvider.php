@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\LearnerDashboardData;
+use App\Services\ParentDashboardData;
 use App\Services\TeacherDashboardData;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,13 @@ class AppServiceProvider extends ServiceProvider
             if ($role === 'teacher') {
                 $view->setPath(resource_path('views/teacher/dashboard.blade.php'));
                 $view->with('teacherDashboard', app(TeacherDashboardData::class)->forUser(Auth::user()));
+
+                return;
+            }
+
+            if ($role === 'parents') {
+                $view->setPath(resource_path('views/parents/dashboard.blade.php'));
+                $view->with('parentDashboard', app(ParentDashboardData::class)->forUser(Auth::user()));
             }
         });
     }
