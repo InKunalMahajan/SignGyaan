@@ -34,14 +34,8 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $dashboard = $data['dashboard'];
-            $liveData = app(LearnerDashboardData::class)->forUser(Auth::user());
-
-            $dashboard['stats'] = $liveData['stats'];
-            $dashboard['updates'] = $liveData['updates'];
-            $dashboard['live_data'] = true;
-
-            $view->with('dashboard', $dashboard);
+            $view->setPath(resource_path('views/learner/dashboard.blade.php'));
+            $view->with('learnerDashboard', app(LearnerDashboardData::class)->forUser(Auth::user()));
         });
     }
 }
