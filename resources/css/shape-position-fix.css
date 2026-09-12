@@ -1,0 +1,56 @@
+/* Keep automatic decorative shapes subtle and outside content areas. */
+@media (min-width: 768px) {
+    main > section:first-child,
+    main > div > section:first-child {
+        position: relative;
+        overflow: hidden;
+    }
+
+    main > section:first-child::before,
+    main > div > section:first-child::before {
+        content: '';
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        right: -18px;
+        top: -18px;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        background: transparent;
+        pointer-events: none;
+        opacity: .45;
+        z-index: 0;
+    }
+
+    main > section:first-child::after,
+    main > div > section:first-child::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        right: 14px;
+        top: -7px;
+        border: 1px solid #9ca3af;
+        border-radius: 4px;
+        transform: rotate(10deg);
+        background: #ffffff;
+        pointer-events: none;
+        opacity: .5;
+        z-index: 0;
+    }
+
+    main > section:first-child > *,
+    main > div > section:first-child > * {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+@media (max-width: 767px) {
+    main > section:first-child::before,
+    main > section:first-child::after,
+    main > div > section:first-child::before,
+    main > div > section:first-child::after {
+        display: none !important;
+    }
+}
