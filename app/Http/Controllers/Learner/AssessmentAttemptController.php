@@ -7,6 +7,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentAnswer;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentQuestion;
+use App\Services\AssessmentScoringService;
 use App\Services\LearnerLearningPath;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,11 +39,8 @@ class AssessmentAttemptController extends Controller
         return view('learner.assessments.index', compact('assessments', 'attempts'));
     }
 
-    public function start(
-        Request $request,
-        Assessment $assessment,
-        LearnerLearningPath $learningPath
-    ): RedirectResponse {
+    public function start(Request $request, Assessment $assessment, LearnerLearningPath $learningPath): RedirectResponse
+    {
         $this->assertAssessmentAccessible($request, $assessment, $learningPath);
 
         $activeAttempt = AssessmentAttempt::query()
@@ -83,11 +81,7 @@ class AssessmentAttemptController extends Controller
         $this->assertAttemptOwner($request, $attempt);
         abort_if($attempt->isSubmitted(), 409, 'This assessment has already been submitted.');
 
-        $attempt->load([
-            'assessment.course.subject',
-            'assessment.questions',
-            'answers',
-        ]);
+        $attempt->load(['assessment.course.subject', 'assessment.questions', 'answers']);
 
         return view('learner.assessments.attempt', [
             'attempt' => $attempt,
@@ -119,14 +113,8 @@ class AssessmentAttemptController extends Controller
             $response = $this->normalizeResponse($question, $raw);
 
             AssessmentAnswer::updateOrCreate(
-                [
-                    'attempt_id' => $attempt->id,
-                    'question_id' => $question->id,
-                ],
-                [
-                    'response' => $response,
-                    'requires_review' => $question->requiresManualReview(),
-                ]
+                ['attempt_id' => $attempt->id, 'question_id' => $question->id],
+                ['response' => $response, 'requires_review' => $question->requiresManualReview()]
             );
         }
 
@@ -138,11 +126,7 @@ class AssessmentAttemptController extends Controller
         $this->assertAttemptOwner($request, $attempt);
         abort_if($attempt->isSubmitted(), 409, 'This assessment has already been submitted.');
 
-        $attempt->load([
-            'assessment.course.subject',
-            'assessment.questions',
-            'answers',
-        ]);
+        $attempt->load(['assessment.course.subject', 'assessment.questions', 'answers']);
 
         return view('learner.assessments.review', [
             'attempt' => $attempt,
@@ -152,8 +136,11 @@ class AssessmentAttemptController extends Controller
         ]);
     }
 
-    public function submit(Request $request, AssessmentAttempt $attempt): RedirectResponse
-    {
+    public function submit(
+        Request $request,
+        AssessmentAttempt $attempt,
+        AssessmentScoringService $scoring
+    ): RedirectResponse {
         $this->assertAttemptOwner($request, $attempt);
         abort_if($attempt->isSubmitted(), 409, 'This assessment has already been submitted.');
 
@@ -193,23 +180,36 @@ class AssessmentAttemptController extends Controller
             'submitted_at' => now(),
         ]);
 
+        $scoring->scoreAttempt($attempt->fresh());
+
         return redirect()
-            ->route('learner.assessments.index')
+            ->route('learner.assessments.attempts.result', $attempt)
             ->with('status', $hasManualReview
-                ? 'Assessment submitted. Some answers are waiting for teacher review.'
-                : 'Assessment submitted successfully. Scoring will be available in the next assessment phase.');
+                ? 'Assessment submitted. Objective questions were scored. Short answers are waiting for teacher review.'
+                : 'Assessment submitted and scored successfully.');
     }
 
-    private function assertAssessmentAccessible(
+    public function result(
         Request $request,
-        Assessment $assessment,
-        LearnerLearningPath $learningPath
-    ): void {
+        AssessmentAttempt $attempt,
+        AssessmentScoringService $scoring
+    ): View {
+        $this->assertAttemptOwner($request, $attempt);
+        abort_unless($attempt->isSubmitted(), 404);
+
+        $attempt = $scoring->scoreAttempt($attempt);
+
+        return view('learner.assessments.result', [
+            'attempt' => $attempt,
+            'assessment' => $attempt->assessment,
+            'answers' => $attempt->answers->sortBy(fn ($answer) => $answer->question_snapshot['position'] ?? $answer->question?->position ?? 0),
+        ]);
+    }
+
+    private function assertAssessmentAccessible(Request $request, Assessment $assessment, LearnerLearningPath $learningPath): void
+    {
         abort_unless($assessment->status === 'published', 404);
-        abort_unless(
-            $this->accessibleCourseIds($request, $learningPath)->contains($assessment->course_id),
-            403
-        );
+        abort_unless($this->accessibleCourseIds($request, $learningPath)->contains($assessment->course_id), 403);
     }
 
     private function accessibleCourseIds(Request $request, LearnerLearningPath $learningPath): Collection
