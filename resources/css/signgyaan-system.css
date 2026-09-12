@@ -1,0 +1,154 @@
+@reference "tailwindcss";
+
+/*
+ |--------------------------------------------------------------------------
+ | SignGyaan Tailwind Design System
+ |--------------------------------------------------------------------------
+ | Tailwind CSS v4 tokens and shared application components.
+ | White + gray + black only. Accessible, compact and consistent across
+ | Learner, Teacher, Parent and Admin workspaces.
+ */
+
+@theme {
+    --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+
+    --color-sg-canvas: #f7f7f7;
+    --color-sg-surface: #ffffff;
+    --color-sg-soft: #f3f4f6;
+    --color-sg-border: #e5e7eb;
+    --color-sg-border-strong: #d1d5db;
+    --color-sg-text: #111111;
+    --color-sg-muted: #6b7280;
+    --color-sg-black: #111111;
+
+    --spacing-sg-sidebar: 4.5rem;
+    --spacing-sg-header: 4.5rem;
+
+    --radius-sg-sm: 0.5rem;
+    --radius-sg: 0.625rem;
+    --radius-sg-lg: 0.75rem;
+
+    --shadow-sg: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+@layer base {
+    html,
+    body,
+    button,
+    input,
+    select,
+    textarea {
+        font-family: var(--font-sans);
+    }
+
+    body {
+        background: var(--color-sg-canvas);
+        color: var(--color-sg-text);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-sg-black);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .sg-workspace {
+        @apply w-full min-w-0;
+    }
+
+    .sg-workspace-inner {
+        @apply w-full min-w-0 px-5 sm:px-8 lg:px-10;
+    }
+
+    .sg-app-header {
+        @apply flex min-h-[72px] w-full items-center justify-between border-b border-gray-200 bg-white px-5 sm:px-8 lg:px-10;
+    }
+
+    .sg-panel {
+        @apply border border-gray-200 bg-white;
+        border-radius: var(--radius-sg);
+        box-shadow: var(--shadow-sg);
+    }
+
+    .sg-card {
+        @apply border border-gray-200 bg-white p-5;
+        border-radius: var(--radius-sg);
+        box-shadow: var(--shadow-sg);
+    }
+
+    .sg-card-soft {
+        @apply border border-gray-200 bg-gray-50 p-5;
+        border-radius: var(--radius-sg);
+    }
+
+    .sg-field {
+        @apply min-h-[38px] w-full border border-gray-300 bg-white px-3 text-sm text-gray-950 outline-none;
+        border-radius: var(--radius-sg-sm);
+        box-shadow: none;
+    }
+
+    .sg-field:focus {
+        border-color: var(--color-sg-black);
+        box-shadow: 0 0 0 3px rgb(17 17 17 / 0.08);
+    }
+
+    .sg-btn,
+    .sg-btn-primary,
+    .sg-btn-secondary,
+    .sg-btn-compact,
+    .sg-btn-danger {
+        @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap text-[13px] font-bold no-underline;
+        border-radius: var(--radius-sg-sm);
+    }
+
+    .sg-btn-primary,
+    .sg-btn-secondary {
+        @apply h-[38px] px-3.5;
+    }
+
+    .sg-btn-primary {
+        @apply border border-black bg-black text-white hover:bg-neutral-800 focus-visible:bg-neutral-800;
+    }
+
+    .sg-btn-secondary {
+        @apply border border-gray-300 bg-white text-gray-950 hover:border-gray-400 hover:bg-gray-50;
+    }
+
+    .sg-btn-compact,
+    .sg-btn-danger {
+        @apply h-[34px] px-3;
+    }
+
+    .sg-btn-compact {
+        @apply border border-gray-300 bg-white text-gray-950 hover:border-gray-400 hover:bg-gray-50;
+    }
+
+    .sg-btn-danger {
+        @apply border border-gray-400 bg-white text-gray-950 hover:border-black hover:bg-black hover:text-white;
+    }
+
+    .sg-eyebrow {
+        @apply text-[11px] font-extrabold uppercase tracking-[0.16em] text-gray-500;
+    }
+
+    .sg-page-title {
+        @apply text-2xl font-extrabold tracking-tight text-gray-950 sm:text-3xl;
+    }
+
+    .sg-page-copy {
+        @apply text-sm leading-6 text-gray-600;
+    }
+
+    .sg-status-badge {
+        @apply inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] font-bold text-gray-700;
+    }
+
+    .sg-progress-track {
+        @apply h-2 w-full overflow-hidden rounded-full bg-gray-200;
+    }
+
+    .sg-progress-value {
+        @apply h-full rounded-full bg-black;
+    }
+}
