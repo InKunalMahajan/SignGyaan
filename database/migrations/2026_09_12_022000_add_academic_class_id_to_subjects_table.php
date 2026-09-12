@@ -8,19 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('subjects', function (Blueprint $table) {
-            $table->foreignId('academic_class_id')
-                ->nullable()
-                ->after('id')
-                ->constrained('academic_classes')
-                ->nullOnDelete();
-        });
+        if (! Schema::hasColumn('subjects', 'academic_class_id')) {
+            Schema::table('subjects', function (Blueprint $table) {
+                $table->foreignId('academic_class_id')
+                    ->nullable()
+                    ->after('id')
+                    ->constrained('academic_classes')
+                    ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('subjects', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('academic_class_id');
-        });
+        if (Schema::hasColumn('subjects', 'academic_class_id')) {
+            Schema::table('subjects', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('academic_class_id');
+            });
+        }
     }
 };
