@@ -69,12 +69,13 @@ class AdminDashboardPhase10Test extends TestCase
             ->assertOk()
             ->assertSee('Admin Dashboard')
             ->assertSee('Platform overview')
-            ->assertSee('Users &amp; roles', false)
+            ->assertSee('Users & roles')
             ->assertSee('Curriculum health')
             ->assertSee('Teaching operations')
-            ->assertSee('Assessment &amp; mastery', false)
+            ->assertSee('Assessment & mastery')
             ->assertSee('Operational alerts')
-            ->assertSee('FYJC A', false, false);
+            ->assertSee('Active classes without learners')
+            ->assertSee('Active classes without courses');
     }
 
     public function test_admin_dashboard_has_usable_empty_state_and_non_admin_cannot_open_it(): void
@@ -94,11 +95,11 @@ class AdminDashboardPhase10Test extends TestCase
             ->assertOk()
             ->assertSee('Admin Dashboard')
             ->assertSee('Manage SignGyaan')
-            ->assertSee('Users &amp; Roles')
+            ->assertSee('Users & Roles')
             ->assertSee('Academic Structure')
             ->assertSee('Course Content')
             ->assertSee('Teaching Management')
-            ->assertSee('Progress &amp; Assessment');
+            ->assertSee('Progress & Assessment');
 
         $this->actingAs($learner)
             ->get(route('dashboard.role', 'admin'))
