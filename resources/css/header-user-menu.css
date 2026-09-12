@@ -1,0 +1,159 @@
+/* Header avatar account menu — monochrome and accessible. */
+.sg-account-menu {
+    position: relative;
+}
+
+.sg-account-menu > summary {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 4px 6px;
+    color: #111111;
+}
+
+.sg-account-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.sg-account-menu > summary:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 3px;
+}
+
+.sg-account-avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 9999px;
+    background: #111111;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+
+.sg-account-text {
+    display: none;
+    text-align: left;
+}
+
+.sg-account-name,
+.sg-account-role {
+    display: block;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sg-account-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #111111;
+}
+
+.sg-account-role {
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.sg-account-chevron {
+    width: 14px;
+    height: 14px;
+    color: #6b7280;
+    transition: transform 150ms ease;
+}
+
+.sg-account-menu[open] .sg-account-chevron {
+    transform: rotate(180deg);
+}
+
+.sg-account-popover {
+    position: absolute;
+    z-index: 70;
+    right: 0;
+    top: calc(100% + 10px);
+    width: 220px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .08);
+}
+
+.sg-account-popover-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.sg-account-popover-header strong,
+.sg-account-popover-header span {
+    display: block;
+}
+
+.sg-account-popover-header strong {
+    font-size: 13px;
+    color: #111111;
+}
+
+.sg-account-popover-header span {
+    margin-top: 2px;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.sg-account-link,
+.sg-account-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 14px;
+    border: 0;
+    background: #ffffff;
+    color: #111111;
+    text-align: left;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.sg-account-link:hover,
+.sg-account-logout:hover,
+.sg-account-link:focus-visible,
+.sg-account-logout:focus-visible {
+    background: #f3f4f6;
+    outline: none;
+}
+
+.sg-account-menu-divider {
+    border-top: 1px solid #e5e7eb;
+}
+
+.sg-account-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    color: #6b7280;
+}
+
+@media (min-width: 640px) {
+    .sg-account-text {
+        display: block;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sg-account-chevron {
+        transition: none;
+    }
+}
