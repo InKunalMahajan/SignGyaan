@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Services\TeacherAiService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
@@ -12,16 +13,10 @@ class AiAssistantController extends Controller
 {
     public function index(): View
     {
-        return view('teacher.ai.index', [
-            'tasks' => TeacherAiService::TASKS,
-            'configured' => filled(config('ai.providers.openai.key')),
-            'provider' => config('signgyaan-ai.teacher.provider', 'openai'),
-            'model' => config('signgyaan-ai.teacher.model', 'gpt-5.6-luna'),
-            'result' => null,
-        ]);
+        return view('teacher.ai.index', $this->viewData());
     }
 
-    public function generate(Request $request, TeacherAiService $ai): View
+    public function generate(Request $request, TeacherAiService $ai): View|RedirectResponse
     {
         $validated = $request->validate([
             'task' => ['required', 'string', 'in:'.implode(',', array_keys(TeacherAiService::TASKS))],
@@ -37,21 +32,22 @@ class AiAssistantController extends Controller
                 $validated['context'] ?? null,
             );
         } catch (RuntimeException $exception) {
-            return view('teacher.ai.index', [
-                'tasks' => TeacherAiService::TASKS,
-                'configured' => filled(config('ai.providers.openai.key')),
-                'provider' => config('signgyaan-ai.teacher.provider', 'openai'),
-                'model' => config('signgyaan-ai.teacher.model', 'gpt-5.6-luna'),
-                'result' => null,
-            ])->withErrors(['ai' => $exception->getMessage()]);
+            return back()
+                ->withErrors(['ai' => $exception->getMessage()])
+                ->withInput();
         }
 
-        return view('teacher.ai.index', [
+        return view('teacher.ai.index', $this->viewData($result));
+    }
+
+    private function viewData(?string $result = null): array
+    {
+        return [
             'tasks' => TeacherAiService::TASKS,
             'configured' => filled(config('ai.providers.openai.key')),
             'provider' => config('signgyaan-ai.teacher.provider', 'openai'),
             'model' => config('signgyaan-ai.teacher.model', 'gpt-5.6-luna'),
             'result' => $result,
-        ]);
+        ];
     }
 }
