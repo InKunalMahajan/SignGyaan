@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CurriculumCatalogController;
+use App\Http\Controllers\Admin\CurriculumContentController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -111,6 +112,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/users/{user}/status', [UserManagementController::class, 'toggleStatus'])->name('users.status');
 
         Route::get('/curriculum', [CurriculumCatalogController::class, 'index'])->name('curriculum.index');
+        Route::get('/curriculum/content', [CurriculumContentController::class, 'index'])->name('curriculum.content.index');
 
         Route::post('/curriculum/boards', [CurriculumCatalogController::class, 'storeBoard'])->name('curriculum.boards.store');
         Route::put('/curriculum/boards/{board}', [CurriculumCatalogController::class, 'updateBoard'])->name('curriculum.boards.update');
@@ -123,5 +125,17 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/curriculum/subjects', [CurriculumCatalogController::class, 'storeSubject'])->name('curriculum.subjects.store');
         Route::put('/curriculum/subjects/{subject}', [CurriculumCatalogController::class, 'updateSubject'])->name('curriculum.subjects.update');
         Route::delete('/curriculum/subjects/{subject}', [CurriculumCatalogController::class, 'destroySubject'])->name('curriculum.subjects.destroy');
+
+        Route::post('/curriculum/courses', [CurriculumContentController::class, 'storeCourse'])->name('curriculum.content.courses.store');
+        Route::put('/curriculum/courses/{course}', [CurriculumContentController::class, 'updateCourse'])->name('curriculum.content.courses.update');
+        Route::delete('/curriculum/courses/{course}', [CurriculumContentController::class, 'destroyCourse'])->name('curriculum.content.courses.destroy');
+
+        Route::post('/curriculum/courses/{course}/units', [CurriculumContentController::class, 'storeUnit'])->name('curriculum.content.units.store');
+        Route::put('/curriculum/courses/{course}/units/{unit}', [CurriculumContentController::class, 'updateUnit'])->name('curriculum.content.units.update');
+        Route::delete('/curriculum/courses/{course}/units/{unit}', [CurriculumContentController::class, 'destroyUnit'])->name('curriculum.content.units.destroy');
+
+        Route::post('/curriculum/courses/{course}/units/{unit}/lessons', [CurriculumContentController::class, 'storeLesson'])->name('curriculum.content.lessons.store');
+        Route::put('/curriculum/courses/{course}/units/{unit}/lessons/{lesson}', [CurriculumContentController::class, 'updateLesson'])->name('curriculum.content.lessons.update');
+        Route::delete('/curriculum/courses/{course}/units/{unit}/lessons/{lesson}', [CurriculumContentController::class, 'destroyLesson'])->name('curriculum.content.lessons.destroy');
     });
 });
