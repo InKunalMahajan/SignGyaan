@@ -29,6 +29,10 @@
     </header>
 
     <main id="main-content" class="mx-auto max-w-6xl space-y-7 px-5 py-8 sm:px-8 lg:py-10">
+        @if (session('status'))
+            <div role="status" class="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-bold text-slate-950">{{ session('status') }}</div>
+        @endif
+
         <section class="rounded-3xl bg-gradient-to-br from-blue-800 via-blue-700 to-cyan-600 p-6 text-white shadow-lg sm:p-8">
             <a href="{{ route('learner.classes.show', $class) }}" class="text-sm font-black text-cyan-100 focus:outline-none focus:ring-4 focus:ring-white/30">← Back to {{ $class->name }}</a>
             <div class="mt-5 flex flex-wrap items-start justify-between gap-5">
@@ -37,9 +41,14 @@
                     <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{{ $course->title }}</h1>
                     <p class="mt-3 text-sm leading-6 text-blue-50 sm:text-base">{{ $course->description ?: 'Your Teacher has organised this course into Units and Lessons.' }}</p>
                 </div>
-                @if ($course->level)
-                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">{{ $course->level }}</span>
-                @endif
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($isCourseCompleted)
+                        <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">Completed ✓</span>
+                    @endif
+                    @if ($course->level)
+                        <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black">{{ $course->level }}</span>
+                    @endif
+                </div>
             </div>
 
             <div class="mt-7 max-w-3xl rounded-2xl border border-white/20 bg-white/10 p-5">
@@ -56,15 +65,23 @@
 
                 @if ($continueLesson)
                     <a href="{{ route('learner.classes.courses.lessons.show', [$class, $course, $continueLesson]) }}" class="mt-5 inline-flex rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-800 focus:outline-none focus:ring-4 focus:ring-white/40">{{ $progressByLesson->has($continueLesson->id) ? 'Resume Learning' : 'Start Learning' }} →</a>
-                @elseif ($publishedLessonCount > 0)
-                    <span class="mt-5 inline-flex rounded-xl bg-emerald-100 px-5 py-3 text-sm font-black text-emerald-900">Course complete ✓</span>
+                @elseif ($isCourseCompleted)
+                    <span class="mt-5 inline-flex rounded-xl border border-white/30 bg-white px-5 py-3 text-sm font-black text-slate-950">Course Completed ✓</span>
                 @endif
             </div>
         </section>
 
+        @if ($isCourseCompleted)
+            <section class="rounded-2xl border border-slate-300 bg-white p-5" aria-label="Course completion">
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Course completed</p>
+                <h2 class="mt-1 text-xl font-black">You finished all published lessons.</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">You can review any chapter or lesson below whenever you want.</p>
+            </section>
+        @endif
+
         <section class="grid gap-4 sm:grid-cols-3" aria-label="Course summary">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-bold text-slate-500">Visible Units</p>
+                <p class="text-sm font-bold text-slate-500">Visible Chapters</p>
                 <p class="mt-2 text-3xl font-black">{{ $course->units->count() }}</p>
             </article>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -80,37 +97,40 @@
         <section aria-labelledby="learning-path-heading">
             <div class="mb-4">
                 <p class="text-xs font-black uppercase tracking-[0.16em] text-cyan-700">Learning path</p>
-                <h2 id="learning-path-heading" class="mt-1 text-2xl font-black">Units & Lessons</h2>
+                <h2 id="learning-path-heading" class="mt-1 text-2xl font-black">Chapters & Lessons</h2>
             </div>
 
             @if ($course->units->isEmpty())
                 <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
                     <p class="font-black">Course content is being prepared.</p>
-                    <p class="mt-2 text-sm text-slate-500">Your Teacher has not published any visible Units yet.</p>
+                    <p class="mt-2 text-sm text-slate-500">Your Teacher has not published any visible Chapters yet.</p>
                 </div>
             @else
                 <div class="space-y-5">
                     @foreach ($course->units as $unit)
-                        @php
-                            $unitCompleted = $unit->lessons->filter(fn ($item) => optional($progressByLesson->get($item->id))->status === 'completed')->count();
-                            $unitTotal = $unit->lessons->count();
-                        @endphp
+                        @php($chapter = $unitProgress->get($unit->id))
                         <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="border-b border-slate-100 bg-slate-50 p-5 sm:p-6">
                                 <div class="flex flex-wrap items-start justify-between gap-4">
                                     <div>
-                                        <p class="text-xs font-black uppercase tracking-[0.14em] text-cyan-700">Unit {{ $unit->position }}</p>
+                                        <p class="text-xs font-black uppercase tracking-[0.14em] text-cyan-700">Chapter {{ $unit->position }}</p>
                                         <h3 class="mt-1 text-xl font-black">{{ $unit->title }}</h3>
                                         @if ($unit->description)
                                             <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{{ $unit->description }}</p>
                                         @endif
                                     </div>
-                                    <span class="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 shadow-sm">{{ $unitCompleted }}/{{ $unitTotal }} complete</span>
+                                    <div class="text-right">
+                                        <span class="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700 shadow-sm">{{ $chapter['label'] }}</span>
+                                        <p class="mt-2 text-xs font-bold text-slate-500">{{ $chapter['completed'] }}/{{ $chapter['total'] }} complete · {{ $chapter['percent'] }}%</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-200" aria-label="Chapter {{ $unit->position }} {{ $chapter['percent'] }} percent complete">
+                                    <div class="h-full rounded-full bg-slate-950" style="width: {{ $chapter['percent'] }}%"></div>
                                 </div>
                             </div>
 
                             @if ($unit->lessons->isEmpty())
-                                <div class="p-6 text-sm font-bold text-slate-500">No published Lessons are available in this Unit yet.</div>
+                                <div class="p-6 text-sm font-bold text-slate-500">No published Lessons are available in this Chapter yet.</div>
                             @else
                                 <div class="divide-y divide-slate-100">
                                     @foreach ($unit->lessons as $lesson)
@@ -123,9 +143,9 @@
                                                 <div class="flex flex-wrap items-center gap-2">
                                                     <p class="text-xs font-black uppercase tracking-wide text-cyan-700">Lesson {{ $lesson->position }}</p>
                                                     @if ($lessonStatus === 'completed')
-                                                        <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-700">Completed</span>
+                                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700">Completed ✓</span>
                                                     @elseif ($lessonStatus === 'in_progress')
-                                                        <span class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700">In progress</span>
+                                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700">In progress</span>
                                                     @else
                                                         <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-600">Not started</span>
                                                     @endif
@@ -139,7 +159,7 @@
                                                 @if ($lesson->estimated_minutes)
                                                     <span class="text-xs font-bold text-slate-400">{{ $lesson->estimated_minutes }} min</span>
                                                 @endif
-                                                <a href="{{ route('learner.classes.courses.lessons.show', [$class, $course, $lesson]) }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">{{ $lessonStatus === 'not_started' ? 'Start' : 'Open' }}</a>
+                                                <a href="{{ route('learner.classes.courses.lessons.show', [$class, $course, $lesson]) }}" class="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">{{ $lessonStatus === 'not_started' ? 'Start' : ($lessonStatus === 'completed' ? 'Review' : 'Continue') }}</a>
                                             </div>
                                         </article>
                                     @endforeach
