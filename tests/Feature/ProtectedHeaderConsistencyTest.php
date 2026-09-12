@@ -77,12 +77,12 @@ class ProtectedHeaderConsistencyTest extends TestCase
         $shell = file_get_contents(base_path('resources/css/protected-app-shell.css'));
 
         // Learner, Teacher, Parent and Admin dashboards all render through one shared view.
-        $this->assertStringContainsString("$dashboard['label']", $dashboard);
-        $this->assertStringContainsString("$dashboard['eyebrow']", $dashboard);
-        $this->assertStringContainsString("$role === 'learner'", $dashboard);
-        $this->assertStringContainsString("$role === 'teacher'", $dashboard);
-        $this->assertStringContainsString("$role === 'parents'", $dashboard);
-        $this->assertStringContainsString("$role === 'admin'", $dashboard);
+        $this->assertStringContainsString("\$dashboard['label']", $dashboard);
+        $this->assertStringContainsString("\$dashboard['eyebrow']", $dashboard);
+        $this->assertStringContainsString("\$role === 'learner'", $dashboard);
+        $this->assertStringContainsString("\$role === 'teacher'", $dashboard);
+        $this->assertStringContainsString("\$role === 'parents'", $dashboard);
+        $this->assertStringContainsString("\$role === 'admin'", $dashboard);
 
         // Header and first dashboard content container must share one full-width gutter system.
         $this->assertStringContainsString('main#main-content > header + div', $shell);
