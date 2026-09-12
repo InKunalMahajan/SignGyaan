@@ -3,10 +3,13 @@
 @section('header_label', 'Assessments')
 @section('content')
 <div class="space-y-6">
-    <div>
-        <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Assessment System</p>
-        <h1 class="mt-2 text-3xl font-black text-slate-950">My Assessments</h1>
-        <p class="mt-2 text-sm text-slate-600">Only published assessments from your active learning courses appear here.</p>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Assessment System</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-950">My Assessments</h1>
+            <p class="mt-2 text-sm text-slate-600">Only published assessments from your active learning courses appear here.</p>
+        </div>
+        <a href="{{ route('learner.assessments.history') }}" class="sg-btn-secondary">Assessment History</a>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
