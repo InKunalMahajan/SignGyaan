@@ -1,0 +1,97 @@
+/* Shared action-button system for protected SignGyaan workspaces. */
+.sg-action-primary,
+.sg-action-secondary,
+.sg-action-compact,
+.sg-action-danger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: .4rem !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+
+.sg-action-primary {
+    min-height: 40px;
+    padding: .65rem 1rem !important;
+    border: 1px solid #111111 !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+}
+
+.sg-action-primary:hover,
+.sg-action-primary:focus-visible {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+.sg-action-secondary {
+    min-height: 40px;
+    padding: .65rem 1rem !important;
+    border: 1px solid #d1d5db !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+}
+
+.sg-action-secondary:hover,
+.sg-action-secondary:focus-visible {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    color: #111111 !important;
+}
+
+.sg-action-compact {
+    min-height: 34px;
+    padding: .45rem .75rem !important;
+    border: 1px solid #d1d5db !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: .8125rem !important;
+}
+
+.sg-action-compact:hover,
+.sg-action-compact:focus-visible {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    color: #111111 !important;
+}
+
+.sg-action-danger {
+    min-height: 34px;
+    padding: .45rem .75rem !important;
+    border: 1px solid #9ca3af !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: .8125rem !important;
+}
+
+.sg-action-danger:hover,
+.sg-action-danger:focus-visible {
+    background: #111111 !important;
+    border-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+.sg-action-primary:disabled,
+.sg-action-secondary:disabled,
+.sg-action-compact:disabled,
+.sg-action-danger:disabled,
+.sg-action-primary[aria-disabled='true'],
+.sg-action-secondary[aria-disabled='true'],
+.sg-action-compact[aria-disabled='true'],
+.sg-action-danger[aria-disabled='true'] {
+    cursor: not-allowed !important;
+    opacity: .5 !important;
+}
+
+/* Keep action groups tidy on narrow screens. */
+.sg-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+}
