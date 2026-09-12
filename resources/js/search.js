@@ -23,11 +23,18 @@ function installHeaderSearch() {
         <kbd class="sg-global-search__kbd" aria-hidden="true">Ctrl K</kbd>
     `;
 
+    const mobileLink = document.createElement('a');
+    mobileLink.href = '/search';
+    mobileLink.className = 'sg-global-search-mobile';
+    mobileLink.setAttribute('aria-label', 'Search SignGyaan');
+    mobileLink.textContent = 'Search';
+
     const account = header.querySelector('.sg-account-menu, [data-account-menu-enhanced]') || header.lastElementChild;
     if (account) {
         header.insertBefore(form, account);
+        header.insertBefore(mobileLink, account);
     } else {
-        header.appendChild(form);
+        header.append(form, mobileLink);
     }
 }
 
