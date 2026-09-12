@@ -93,6 +93,40 @@
     .sg-muted {
         color: var(--sg-muted);
     }
+
+    /* Reusable monochrome decorative shapes. */
+    .sg-shape-ring {
+        width: 72px;
+        height: 72px;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        background: transparent;
+        pointer-events: none;
+    }
+
+    .sg-shape-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        background: #111111;
+        pointer-events: none;
+    }
+
+    .sg-shape-square {
+        width: 52px;
+        height: 52px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        transform: rotate(8deg);
+        pointer-events: none;
+    }
+
+    .sg-shape-grid {
+        background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+        background-size: 18px 18px;
+        pointer-events: none;
+    }
 }
 
 /*
@@ -360,6 +394,52 @@ button,
 
 .max-w-7xl {
     max-width: 80rem !important;
+}
+
+/*
+ |--------------------------------------------------------------------------
+ | Monochrome Shape Details
+ |--------------------------------------------------------------------------
+ | Add small geometric details to page headers without turning the interface
+ | into a decorative theme. They are non-interactive and hidden on small
+ | screens so forms and learning content remain the visual priority.
+ */
+@media (min-width: 768px) {
+    main > section:first-child,
+    main > div > section:first-child {
+        position: relative;
+        overflow: hidden;
+    }
+
+    main > section:first-child::before,
+    main > div > section:first-child::before {
+        content: '';
+        position: absolute;
+        width: 78px;
+        height: 78px;
+        right: 18px;
+        top: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        pointer-events: none;
+        opacity: .7;
+    }
+
+    main > section:first-child::after,
+    main > div > section:first-child::after {
+        content: '';
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        right: 78px;
+        top: 60px;
+        border: 1px solid #111111;
+        border-radius: 6px;
+        transform: rotate(10deg);
+        background: #ffffff;
+        pointer-events: none;
+        opacity: .8;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
