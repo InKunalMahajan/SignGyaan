@@ -2,82 +2,133 @@
 
 namespace App\Services;
 
-use App\Models\ClassCourseAssignment;
-use App\Models\ClassEnrollment;
 use App\Models\LessonProgress;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class LearnerDashboardData
 {
     public function forUser(User $user): array
     {
-        $classIds = ClassEnrollment::query()
-            ->where('learner_id', $user->id)
-            ->pluck('learning_class_id');
-
-        $classCount = $classIds->count();
-
-        $courseCount = $classIds->isEmpty()
-            ? 0
-            : ClassCourseAssignment::query()
-                ->whereIn('learning_class_id', $classIds)
-                ->distinct()
-                ->count('course_id');
-
-        $completedTotal = LessonProgress::query()
-            ->where('learner_id', $user->id)
-            ->where('status', 'completed')
-            ->count();
-
-        $completedThisMonth = LessonProgress::query()
-            ->where('learner_id', $user->id)
-            ->where('status', 'completed')
-            ->whereNotNull('completed_at')
-            ->where('completed_at', '>=', now()->startOfMonth())
-            ->count();
-
-        $inProgress = LessonProgress::query()
-            ->where('learner_id', $user->id)
-            ->where('status', 'in_progress')
-            ->count();
-
-        $viewedThisWeek = LessonProgress::query()
-            ->where('learner_id', $user->id)
-            ->whereNotNull('last_viewed_at')
-            ->where('last_viewed_at', '>=', now()->subDays(7))
-            ->count();
-
-        $recentProgress = LessonProgress::query()
-            ->with(['lesson.unit.course'])
-            ->where('learner_id', $user->id)
-            ->orderByRaw('COALESCE(last_viewed_at, completed_at, updated_at) DESC')
-            ->limit(3)
+        $classes = $user->enrolledClasses()
+            ->where('learning_classes.is_active', true)
+            ->with([
+                'courses' => fn ($query) => $query
+                    ->where('courses.is_active', true)
+                    ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true))
+                    ->with([
+                        'subject',
+                        'units' => fn ($unitQuery) => $unitQuery
+                            ->where('is_active', true)
+                            ->with([
+                                'lessons' => fn ($lessonQuery) => $lessonQuery
+                                    ->where('status', 'published')
+                                    ->orderBy('position')
+                                    ->orderBy('id'),
+                            ])
+                            ->orderBy('position')
+                            ->orderBy('id'),
+                    ])
+                    ->orderBy('title'),
+            ])
+            ->orderBy('learning_classes.name')
             ->get();
 
-        $updates = $recentProgress->map(function (LessonProgress $progress): array {
-            $lesson = $progress->lesson;
-            $courseTitle = $lesson?->unit?->course?->title;
-            $lessonTitle = $lesson?->title ?? 'Lesson';
-            $title = $courseTitle ? "{$courseTitle} · {$lessonTitle}" : $lessonTitle;
+        $courseIds = collect();
+        $lessonEntries = collect();
 
-            if ($progress->status === 'completed') {
-                $when = $progress->completed_at?->diffForHumans();
-                $meta = $when ? "Completed {$when}" : 'Completed';
-            } else {
-                $when = $progress->last_viewed_at?->diffForHumans();
-                $meta = $when ? "Last viewed {$when}" : 'In progress';
+        foreach ($classes as $class) {
+            foreach ($class->courses as $course) {
+                $courseIds->push($course->id);
+
+                foreach ($course->units as $unit) {
+                    foreach ($unit->lessons as $lesson) {
+                        if (! $lessonEntries->has($lesson->id)) {
+                            $lessonEntries->put($lesson->id, [
+                                'class' => $class,
+                                'course' => $course,
+                                'unit' => $unit,
+                                'lesson' => $lesson,
+                            ]);
+                        }
+                    }
+                }
             }
+        }
 
-            return [
-                'title' => $title,
-                'meta' => $meta,
-            ];
-        })->values()->all();
+        $courseCount = $courseIds->unique()->count();
+        $lessonIds = $lessonEntries->keys()->values();
+
+        $progressRecords = $lessonIds->isEmpty()
+            ? collect()
+            : LessonProgress::query()
+                ->where('learner_id', $user->id)
+                ->whereIn('lesson_id', $lessonIds)
+                ->get();
+
+        $progressByLesson = $progressRecords->keyBy('lesson_id');
+        $completedTotal = $progressRecords->where('status', 'completed')->count();
+        $inProgress = $progressRecords->where('status', 'in_progress')->count();
+
+        $completedThisMonth = $progressRecords
+            ->where('status', 'completed')
+            ->filter(fn (LessonProgress $progress) => $progress->completed_at?->gte(now()->startOfMonth()))
+            ->count();
+
+        $viewedThisWeek = $progressRecords
+            ->filter(fn (LessonProgress $progress) => $progress->last_viewed_at?->gte(now()->subDays(7)))
+            ->count();
+
+        $continueEntry = $this->continueEntry($lessonEntries, $progressRecords, $progressByLesson);
+        $continueUrl = $continueEntry
+            ? route('learner.classes.courses.lessons.show', [
+                $continueEntry['class'],
+                $continueEntry['course'],
+                $continueEntry['lesson'],
+            ])
+            : route('learner.classes.index');
+
+        $continueProgress = $continueEntry
+            ? $progressByLesson->get($continueEntry['lesson']->id)
+            : null;
+
+        $updates = $progressRecords
+            ->sortByDesc(fn (LessonProgress $progress) => $progress->last_viewed_at ?? $progress->completed_at ?? $progress->updated_at)
+            ->take(3)
+            ->map(function (LessonProgress $progress) use ($lessonEntries): ?array {
+                $entry = $lessonEntries->get($progress->lesson_id);
+
+                if (! $entry) {
+                    return null;
+                }
+
+                $lesson = $entry['lesson'];
+                $course = $entry['course'];
+                $title = "{$course->title} · {$lesson->title}";
+
+                if ($progress->status === 'completed') {
+                    $when = $progress->completed_at?->diffForHumans();
+                    $meta = $when ? "Completed {$when}" : 'Completed';
+                } else {
+                    $when = $progress->last_viewed_at?->diffForHumans();
+                    $meta = $when ? "Last viewed {$when}" : 'In progress';
+                }
+
+                return [
+                    'title' => $title,
+                    'meta' => $meta,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
 
         if ($updates === []) {
             $updates = [[
                 'title' => 'No learning activity yet',
-                'meta' => 'Open My Classes to start your first lesson.',
+                'meta' => $lessonEntries->isEmpty()
+                    ? 'No published lessons are available in your active classes yet.'
+                    : 'Continue Learning to start your first available lesson.',
             ]];
         }
 
@@ -86,7 +137,9 @@ class LearnerDashboardData
                 [
                     'label' => 'Enrolled courses',
                     'value' => (string) $courseCount,
-                    'helper' => $classCount === 1 ? 'Across 1 enrolled class' : "Across {$classCount} enrolled classes",
+                    'helper' => $classes->count() === 1
+                        ? 'Across 1 active class'
+                        : 'Across '.$classes->count().' active classes',
                 ],
                 [
                     'label' => 'Lessons completed',
@@ -100,6 +153,29 @@ class LearnerDashboardData
                 ],
             ],
             'updates' => $updates,
+            'continue_url' => $continueUrl,
+            'continue_label' => $continueProgress?->status === 'in_progress' ? 'Resume Lesson' : 'Start Learning',
+            'continue_lesson' => $continueEntry ? $continueEntry['lesson']->title : null,
+            'has_available_lesson' => (bool) $continueEntry,
         ];
+    }
+
+    private function continueEntry(
+        Collection $lessonEntries,
+        Collection $progressRecords,
+        Collection $progressByLesson
+    ): ?array {
+        $recentInProgress = $progressRecords
+            ->where('status', 'in_progress')
+            ->sortByDesc(fn (LessonProgress $progress) => $progress->last_viewed_at ?? $progress->updated_at)
+            ->first(fn (LessonProgress $progress) => $lessonEntries->has($progress->lesson_id));
+
+        if ($recentInProgress) {
+            return $lessonEntries->get($recentInProgress->lesson_id);
+        }
+
+        return $lessonEntries->first(function (array $entry) use ($progressByLesson): bool {
+            return $progressByLesson->get($entry['lesson']->id)?->status !== 'completed';
+        });
     }
 }
