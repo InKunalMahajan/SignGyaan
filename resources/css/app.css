@@ -6,20 +6,25 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 @layer base {
     :root {
         color-scheme: light;
-        --sg-bg: #f8fafc;
+        --sg-bg: #f7f8fa;
         --sg-surface: #ffffff;
-        --sg-surface-soft: #f1f5f9;
-        --sg-border: #e2e8f0;
-        --sg-text: #0f172a;
-        --sg-muted: #64748b;
-        --sg-primary: #4f46e5;
-        --sg-primary-hover: #4338ca;
+        --sg-surface-soft: #f9fafb;
+        --sg-border: #e5e7eb;
+        --sg-border-strong: #d1d5db;
+        --sg-text: #111827;
+        --sg-muted: #6b7280;
+        --sg-primary: #2563eb;
+        --sg-primary-hover: #1d4ed8;
+        --sg-primary-soft: #eff6ff;
+        --sg-danger: #b91c1c;
+        --sg-success: #047857;
+        --sg-radius: 12px;
     }
 
     html {
@@ -30,25 +35,51 @@
         @apply antialiased;
         background: var(--sg-bg);
         color: var(--sg-text);
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     }
 
     * {
         border-color: var(--sg-border);
     }
 
+    h1,
+    h2,
+    h3,
+    h4 {
+        letter-spacing: -0.02em;
+    }
+
+    a,
+    button,
+    input,
+    select,
+    textarea {
+        transition-property: color, background-color, border-color, box-shadow, opacity;
+        transition-duration: 150ms;
+    }
+
+    input,
+    select,
+    textarea {
+        background-color: #ffffff;
+    }
+
     :focus-visible {
-        outline: 3px solid rgba(79, 70, 229, .28);
+        outline: 3px solid rgba(37, 99, 235, .22);
         outline-offset: 2px;
     }
 }
 
 @layer components {
     .sg-card {
-        @apply rounded-2xl border bg-white shadow-sm;
+        @apply border bg-white;
+        border-radius: var(--sg-radius);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
     }
 
     .sg-btn-primary {
-        @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition;
+        @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white;
+        border-radius: 10px;
         background: var(--sg-primary);
     }
 
@@ -57,10 +88,201 @@
     }
 
     .sg-btn-secondary {
-        @apply inline-flex items-center justify-center rounded-xl border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+        @apply inline-flex items-center justify-center border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50;
+        border-radius: 10px;
     }
 
     .sg-muted {
         color: var(--sg-muted);
+    }
+}
+
+/*
+ |--------------------------------------------------------------------------
+ | SignGyaan Professional Minimal Light Theme
+ |--------------------------------------------------------------------------
+ | Normalize older Blade screens so every role uses the same calm,
+ | professional visual language without rewriting each feature.
+ */
+
+body {
+    background: #f7f8fa !important;
+    color: #111827 !important;
+}
+
+/* Large decorative gradients become simple white surfaces. */
+[class*='bg-gradient-to-'] {
+    background-image: none !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+}
+
+[class*='bg-gradient-to-'] .text-white,
+[class*='bg-gradient-to-'] [class*='text-blue-50'],
+[class*='bg-gradient-to-'] [class*='text-cyan-50'],
+[class*='bg-gradient-to-'] [class*='text-indigo-50'] {
+    color: #374151 !important;
+}
+
+/* Keep the compact SignGyaan mark as a clear flat brand accent. */
+span.size-11[class*='bg-gradient-to-'],
+span[class*='size-11'][class*='bg-gradient-to-'] {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Reduce oversized rounding and strong shadows across legacy screens. */
+.rounded-3xl {
+    border-radius: 14px !important;
+}
+
+.rounded-2xl {
+    border-radius: 12px !important;
+}
+
+.rounded-xl {
+    border-radius: 10px !important;
+}
+
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08) !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+}
+
+/* Neutral page surfaces. */
+.bg-slate-50,
+.bg-gray-50 {
+    background-color: #f7f8fa !important;
+}
+
+.bg-slate-100,
+.bg-gray-100 {
+    background-color: #f3f4f6 !important;
+}
+
+/* Primary actions stay clear but restrained. */
+.bg-blue-700,
+.bg-blue-800,
+.bg-indigo-600,
+.bg-indigo-700,
+.bg-cyan-600 {
+    background-color: #2563eb !important;
+}
+
+.hover\:bg-blue-800:hover,
+.hover\:bg-indigo-700:hover,
+.hover\:bg-indigo-800:hover {
+    background-color: #1d4ed8 !important;
+}
+
+/* Soft accent surfaces are consistent and quiet. */
+.bg-blue-50,
+.bg-indigo-50,
+.bg-cyan-50 {
+    background-color: #eff6ff !important;
+}
+
+.border-blue-100,
+.border-indigo-100,
+.border-cyan-100,
+.border-blue-200,
+.border-indigo-200,
+.border-cyan-200 {
+    border-color: #dbeafe !important;
+}
+
+.text-blue-700,
+.text-blue-800,
+.text-indigo-600,
+.text-indigo-700,
+.text-cyan-700,
+.text-cyan-800 {
+    color: #1d4ed8 !important;
+}
+
+/* Forms look like a professional web application, not decorative cards. */
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+    border-color: #d1d5db !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10) !important;
+}
+
+/* Tables and content containers stay crisp and readable. */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+thead {
+    background: #f9fafb;
+}
+
+/* Buttons should feel compact and purposeful. */
+button,
+[role='button'] {
+    font-weight: 600;
+}
+
+/* Status colours remain semantic but less saturated. */
+.bg-emerald-50,
+.bg-emerald-100 {
+    background-color: #ecfdf5 !important;
+}
+
+.text-emerald-700,
+.text-emerald-800,
+.text-emerald-900 {
+    color: #047857 !important;
+}
+
+.bg-rose-50,
+.bg-rose-100 {
+    background-color: #fff1f2 !important;
+}
+
+.text-rose-700,
+.text-rose-800,
+.text-rose-900 {
+    color: #b91c1c !important;
+}
+
+.bg-amber-50,
+.bg-amber-100 {
+    background-color: #fffbeb !important;
+}
+
+/* Keep content widths comfortable on large desktop screens. */
+.max-w-7xl {
+    max-width: 80rem !important;
+}
+
+/* Respect reduced motion for accessibility. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
     }
 }
