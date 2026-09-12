@@ -13,11 +13,19 @@
     text-decoration: none !important;
     box-shadow: none !important;
     cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Main filled and outlined actions should have exactly the same dimensions. */
+.sg-action-primary,
+.sg-action-secondary {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 .875rem !important;
+    font-size: .8125rem !important;
 }
 
 .sg-action-primary {
-    min-height: 40px;
-    padding: .65rem 1rem !important;
     border: 1px solid #111111 !important;
     background: #111111 !important;
     color: #ffffff !important;
@@ -30,8 +38,6 @@
 }
 
 .sg-action-secondary {
-    min-height: 40px;
-    padding: .65rem 1rem !important;
     border: 1px solid #d1d5db !important;
     background: #ffffff !important;
     color: #111111 !important;
@@ -44,13 +50,19 @@
     color: #111111 !important;
 }
 
+/* Small actions are reserved for table/card utility actions such as Edit/View/Open. */
+.sg-action-compact,
+.sg-action-danger {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 .75rem !important;
+    font-size: .8125rem !important;
+}
+
 .sg-action-compact {
-    min-height: 34px;
-    padding: .45rem .75rem !important;
     border: 1px solid #d1d5db !important;
     background: #ffffff !important;
     color: #111111 !important;
-    font-size: .8125rem !important;
 }
 
 .sg-action-compact:hover,
@@ -61,12 +73,9 @@
 }
 
 .sg-action-danger {
-    min-height: 34px;
-    padding: .45rem .75rem !important;
     border: 1px solid #9ca3af !important;
     background: #ffffff !important;
     color: #111111 !important;
-    font-size: .8125rem !important;
 }
 
 .sg-action-danger:hover,
