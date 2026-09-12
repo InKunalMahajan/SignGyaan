@@ -12,6 +12,16 @@ class TeacherAiAssistantPhase11Test extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Laravel AI still resolves the configured provider when an agent is
+        // faked. Supply a non-secret test credential so provider construction
+        // succeeds while the fake gateway prevents any real API request.
+        config(['ai.providers.openai.key' => 'test-key']);
+    }
+
     public function test_teacher_can_open_ai_assistant_and_generate_reviewable_draft(): void
     {
         $teacher = User::factory()->create([
