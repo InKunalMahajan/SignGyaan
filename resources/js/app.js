@@ -316,7 +316,7 @@ function enhanceProtectedActions() {
     }
 
     const destructivePattern = /^(delete|remove|deactivate|unlink|revoke)\b/i;
-    const primaryPattern = /^(create|save|update|upload|apply|activate|change password|manage users|manage linked|open my classes|open class|publish|add )\b/i;
+    const primaryPattern = /^(create|save|update|upload|apply|activate|change password|manage users|manage linked|continue learning|open my classes|open class|publish|add )\b/i;
     const compactPattern = /^(open|edit|view|reset|cancel|back|manage|details|preview)\b/i;
 
     scope.querySelectorAll('a, button').forEach((element) => {
@@ -367,16 +367,15 @@ function enhanceLearnerContinueLearning() {
         return;
     }
 
-    main.querySelectorAll('a[href$="/learner/classes"]').forEach((link) => {
+    main.querySelectorAll('a[href*="/learner/classes"]').forEach((link) => {
         const label = link.textContent.replace(/\s+/g, ' ').trim();
         const cardTitle = link.closest('article')?.querySelector('h3')?.textContent?.trim();
+        const isHeroAction = Boolean(link.closest('section:first-child')) && label === 'Open My Classes';
 
-        if (label === 'Open My Classes' || cardTitle === 'Continue Learning') {
+        if (isHeroAction || cardTitle === 'Continue Learning') {
             link.href = '/learner/classes?continue=1';
-
-            if (label === 'Open My Classes') {
-                link.textContent = 'Continue Learning';
-            }
+            link.textContent = 'Continue Learning';
+            link.setAttribute('aria-label', 'Continue Learning');
         }
     });
 }
@@ -385,8 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
     installFallbackAppSidebar();
     installFallbackAppHeader();
     enhanceHeaderAccountMenu();
-    enhanceProtectedActions();
     enhanceLearnerContinueLearning();
+    enhanceProtectedActions();
 
     const path = window.location.pathname;
     const usesLiveDashboardData = path.includes('/dashboard/learner') || path.includes('/dashboard/admin');
