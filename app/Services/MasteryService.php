@@ -35,6 +35,8 @@ class MasteryService
 
         $signals = $this->signalsFor($learner)
             ->where('course_id', $course->id)
+            ->groupBy('assessment_id')
+            ->map(fn (Collection $attempts) => $attempts->last())
             ->values();
 
         $assessmentPercentage = null;
@@ -44,9 +46,11 @@ class MasteryService
             $assessmentPercentage = $possible > 0 ? round(($earned / $possible) * 100, 2) : 0.0;
         }
 
-        $masteryScore = $assessmentPercentage === null
-            ? $lessonPercentage
-            : round(($lessonPercentage * 0.40) + ($assessmentPercentage * 0.60), 2);
+        $masteryScore = match (true) {
+            $assessmentPercentage === null => $lessonPercentage,
+            $lessonTotal === 0 => $assessmentPercentage,
+            default => round(($lessonPercentage * 0.40) + ($assessmentPercentage * 0.60), 2),
+        };
 
         return CourseMastery::updateOrCreate(
             ['learner_id' => $learner->id, 'course_id' => $course->id],
