@@ -10,6 +10,12 @@
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
     <a href="#main-content" class="sr-only z-50 rounded-lg bg-slate-950 px-4 py-3 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to main content</a>
 
+    {{-- The fallback protected header clones this secure form into the account dropdown. --}}
+    <form method="POST" action="{{ route('logout') }}" class="hidden" aria-hidden="true">
+        @csrf
+        <button type="submit">Sign out</button>
+    </form>
+
     <header class="border-b border-slate-200 bg-white">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl focus:outline-none focus:ring-4 focus:ring-cyan-200">
