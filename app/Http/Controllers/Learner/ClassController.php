@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Learner;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\LearningClass;
+use App\Services\LearnerDashboardData;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ClassController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, LearnerDashboardData $dashboardData): RedirectResponse|View
     {
+        if ($request->boolean('continue')) {
+            $data = $dashboardData->forUser($request->user());
+
+            return redirect()->to($data['continue_url']);
+        }
+
         $classes = $request->user()
             ->enrolledClasses()
             ->with(['teacher.teacherProfile'])
