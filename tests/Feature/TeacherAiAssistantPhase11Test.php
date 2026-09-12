@@ -22,6 +22,22 @@ class TeacherAiAssistantPhase11Test extends TestCase
         config(['ai.providers.openai.key' => 'test-key']);
     }
 
+    public function test_laravel_ai_fake_provider_resolves_without_real_api_call(): void
+    {
+        TeacherAssistant::fake([
+            'Fake provider is working.',
+        ])->preventStrayPrompts();
+
+        $response = (new TeacherAssistant)->prompt(
+            'Provider diagnostic prompt.',
+            provider: 'openai',
+            model: 'gpt-5.6-luna',
+            timeout: 45,
+        );
+
+        $this->assertSame('Fake provider is working.', $response->text);
+    }
+
     public function test_teacher_can_open_ai_assistant_and_generate_reviewable_draft(): void
     {
         $teacher = User::factory()->create([
