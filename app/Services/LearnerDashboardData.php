@@ -2,26 +2,31 @@
 
 namespace App\Services;
 
+use App\Models\Assessment;
+use App\Models\AssessmentAttempt;
+use App\Models\Course;
 use App\Models\LessonProgress;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 class LearnerDashboardData
 {
-    public function __construct(private LearnerLearningPath $learningPath)
-    {
+    public function __construct(
+        private LearnerLearningPath $learningPath,
+        private MasteryService $mastery,
+        private AssessmentAnalyticsService $assessmentAnalytics,
+    ) {
     }
 
     public function forUser(User $user): array
     {
         $classes = $this->learningPath->activeClassesFor($user);
         $lessonEntries = $this->learningPath->lessonEntriesFromClasses($classes);
-
-        $courseCount = $classes
+        $courses = $classes
             ->flatMap(fn ($class) => $class->courses)
-            ->pluck('id')
-            ->unique()
-            ->count();
+            ->unique('id')
+            ->values();
+        $courseContext = $this->courseContext($classes);
         $lessonIds = $lessonEntries->keys()->values();
 
         $progressRecords = $lessonIds->isEmpty()
@@ -32,97 +37,235 @@ class LearnerDashboardData
                 ->get();
 
         $progressByLesson = $progressRecords->keyBy('lesson_id');
-        $completedTotal = $progressRecords->where('status', 'completed')->count();
-        $inProgress = $progressRecords->where('status', 'in_progress')->count();
-
-        $completedThisMonth = $progressRecords
-            ->where('status', 'completed')
-            ->filter(fn (LessonProgress $progress) => $progress->completed_at?->gte(now()->startOfMonth()))
-            ->count();
-
-        $viewedThisWeek = $progressRecords
-            ->filter(fn (LessonProgress $progress) => $progress->last_viewed_at?->gte(now()->subDays(7)))
-            ->count();
-
         $continueEntry = $this->continueEntry($lessonEntries, $progressRecords, $progressByLesson);
-        $continueUrl = $continueEntry
-            ? route('learner.classes.courses.lessons.show', [
-                $continueEntry['class'],
-                $continueEntry['course'],
-                $continueEntry['lesson'],
-            ])
-            : route('learner.classes.index');
+        $continue = $this->continueCard($continueEntry, $progressByLesson);
 
-        $continueProgress = $continueEntry
-            ? $progressByLesson->get($continueEntry['lesson']->id)
+        $courseCards = $courses->map(function (Course $course) use ($user, $courseContext) {
+            $mastery = $this->mastery->calculateFor($user, $course);
+            $class = $courseContext->get($course->id);
+
+            return [
+                'course' => $course,
+                'class' => $class,
+                'mastery' => $mastery,
+                'url' => $class
+                    ? route('learner.classes.courses.show', [$class, $course])
+                    : route('learner.progress.courses.show', $course),
+            ];
+        })->values();
+
+        $masteryScores = $courseCards
+            ->pluck('mastery.mastery_score')
+            ->map(fn ($score) => (float) $score);
+        $overallMastery = $masteryScores->isNotEmpty()
+            ? round($masteryScores->average(), 2)
             : null;
 
-        $updates = $progressRecords
-            ->sortByDesc(fn (LessonProgress $progress) => $progress->last_viewed_at ?? $progress->completed_at ?? $progress->updated_at)
-            ->take(3)
-            ->map(function (LessonProgress $progress) use ($lessonEntries): ?array {
-                $entry = $lessonEntries->get($progress->lesson_id);
+        $accessibleCourseIds = $courses->pluck('id');
+        $publishedAssessments = $accessibleCourseIds->isEmpty()
+            ? collect()
+            : Assessment::query()
+                ->whereIn('course_id', $accessibleCourseIds)
+                ->where('status', 'published')
+                ->with('course.subject')
+                ->orderByDesc('published_at')
+                ->orderByDesc('id')
+                ->get();
 
-                if (! $entry) {
-                    return null;
-                }
+        $attempts = AssessmentAttempt::query()
+            ->where('learner_id', $user->id)
+            ->whereIn('assessment_id', $publishedAssessments->pluck('id'))
+            ->with('assessment.course.subject')
+            ->latest('updated_at')
+            ->get();
 
-                $lesson = $entry['lesson'];
-                $course = $entry['course'];
-                $title = "{$course->title} · {$lesson->title}";
+        $attemptsByAssessment = $attempts->groupBy('assessment_id');
+        $pendingReview = $attempts->where('status', 'pending_review')->count();
+        $completedAttempts = $attempts->where('status', 'completed');
+        $latestCompleted = $completedAttempts->first();
+        $averageAssessment = $completedAttempts->isNotEmpty()
+            ? round($completedAttempts->avg(fn ($attempt) => (float) $attempt->percentage), 2)
+            : null;
 
-                if ($progress->status === 'completed') {
-                    $when = $progress->completed_at?->diffForHumans();
-                    $meta = $when ? "Completed {$when}" : 'Completed';
-                } else {
-                    $when = $progress->last_viewed_at?->diffForHumans();
-                    $meta = $when ? "Last viewed {$when}" : 'In progress';
-                }
+        $assessmentCards = $publishedAssessments
+            ->take(4)
+            ->map(function (Assessment $assessment) use ($attemptsByAssessment) {
+                $attempt = $attemptsByAssessment->get($assessment->id, collect())->first();
+                $status = match ($attempt?->status) {
+                    'in_progress' => 'In progress',
+                    'pending_review' => 'Pending review',
+                    'completed' => $attempt->passed === true ? 'Passed' : 'Needs improvement',
+                    'submitted' => 'Submitted',
+                    default => 'Not started',
+                };
 
                 return [
-                    'title' => $title,
-                    'meta' => $meta,
+                    'assessment' => $assessment,
+                    'attempt' => $attempt,
+                    'status' => $status,
+                    'url' => $attempt && $attempt->isSubmitted()
+                        ? route('learner.assessments.attempts.result', $attempt)
+                        : route('learner.assessments.index'),
                 ];
             })
-            ->filter()
+            ->values();
+
+        $recommendations = $this->recommendations($user, $courseCards, $courseContext, $lessonEntries);
+        $activity = $this->recentActivity($progressRecords, $lessonEntries, $attempts);
+
+        return [
+            'classes_count' => $classes->count(),
+            'courses_count' => $courses->count(),
+            'lessons_completed' => $progressRecords->where('status', 'completed')->count(),
+            'lessons_in_progress' => $progressRecords->where('status', 'in_progress')->count(),
+            'overall_mastery' => $overallMastery,
+            'overall_mastery_label' => $overallMastery !== null ? $this->mastery->labelFor($overallMastery) : 'No evidence yet',
+            'average_assessment' => $averageAssessment,
+            'pending_review' => $pendingReview,
+            'latest_assessment' => $latestCompleted,
+            'continue' => $continue,
+            'courses' => $courseCards,
+            'assessments' => $assessmentCards,
+            'recommendations' => $recommendations,
+            'activity' => $activity,
+            'has_learning' => $courses->isNotEmpty() || $lessonEntries->isNotEmpty(),
+        ];
+    }
+
+    private function courseContext(Collection $classes): Collection
+    {
+        $context = collect();
+
+        foreach ($classes as $class) {
+            foreach ($class->courses as $course) {
+                if (! $context->has($course->id)) {
+                    $context->put($course->id, $class);
+                }
+            }
+        }
+
+        return $context;
+    }
+
+    private function continueCard(?array $entry, Collection $progressByLesson): array
+    {
+        if (! $entry) {
+            return [
+                'available' => false,
+                'label' => 'Open My Classes',
+                'title' => 'No lesson ready yet',
+                'meta' => 'Your published lessons will appear here when available.',
+                'url' => route('learner.classes.index'),
+            ];
+        }
+
+        $progress = $progressByLesson->get($entry['lesson']->id);
+
+        return [
+            'available' => true,
+            'label' => $progress?->status === 'in_progress' ? 'Resume Lesson' : 'Start Learning',
+            'title' => $entry['lesson']->title,
+            'course' => $entry['course']->title,
+            'class' => $entry['class']->name,
+            'meta' => $progress?->status === 'in_progress'
+                ? 'Continue where you stopped.'
+                : 'Next available published lesson.',
+            'url' => route('learner.classes.courses.lessons.show', [
+                $entry['class'],
+                $entry['course'],
+                $entry['lesson'],
+            ]),
+        ];
+    }
+
+    private function recommendations(
+        User $user,
+        Collection $courseCards,
+        Collection $courseContext,
+        Collection $lessonEntries
+    ): array {
+        $items = collect();
+
+        foreach ($courseCards as $card) {
+            $snapshot = $this->mastery->snapshot($user, $card['course']);
+            $class = $courseContext->get($card['course']->id);
+
+            foreach ($snapshot['recommendations'] as $recommendation) {
+                $url = route('learner.progress.courses.show', $card['course']);
+
+                if (($recommendation['type'] ?? null) === 'lesson' && $class && isset($recommendation['lesson_id'])) {
+                    $entry = $lessonEntries->get($recommendation['lesson_id']);
+                    if ($entry) {
+                        $url = route('learner.classes.courses.lessons.show', [
+                            $entry['class'],
+                            $entry['course'],
+                            $entry['lesson'],
+                        ]);
+                    }
+                } elseif (in_array($recommendation['type'] ?? '', ['assessment', 'assessment_review'], true)) {
+                    $url = route('learner.assessments.index');
+                }
+
+                $items->push(array_merge($recommendation, [
+                    'course' => $card['course']->title,
+                    'url' => $url,
+                ]));
+            }
+        }
+
+        return $items->take(4)->values()->all();
+    }
+
+    private function recentActivity(Collection $progressRecords, Collection $lessonEntries, Collection $attempts): array
+    {
+        $lessonActivity = $progressRecords->map(function (LessonProgress $progress) use ($lessonEntries): ?array {
+            $entry = $lessonEntries->get($progress->lesson_id);
+            if (! $entry) {
+                return null;
+            }
+
+            $date = $progress->completed_at ?? $progress->last_viewed_at ?? $progress->updated_at;
+
+            return [
+                'type' => 'lesson',
+                'title' => $entry['lesson']->title,
+                'meta' => $progress->status === 'completed'
+                    ? $entry['course']->title.' · Completed'
+                    : $entry['course']->title.' · In progress',
+                'date' => $date,
+            ];
+        })->filter();
+
+        $assessmentActivity = $attempts
+            ->whereIn('status', ['pending_review', 'completed'])
+            ->map(fn ($attempt) => [
+                'type' => 'assessment',
+                'title' => $attempt->assessment?->title ?? 'Assessment',
+                'meta' => $attempt->status === 'pending_review'
+                    ? 'Submitted · Pending teacher review'
+                    : (($attempt->percentage !== null ? number_format((float) $attempt->percentage, 2).'%' : 'Completed').' · '.($attempt->passed ? 'Passed' : 'Needs improvement')),
+                'date' => $attempt->reviewed_at ?? $attempt->submitted_at ?? $attempt->updated_at,
+            ]);
+
+        $activity = $lessonActivity
+            ->concat($assessmentActivity)
+            ->sortByDesc('date')
+            ->take(6)
+            ->map(function ($item) {
+                $item['when'] = $item['date']?->diffForHumans();
+                unset($item['date']);
+
+                return $item;
+            })
             ->values()
             ->all();
 
-        if ($updates === []) {
-            $updates = [[
-                'title' => 'No learning activity yet',
-                'meta' => $lessonEntries->isEmpty()
-                    ? 'No published lessons are available in your active classes yet.'
-                    : 'Continue Learning to start your first available lesson.',
-            ]];
-        }
-
-        return [
-            'stats' => [
-                [
-                    'label' => 'Enrolled courses',
-                    'value' => (string) $courseCount,
-                    'helper' => $classes->count() === 1
-                        ? 'Across 1 active class'
-                        : 'Across '.$classes->count().' active classes',
-                ],
-                [
-                    'label' => 'Lessons completed',
-                    'value' => (string) $completedTotal,
-                    'helper' => "{$completedThisMonth} completed this month",
-                ],
-                [
-                    'label' => 'Lessons in progress',
-                    'value' => (string) $inProgress,
-                    'helper' => "{$viewedThisWeek} viewed in the last 7 days",
-                ],
-            ],
-            'updates' => $updates,
-            'continue_url' => $continueUrl,
-            'continue_label' => $continueProgress?->status === 'in_progress' ? 'Resume Lesson' : 'Start Learning',
-            'continue_lesson' => $continueEntry ? $continueEntry['lesson']->title : null,
-            'has_available_lesson' => (bool) $continueEntry,
-        ];
+        return $activity !== [] ? $activity : [[
+            'type' => 'learning',
+            'title' => 'No activity yet',
+            'meta' => 'Start your first lesson or assessment to see activity here.',
+            'when' => null,
+        ]];
     }
 
     private function continueEntry(
