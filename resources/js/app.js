@@ -1,9 +1,11 @@
 import './bootstrap';
+import './icon-sidebar';
 import '../css/file-input.css';
 import '../css/shape-position-fix.css';
 import '../css/header-user-menu.css';
 import '../css/app-sidebar-fallback.css';
 import '../css/app-header-fallback.css';
+import '../css/icon-sidebar.css';
 
 function initialsFromName(name) {
     return name
