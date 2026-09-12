@@ -42,11 +42,14 @@ class LearnerAssessmentAttemptFlowTest extends TestCase
             ->assertSee('Review your answers');
 
         $this->actingAs($learner)->post(route('learner.assessments.attempts.submit', $attempt))
-            ->assertRedirect(route('learner.assessments.index'));
+            ->assertRedirect(route('learner.assessments.attempts.result', $attempt));
 
         $attempt->refresh();
-        $this->assertSame('submitted', $attempt->status);
+        $this->assertSame('completed', $attempt->status);
         $this->assertNotNull($attempt->submitted_at);
+        $this->assertSame('2.00', $attempt->earned_marks);
+        $this->assertSame('100.00', $attempt->percentage);
+        $this->assertTrue((bool) $attempt->passed);
         $this->assertNotNull(AssessmentAnswer::where('attempt_id', $attempt->id)->first()?->question_snapshot);
 
         $this->actingAs($learner)->put(route('learner.assessments.attempts.save', $attempt), [
