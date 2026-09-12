@@ -8,55 +8,20 @@ use Illuminate\Support\Collection;
 
 class LearnerDashboardData
 {
+    public function __construct(private LearnerLearningPath $learningPath)
+    {
+    }
+
     public function forUser(User $user): array
     {
-        $classes = $user->enrolledClasses()
-            ->where('learning_classes.is_active', true)
-            ->with([
-                'courses' => fn ($query) => $query
-                    ->where('courses.is_active', true)
-                    ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true))
-                    ->with([
-                        'subject',
-                        'units' => fn ($unitQuery) => $unitQuery
-                            ->where('is_active', true)
-                            ->with([
-                                'lessons' => fn ($lessonQuery) => $lessonQuery
-                                    ->where('status', 'published')
-                                    ->orderBy('position')
-                                    ->orderBy('id'),
-                            ])
-                            ->orderBy('position')
-                            ->orderBy('id'),
-                    ])
-                    ->orderBy('title'),
-            ])
-            ->orderBy('learning_classes.name')
-            ->get();
+        $classes = $this->learningPath->activeClassesFor($user);
+        $lessonEntries = $this->learningPath->lessonEntriesFromClasses($classes);
 
-        $courseIds = collect();
-        $lessonEntries = collect();
-
-        foreach ($classes as $class) {
-            foreach ($class->courses as $course) {
-                $courseIds->push($course->id);
-
-                foreach ($course->units as $unit) {
-                    foreach ($unit->lessons as $lesson) {
-                        if (! $lessonEntries->has($lesson->id)) {
-                            $lessonEntries->put($lesson->id, [
-                                'class' => $class,
-                                'course' => $course,
-                                'unit' => $unit,
-                                'lesson' => $lesson,
-                            ]);
-                        }
-                    }
-                }
-            }
-        }
-
-        $courseCount = $courseIds->unique()->count();
+        $courseCount = $classes
+            ->flatMap(fn ($class) => $class->courses)
+            ->pluck('id')
+            ->unique()
+            ->count();
         $lessonIds = $lessonEntries->keys()->values();
 
         $progressRecords = $lessonIds->isEmpty()
