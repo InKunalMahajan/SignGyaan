@@ -1,11 +1,14 @@
 /* Header avatar account menu — monochrome and accessible. */
 .sg-account-menu {
     position: relative;
+    margin-left: auto;
+    flex: 0 0 auto;
 }
 
 .sg-account-menu > summary {
     list-style: none;
     display: inline-flex;
+    min-height: 44px;
     align-items: center;
     gap: 10px;
     cursor: pointer;
@@ -16,6 +19,10 @@
 
 .sg-account-menu > summary::-webkit-details-marker {
     display: none;
+}
+
+.sg-account-menu > summary:hover {
+    background: #f9fafb;
 }
 
 .sg-account-menu > summary:focus-visible {
@@ -80,7 +87,7 @@
     z-index: 70;
     right: 0;
     top: calc(100% + 10px);
-    width: 220px;
+    width: 232px;
     overflow: hidden;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
@@ -100,6 +107,9 @@
 }
 
 .sg-account-popover-header strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 13px;
     color: #111111;
 }
@@ -110,14 +120,20 @@
     color: #6b7280;
 }
 
+.sg-account-popover form {
+    margin: 0;
+}
+
 .sg-account-link,
 .sg-account-logout {
     width: 100%;
     display: flex;
+    min-height: 40px;
     align-items: center;
     gap: 9px;
     padding: 10px 14px;
     border: 0;
+    border-radius: 0;
     background: #ffffff;
     color: #111111;
     text-align: left;
