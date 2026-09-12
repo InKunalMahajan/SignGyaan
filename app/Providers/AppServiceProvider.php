@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\AdminDashboardData;
 use App\Services\LearnerDashboardData;
 use App\Services\ParentDashboardData;
 use App\Services\TeacherDashboardData;
@@ -54,6 +55,13 @@ class AppServiceProvider extends ServiceProvider
             if ($role === 'parents') {
                 $view->setPath(resource_path('views/parents/dashboard.blade.php'));
                 $view->with('parentDashboard', app(ParentDashboardData::class)->forUser(Auth::user()));
+
+                return;
+            }
+
+            if ($role === 'admin') {
+                $view->setPath(resource_path('views/admin/dashboard.blade.php'));
+                $view->with('adminDashboard', app(AdminDashboardData::class)->get());
             }
         });
     }
