@@ -91,6 +91,46 @@
     color: #111111 !important;
 }
 
+/* Dashboard hero actions must remain visually clear in the monochrome theme. */
+main#main-content > div > section:first-child a[href$='/admin/users'] {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.75rem 1.25rem !important;
+    border: 1px solid #111111 !important;
+    border-radius: 0.75rem !important;
+    background: #111111 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+}
+
+main#main-content > div > section:first-child a[href$='/admin/users']:hover,
+main#main-content > div > section:first-child a[href$='/admin/users']:focus-visible {
+    background: #262626 !important;
+    border-color: #262626 !important;
+}
+
+main#main-content > div > section:first-child a[href='#workspace'] {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.75rem 1.25rem !important;
+    border: 1px solid #d4d4d4 !important;
+    border-radius: 0.75rem !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+main#main-content > div > section:first-child a[href='#workspace']:hover,
+main#main-content > div > section:first-child a[href='#workspace']:focus-visible {
+    background: #f5f5f5 !important;
+}
+
 /* Account menu should align consistently at the far right of every header. */
 .sg-account-menu {
     flex: 0 0 auto;
