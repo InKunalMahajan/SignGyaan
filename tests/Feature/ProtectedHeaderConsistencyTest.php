@@ -39,6 +39,7 @@ class ProtectedHeaderConsistencyTest extends TestCase
             'resources/views/learner/classes/show.blade.php',
             'resources/views/learner/classes/course.blade.php',
             'resources/views/learner/classes/lesson.blade.php',
+            'resources/views/learner/profile.blade.php',
             'resources/views/parents/profile.blade.php',
             'resources/views/parents/learner.blade.php',
         ];
@@ -57,5 +58,16 @@ class ProtectedHeaderConsistencyTest extends TestCase
         $this->assertStringContainsString('min-height: 72px', $contents);
         $this->assertStringContainsString('max-width: none !important', $contents);
         $this->assertStringContainsString('margin-left: auto', $contents);
+    }
+
+    public function test_fallback_header_never_recenters_or_caps_protected_pages(): void
+    {
+        $contents = file_get_contents(base_path('resources/css/app-header-fallback.css'));
+
+        $this->assertStringContainsString('max-width: none', $contents);
+        $this->assertStringContainsString('margin: 0', $contents);
+        $this->assertStringContainsString('padding-left: 40px', $contents);
+        $this->assertStringContainsString('padding-right: 40px', $contents);
+        $this->assertStringNotContainsString('max-width: 80rem', $contents);
     }
 }
