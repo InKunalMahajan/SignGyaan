@@ -1,0 +1,69 @@
+.sg-global-search {
+    position: relative;
+    display: none;
+    align-items: center;
+    min-width: 15rem;
+    max-width: 22rem;
+    flex: 1 1 20rem;
+}
+
+.sg-global-search input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #111111;
+    padding: 0.625rem 4.75rem 0.625rem 2.25rem;
+    font-size: 0.875rem;
+}
+
+.sg-global-search input:focus-visible {
+    border-color: #111111;
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+}
+
+.sg-global-search__icon {
+    position: absolute;
+    left: 0.75rem;
+    z-index: 1;
+    color: #4b5563;
+    pointer-events: none;
+}
+
+.sg-global-search__kbd {
+    position: absolute;
+    right: 0.625rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    color: #4b5563;
+    padding: 0.15rem 0.4rem;
+    font-family: inherit;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+@media (min-width: 768px) {
+    .sg-global-search {
+        display: flex;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .sg-global-search input,
+    .sg-global-search__kbd {
+        border-color: #000000;
+    }
+}
+
+@media (forced-colors: active) {
+    .sg-global-search input,
+    .sg-global-search__kbd {
+        border: 1px solid CanvasText;
+        background: Canvas;
+        color: CanvasText;
+    }
+}
