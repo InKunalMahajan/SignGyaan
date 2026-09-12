@@ -1,0 +1,99 @@
+/* Shared protected-app container sizing.
+   Keeps Dashboard, role layouts, and fallback standalone pages aligned. */
+
+:root {
+    --sg-app-container-max: 80rem;
+    --sg-app-container-x: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    :root {
+        --sg-app-container-x: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --sg-app-container-x: 2.5rem;
+    }
+}
+
+/* Every protected shell must allow the content column to shrink correctly. */
+.sg-icon-sidebar-shell,
+.sg-icon-sidebar-shell > *,
+.sg-app-shell-fallback-root,
+.sg-app-shell-fallback-content,
+.sg-icon-sidebar-shell main#main-content {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Shared-layout header content: Dashboard, Learner, Teacher. */
+.sg-icon-sidebar-shell > main#main-content > header > div,
+/* Admin-style shell where header/main sit inside a content wrapper. */
+.sg-icon-sidebar-shell > div > header > div,
+/* Main page content wrappers directly after a shared header. */
+.sg-icon-sidebar-shell > main#main-content > header + div,
+/* Admin content main itself. */
+.sg-icon-sidebar-shell > div > main#main-content,
+/* Fallback standalone protected pages. */
+.sg-app-shell-fallback-content > .sg-app-header-fallback > .sg-app-header-fallback-inner,
+.sg-app-shell-fallback-content > main#main-content {
+    width: 100% !important;
+    max-width: var(--sg-app-container-max) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+}
+
+/* Fallback pages previously used mixed max-w-6xl/max-w-7xl and desktop padding. */
+.sg-app-shell-fallback-content > main#main-content {
+    padding-left: var(--sg-app-container-x) !important;
+    padding-right: var(--sg-app-container-x) !important;
+}
+
+.sg-app-shell-fallback-content > .sg-app-header-fallback > .sg-app-header-fallback-inner {
+    padding-left: var(--sg-app-container-x) !important;
+    padding-right: var(--sg-app-container-x) !important;
+}
+
+/* Keep rich content inside the available app column. */
+.sg-icon-sidebar-shell main#main-content img,
+.sg-icon-sidebar-shell main#main-content video,
+.sg-icon-sidebar-shell main#main-content iframe,
+.sg-app-shell-fallback-content main#main-content img,
+.sg-app-shell-fallback-content main#main-content video,
+.sg-app-shell-fallback-content main#main-content iframe {
+    max-width: 100%;
+}
+
+.sg-icon-sidebar-shell main#main-content .grid > *,
+.sg-icon-sidebar-shell main#main-content .flex > *,
+.sg-app-shell-fallback-content main#main-content .grid > *,
+.sg-app-shell-fallback-content main#main-content .flex > * {
+    min-width: 0;
+}
+
+.sg-icon-sidebar-shell main#main-content input,
+.sg-icon-sidebar-shell main#main-content select,
+.sg-icon-sidebar-shell main#main-content textarea,
+.sg-app-shell-fallback-content main#main-content input,
+.sg-app-shell-fallback-content main#main-content select,
+.sg-app-shell-fallback-content main#main-content textarea {
+    max-width: 100%;
+}
+
+/* Prevent accidental horizontal page scrolling from wide content. */
+.sg-icon-sidebar-shell > main#main-content,
+.sg-icon-sidebar-shell > div,
+.sg-app-shell-fallback-content {
+    overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+    .sg-icon-sidebar-shell > main#main-content,
+    .sg-icon-sidebar-shell > div,
+    .sg-app-shell-fallback-content {
+        overflow-x: hidden;
+    }
+}
