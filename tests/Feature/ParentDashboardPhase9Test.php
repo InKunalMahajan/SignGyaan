@@ -172,7 +172,7 @@ class ParentDashboardPhase9Test extends TestCase
         $this->actingAs($parent)
             ->get(route('dashboard.role', 'parents'))
             ->assertOk()
-            ->assertSee('Pending review')
+            ->assertSee('pending review')
             ->assertSee('Completed results only');
     }
 
