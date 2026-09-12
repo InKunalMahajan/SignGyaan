@@ -45,12 +45,91 @@ class ClassController extends Controller
             'courses' => fn ($query) => $query
                 ->where('courses.is_active', true)
                 ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true))
-                ->with('subject')
+                ->with([
+                    'subject',
+                    'units' => fn ($unitQuery) => $unitQuery
+                        ->where('is_active', true)
+                        ->with([
+                            'lessons' => fn ($lessonQuery) => $lessonQuery
+                                ->where('status', 'published')
+                                ->orderBy('position')
+                                ->orderBy('id'),
+                        ])
+                        ->orderBy('position')
+                        ->orderBy('id'),
+                ])
                 ->orderBy('title'),
         ]);
 
+        $allLessonIds = $class->courses
+            ->flatMap(fn ($course) => $course->units)
+            ->flatMap(fn ($unit) => $unit->lessons)
+            ->pluck('id')
+            ->values();
+
+        $progressByLesson = $request->user()->lessonProgress()
+            ->whereIn('lesson_id', $allLessonIds)
+            ->get()
+            ->keyBy('lesson_id');
+
+        $courseProgress = $class->courses->mapWithKeys(function ($course) use ($progressByLesson, $class) {
+            $lessons = $course->units->flatMap(fn ($unit) => $unit->lessons)->values();
+            $lessonIds = $lessons->pluck('id');
+            $progress = $progressByLesson->only($lessonIds->all());
+            $completedLessonIds = $progress
+                ->filter(fn ($item) => $item->status === 'completed')
+                ->keys();
+
+            $completedCount = $completedLessonIds->count();
+            $totalCount = $lessons->count();
+            $recentInProgress = $progress
+                ->filter(fn ($item) => $item->status === 'in_progress')
+                ->sortByDesc('last_viewed_at')
+                ->first();
+
+            $continueLesson = $recentInProgress
+                ? $lessons->firstWhere('id', $recentInProgress->lesson_id)
+                : $lessons->first(fn ($lesson) => ! $completedLessonIds->contains($lesson->id));
+
+            if ($totalCount > 0 && $completedCount === $totalCount) {
+                $state = 'completed';
+                $label = 'Completed';
+                $actionLabel = 'Review Course';
+                $actionUrl = route('learner.classes.courses.show', [$class, $course]);
+            } elseif ($progress->isNotEmpty()) {
+                $state = 'in_progress';
+                $label = 'In progress';
+                $actionLabel = 'Resume Learning';
+                $actionUrl = $continueLesson
+                    ? route('learner.classes.courses.lessons.show', [$class, $course, $continueLesson])
+                    : route('learner.classes.courses.show', [$class, $course]);
+            } else {
+                $state = 'not_started';
+                $label = 'Not started';
+                $actionLabel = $totalCount > 0 ? 'Start Learning' : 'Open Course';
+                $actionUrl = $continueLesson
+                    ? route('learner.classes.courses.lessons.show', [$class, $course, $continueLesson])
+                    : route('learner.classes.courses.show', [$class, $course]);
+            }
+
+            return [
+                $course->id => [
+                    'state' => $state,
+                    'label' => $label,
+                    'published_lessons' => $totalCount,
+                    'completed_lessons' => $completedCount,
+                    'percent' => $totalCount > 0
+                        ? (int) round(($completedCount / $totalCount) * 100)
+                        : 0,
+                    'action_label' => $actionLabel,
+                    'action_url' => $actionUrl,
+                ],
+            ];
+        });
+
         return view('learner.classes.show', [
             'class' => $class,
+            'courseProgress' => $courseProgress,
         ]);
     }
 
