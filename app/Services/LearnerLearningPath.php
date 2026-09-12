@@ -104,9 +104,14 @@ class LearnerLearningPath
      */
     public function lessonEntriesFor(User $learner): Collection
     {
+        return $this->lessonEntriesFromClasses($this->activeClassesFor($learner));
+    }
+
+    public function lessonEntriesFromClasses(Collection $classes): Collection
+    {
         $entries = collect();
 
-        foreach ($this->activeClassesFor($learner) as $class) {
+        foreach ($classes as $class) {
             foreach ($class->courses as $course) {
                 foreach ($course->units as $unit) {
                     foreach ($unit->lessons as $lesson) {
