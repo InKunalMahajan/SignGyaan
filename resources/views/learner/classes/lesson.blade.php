@@ -30,7 +30,7 @@
 
     <main id="main-content" class="mx-auto max-w-6xl space-y-7 px-5 py-8 sm:px-8 lg:py-10">
         @if (session('status'))
-            <div role="status" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-900">{{ session('status') }}</div>
+            <div role="status" class="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-bold text-slate-950">{{ session('status') }}</div>
         @endif
 
         <section class="rounded-3xl bg-gradient-to-br from-blue-800 via-blue-700 to-cyan-600 p-6 text-white shadow-lg sm:p-8">
@@ -94,13 +94,16 @@
                     @if ($lesson->estimated_minutes)
                         <p class="mt-2 text-sm font-bold text-slate-500">Estimated time: {{ $lesson->estimated_minutes }} minutes</p>
                     @endif
+                    @if ($isFinalLesson && ! $progress->isCompleted())
+                        <p class="mt-3 text-sm leading-6 text-slate-600">This is the final published lesson. Completing it may finish the course.</p>
+                    @endif
                     <p class="mt-3 text-xs leading-5 text-slate-400">Last viewed: {{ $progress->last_viewed_at?->format('d M Y, h:i A') }}</p>
 
                     <form method="POST" action="{{ route('learner.classes.courses.lessons.progress.update', [$class, $course, $lesson]) }}" class="mt-5">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="status" value="{{ $progress->isCompleted() ? 'in_progress' : 'completed' }}">
-                        <button type="submit" class="w-full rounded-xl px-4 py-3 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200 {{ $progress->isCompleted() ? 'bg-slate-700' : 'bg-emerald-600' }}">{{ $progress->isCompleted() ? 'Mark as in progress' : 'Mark Lesson complete' }}</button>
+                        <button type="submit" class="w-full rounded-xl px-4 py-3 text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200 {{ $progress->isCompleted() ? 'bg-slate-700' : 'bg-emerald-600' }}">{{ $progress->isCompleted() ? 'Mark as in progress' : ($isFinalLesson ? 'Complete Course' : 'Mark Lesson complete') }}</button>
                     </form>
                 </section>
 
@@ -113,7 +116,7 @@
                         @if ($nextLesson)
                             <a href="{{ route('learner.classes.courses.lessons.show', [$class, $course, $nextLesson]) }}" class="block rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">Next Lesson →</a>
                         @else
-                            <a href="{{ route('learner.classes.courses.show', [$class, $course]) }}" class="block rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-black text-white focus:outline-none focus:ring-4 focus:ring-cyan-200">Back to Course</a>
+                            <a href="{{ route('learner.classes.courses.show', [$class, $course]) }}" class="block rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-black text-slate-950 focus:outline-none focus:ring-4 focus:ring-slate-200">Back to Course</a>
                         @endif
                     </div>
                 </section>
