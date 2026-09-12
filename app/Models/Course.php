@@ -54,6 +54,11 @@ class Course extends Model
         return $this->hasMany(CourseMastery::class);
     }
 
+    public function knowledgeSources(): HasMany
+    {
+        return $this->hasMany(KnowledgeSource::class);
+    }
+
     public function classes(): BelongsToMany
     {
         return $this->belongsToMany(
