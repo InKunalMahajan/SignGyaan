@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\LearnerDashboardData;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View as BladeView;
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::middleware('web')
+            ->group(base_path('routes/teacher-assessments.php'));
+
         View::composer('dashboard', function (BladeView $view): void {
             $data = $view->getData();
 
