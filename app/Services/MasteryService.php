@@ -11,6 +11,8 @@ use Illuminate\Support\Collection;
 
 class MasteryService
 {
+    private array $signalCache = [];
+
     public function __construct(private AssessmentAnalyticsService $assessmentAnalytics)
     {
     }
@@ -31,8 +33,7 @@ class MasteryService
             ? round(($lessonCompleted / $lessonTotal) * 100, 2)
             : 0.0;
 
-        $signals = $this->assessmentAnalytics
-            ->masterySignalsForLearner($learner)
+        $signals = $this->signalsFor($learner)
             ->where('course_id', $course->id)
             ->values();
 
@@ -144,6 +145,12 @@ class MasteryService
             ->orderBy('position')
             ->orderBy('id')
             ->get();
+    }
+
+    private function signalsFor(User $learner): Collection
+    {
+        return $this->signalCache[$learner->id]
+            ??= $this->assessmentAnalytics->masterySignalsForLearner($learner);
     }
 
     private function recommendations(Collection $chapters, CourseMastery $mastery): array
