@@ -52,4 +52,12 @@ function enhanceIconSidebars() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', enhanceIconSidebars);
+document.addEventListener('DOMContentLoaded', () => {
+    enhanceIconSidebars();
+
+    // Fallback sidebars are inserted by app.js during DOMContentLoaded. Observe
+    // the shell so those dynamically-added protected pages receive the same
+    // compact icon rail as shared Blade layouts.
+    const observer = new MutationObserver(() => enhanceIconSidebars());
+    observer.observe(document.body, { childList: true, subtree: true });
+});
