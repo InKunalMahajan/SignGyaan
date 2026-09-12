@@ -1,8 +1,11 @@
 import './bootstrap';
+import './icon-sidebar';
 import '../css/file-input.css';
 import '../css/shape-position-fix.css';
 import '../css/header-user-menu.css';
 import '../css/app-sidebar-fallback.css';
+import '../css/app-header-fallback.css';
+import '../css/icon-sidebar.css';
 
 function initialsFromName(name) {
     return name
@@ -19,7 +22,6 @@ function iconSvg(type) {
         profile: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/>',
         settings: '<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.96 19.36a1.7 1.7 0 0 0-1.87.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3.08 14H3v-4h.08A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.96 4.64 1.7 1.7 0 0 0 10 3.08V3h4v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.17.62.73 1 1.36 1H21v4h-.24c-.63 0-1.19.38-1.36 1Z"/>',
         logout: '<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 19V5a2 2 0 0 0-2-2h-6"/>',
-        chevron: '<path d="m6 9 6 6 6-6"/>',
     };
 
     return `<svg class="sg-account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[type] ?? ''}</svg>`;
@@ -34,6 +36,10 @@ function roleFromPath() {
     if (path.startsWith('/admin')) return 'admin';
 
     return null;
+}
+
+function roleLabel(role) {
+    return role === 'parents' ? 'Parent' : role.charAt(0).toUpperCase() + role.slice(1);
 }
 
 function navigationForRole(role) {
@@ -87,7 +93,7 @@ function installFallbackAppSidebar() {
     }
 
     const path = window.location.pathname;
-    const roleLabel = role === 'parents' ? 'Parent' : role.charAt(0).toUpperCase() + role.slice(1);
+    const label = roleLabel(role);
     const items = navigationForRole(role);
 
     const shell = document.createElement('div');
@@ -96,11 +102,11 @@ function installFallbackAppSidebar() {
     const sidebar = document.createElement('aside');
     sidebar.className = 'sg-app-sidebar-fallback';
     sidebar.setAttribute('data-app-sidebar', 'fallback');
-    sidebar.setAttribute('aria-label', `${roleLabel} navigation`);
+    sidebar.setAttribute('aria-label', `${label} navigation`);
 
-    const links = items.map(([label, href, isActive]) => {
+    const links = items.map(([itemLabel, href, isActive]) => {
         const current = isActive(path) ? ' aria-current="page"' : '';
-        return `<a href="${href}"${current}>${label}</a>`;
+        return `<a href="${href}"${current}>${itemLabel}</a>`;
     }).join('');
 
     sidebar.innerHTML = `
@@ -112,9 +118,9 @@ function installFallbackAppSidebar() {
             </span>
         </a>
         <p class="sg-app-sidebar-label">Navigation</p>
-        <nav class="sg-app-sidebar-nav" aria-label="${roleLabel} app navigation">${links}</nav>
+        <nav class="sg-app-sidebar-nav" aria-label="${label} app navigation">${links}</nav>
         <div class="sg-app-sidebar-footer">
-            <span class="sg-app-sidebar-role">${roleLabel} account</span>
+            <span class="sg-app-sidebar-role">${label} account</span>
         </div>
     `;
 
@@ -130,37 +136,17 @@ function installFallbackAppSidebar() {
     document.body.classList.add('sg-app-shell-fallback');
 }
 
-function enhanceHeaderAccountMenu() {
-    const header = document.querySelector('main#main-content > header');
-    if (!header) {
-        return;
-    }
+function accountPaths(role) {
+    return {
+        learner: { profile: '/learner/profile', settings: '/learner/profile#settings' },
+        teacher: { profile: '/teacher/profile', settings: '/teacher/profile#settings' },
+        parents: { profile: '/parents/profile', settings: '/parents/profile#settings' },
+        admin: { profile: '/dashboard/admin', settings: '/admin/users' },
+    }[role] || { profile: '/dashboard', settings: '/dashboard' };
+}
 
-    const identity = header.querySelector('span.hidden.text-right.sm\\:block');
-    if (!identity || identity.dataset.accountMenuEnhanced === 'true') {
-        return;
-    }
-
-    const name = identity.children[0]?.textContent?.trim() || 'Account';
-    const roleText = identity.children[1]?.textContent?.trim() || '';
-    const role = roleText.replace(/\s+account$/i, '').trim().toLowerCase();
-
-    const profilePath = {
-        learner: '/learner/profile',
-        teacher: '/teacher/profile',
-        parents: '/parents/profile',
-        admin: '/dashboard/admin',
-    }[role] || '/dashboard';
-
-    const settingsPath = {
-        learner: '/learner/profile#settings',
-        teacher: '/teacher/profile#settings',
-        parents: '/parents/profile#settings',
-        admin: '/admin/users',
-    }[role] || '/dashboard';
-
-    const logoutSource = document.querySelector('form[action$="/logout"]');
-
+function createAccountMenu({ name, role, roleText, logoutSource }) {
+    const paths = accountPaths(role);
     const menu = document.createElement('details');
     menu.className = 'sg-account-menu';
     menu.dataset.accountMenuEnhanced = 'true';
@@ -183,8 +169,8 @@ function enhanceHeaderAccountMenu() {
             <strong>${name}</strong>
             <span>${roleText}</span>
         </div>
-        <a class="sg-account-link" href="${profilePath}">${iconSvg('profile')}<span>Profile</span></a>
-        <a class="sg-account-link" href="${settingsPath}">${iconSvg('settings')}<span>Settings</span></a>
+        <a class="sg-account-link" href="${paths.profile}">${iconSvg('profile')}<span>Profile</span></a>
+        <a class="sg-account-link" href="${paths.settings}">${iconSvg('settings')}<span>Settings</span></a>
         <div class="sg-account-menu-divider"></div>
     `;
 
@@ -200,7 +186,6 @@ function enhanceHeaderAccountMenu() {
     }
 
     menu.append(summary, popover);
-    identity.replaceWith(menu);
 
     document.addEventListener('click', (event) => {
         if (menu.open && !menu.contains(event.target)) {
@@ -214,10 +199,110 @@ function enhanceHeaderAccountMenu() {
             summary.focus();
         }
     });
+
+    return menu;
+}
+
+function fallbackPageContext(role, path) {
+    const contexts = {
+        learner: [
+            ['/learner/profile', 'My Learning', 'My Profile'],
+            ['/learner/parent-links', 'My Learning', 'Parent Access'],
+            ['/learner/classes', 'My Learning', 'My Classes'],
+        ],
+        teacher: [
+            ['/teacher/profile', 'Teaching Workspace', 'My Profile'],
+            ['/teacher/courses', 'Teaching Workspace', 'Course Content'],
+            ['/teacher/classes', 'Teaching Workspace', 'My Classes'],
+        ],
+        parents: [
+            ['/parents/profile', 'Family Learning', 'Parent Profile'],
+            ['/parents/learners', 'Family Learning', 'Learner Progress'],
+        ],
+        admin: [
+            ['/admin/users', 'Platform Management', 'Users & Roles'],
+            ['/admin/curriculum/content', 'Platform Management', 'Course Content'],
+            ['/admin/curriculum', 'Platform Management', 'Academic Structure'],
+            ['/admin/teaching', 'Platform Management', 'Teaching Management'],
+            ['/admin/progress', 'Platform Management', 'Progress & Assessment'],
+        ],
+    };
+
+    const match = (contexts[role] ?? []).find(([prefix]) => path.startsWith(prefix));
+    return match ? { eyebrow: match[1], title: match[2] } : { eyebrow: `${roleLabel(role)} Workspace`, title: roleLabel(role) };
+}
+
+function accountNameFromPage(role) {
+    const nameInput = document.querySelector('input[name="name"]');
+    const value = nameInput?.value?.trim();
+    if (value) return value;
+
+    const existingName = document.querySelector('.sg-account-name')?.textContent?.trim();
+    if (existingName) return existingName;
+
+    return roleLabel(role);
+}
+
+function installFallbackAppHeader() {
+    if (!document.body.classList.contains('sg-app-shell-fallback')) {
+        return;
+    }
+
+    const role = roleFromPath();
+    const content = document.querySelector('.sg-app-shell-fallback-content');
+    if (!role || !content || content.querySelector(':scope > .sg-app-header-fallback')) {
+        return;
+    }
+
+    const oldHeader = content.querySelector(':scope > header') || content.querySelector('header');
+    if (!oldHeader) {
+        return;
+    }
+
+    const logoutSource = oldHeader.querySelector('form[action$="/logout"]') || content.querySelector('form[action$="/logout"]');
+    const name = accountNameFromPage(role);
+    const roleText = `${roleLabel(role)} account`;
+    const context = fallbackPageContext(role, window.location.pathname);
+
+    const header = document.createElement('header');
+    header.className = 'sg-app-header-fallback';
+    header.innerHTML = `
+        <div class="sg-app-header-fallback-inner">
+            <div class="sg-app-header-context">
+                <p class="sg-app-header-eyebrow">${context.eyebrow}</p>
+                <p class="sg-app-header-title">${context.title}</p>
+            </div>
+        </div>
+    `;
+
+    const inner = header.querySelector('.sg-app-header-fallback-inner');
+    inner.appendChild(createAccountMenu({ name, role, roleText, logoutSource }));
+
+    oldHeader.replaceWith(header);
+}
+
+function enhanceHeaderAccountMenu() {
+    const header = document.querySelector('main#main-content > header');
+    if (!header) {
+        return;
+    }
+
+    const identity = header.querySelector('span.hidden.text-right.sm\\:block');
+    if (!identity || identity.dataset.accountMenuEnhanced === 'true') {
+        return;
+    }
+
+    const name = identity.children[0]?.textContent?.trim() || 'Account';
+    const roleText = identity.children[1]?.textContent?.trim() || '';
+    const role = roleText.replace(/\s+account$/i, '').trim().toLowerCase();
+    const logoutSource = document.querySelector('form[action$="/logout"]');
+
+    identity.replaceWith(createAccountMenu({ name, role, roleText, logoutSource }));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     installFallbackAppSidebar();
+    installFallbackAppHeader();
     enhanceHeaderAccountMenu();
 
     if (!window.location.pathname.includes('/dashboard/learner')) {
