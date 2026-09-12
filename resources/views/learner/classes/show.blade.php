@@ -79,16 +79,31 @@
                 @else
                     <div class="grid gap-4 md:grid-cols-2">
                         @foreach ($class->courses as $course)
+                            @php($progress = $courseProgress->get($course->id))
                             <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-800">{{ $course->subject?->name ?: 'Course' }}</span>
-                                    @if ($course->level)
-                                        <span class="text-xs font-bold text-slate-400">{{ $course->level }}</span>
-                                    @endif
+                                    <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-black text-slate-700">{{ $progress['label'] }}</span>
                                 </div>
+
                                 <h3 class="mt-4 text-xl font-black">{{ $course->title }}</h3>
                                 <p class="mt-2 text-sm leading-6 text-slate-500">{{ $course->description ?: 'Open the Course to view published Units and Lessons.' }}</p>
-                                <a href="{{ route('learner.classes.courses.show', [$class, $course]) }}" class="mt-5 inline-flex rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-black text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-cyan-200">Open Course →</a>
+
+                                <div class="mt-5" aria-label="{{ $course->title }} progress">
+                                    <div class="flex items-center justify-between gap-3 text-xs font-bold text-slate-500">
+                                        <span>{{ $progress['completed_lessons'] }} of {{ $progress['published_lessons'] }} lessons completed</span>
+                                        <span>{{ $progress['percent'] }}%</span>
+                                    </div>
+                                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuenow="{{ $progress['percent'] }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ $course->title }} progress">
+                                        <div class="h-full rounded-full bg-slate-950" style="width: {{ $progress['percent'] }}%"></div>
+                                    </div>
+                                </div>
+
+                                @if ($progress['published_lessons'] === 0)
+                                    <p class="mt-4 text-xs font-bold text-slate-500">No published lessons are available yet.</p>
+                                @endif
+
+                                <a href="{{ $progress['action_url'] }}" class="mt-5 inline-flex rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white hover:bg-black focus:outline-none focus:ring-4 focus:ring-slate-300">{{ $progress['action_label'] }} →</a>
                             </article>
                         @endforeach
                     </div>
