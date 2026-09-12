@@ -59,6 +59,7 @@ class AssessmentReviewController extends Controller
             'feedback' => ['nullable', 'array'],
             'feedback.*' => ['nullable', 'string', 'max:5000'],
         ]);
+        $feedbackByAnswer = $validated['feedback'] ?? [];
 
         foreach ($attempt->answers as $answer) {
             $snapshot = $answer->question_snapshot ?? [];
@@ -86,8 +87,8 @@ class AssessmentReviewController extends Controller
                 ]);
             }
 
-            $feedback = $validated['feedback'][(string) $answer->id]
-                ?? $validated['feedback'][$answer->id]
+            $feedback = $feedbackByAnswer[(string) $answer->id]
+                ?? $feedbackByAnswer[$answer->id]
                 ?? null;
 
             $answer->update([
