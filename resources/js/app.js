@@ -6,6 +6,7 @@ import '../css/header-user-menu.css';
 import '../css/app-sidebar-fallback.css';
 import '../css/app-header-fallback.css';
 import '../css/icon-sidebar.css';
+import '../css/protected-actions.css';
 
 function initialsFromName(name) {
     return name
@@ -300,10 +301,67 @@ function enhanceHeaderAccountMenu() {
     identity.replaceWith(createAccountMenu({ name, role, roleText, logoutSource }));
 }
 
+function protectedWorkspacePath(path) {
+    return /^\/(dashboard\/(learner|teacher|parents|admin)|learner(?:\/|$)|teacher(?:\/|$)|parents(?:\/|$)|admin(?:\/|$))/.test(path);
+}
+
+function enhanceProtectedActions() {
+    if (!protectedWorkspacePath(window.location.pathname)) {
+        return;
+    }
+
+    const scope = document.querySelector('main#main-content') || document.querySelector('.sg-app-shell-fallback-content main');
+    if (!scope) {
+        return;
+    }
+
+    const destructivePattern = /^(delete|remove|deactivate|unlink|revoke)\b/i;
+    const primaryPattern = /^(create|save|update|upload|apply|activate|change password|manage users|manage linked|open my classes|open class|publish|add )\b/i;
+    const compactPattern = /^(open|edit|view|reset|cancel|back|manage|details|preview)\b/i;
+
+    scope.querySelectorAll('a, button').forEach((element) => {
+        if (
+            element.closest('header, aside, nav, .sg-account-menu') ||
+            element.classList.contains('sg-account-link') ||
+            element.classList.contains('sg-account-logout') ||
+            element.hasAttribute('data-sg-action-skip')
+        ) {
+            return;
+        }
+
+        const text = element.textContent.replace(/\s+/g, ' ').trim();
+        if (!text) {
+            return;
+        }
+
+        element.classList.remove('sg-action-primary', 'sg-action-secondary', 'sg-action-compact', 'sg-action-danger');
+
+        if (destructivePattern.test(text)) {
+            element.classList.add('sg-action-danger');
+            return;
+        }
+
+        if (primaryPattern.test(text)) {
+            element.classList.add('sg-action-primary');
+            return;
+        }
+
+        if (compactPattern.test(text)) {
+            element.classList.add('sg-action-compact');
+            return;
+        }
+
+        if (element.matches('button[type="submit"]')) {
+            element.classList.add('sg-action-primary');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     installFallbackAppSidebar();
     installFallbackAppHeader();
     enhanceHeaderAccountMenu();
+    enhanceProtectedActions();
 
     const path = window.location.pathname;
     const usesLiveDashboardData = path.includes('/dashboard/learner') || path.includes('/dashboard/admin');
