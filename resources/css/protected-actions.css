@@ -133,3 +133,147 @@ form .sg-action-primary + .sg-action-compact {
     align-items: center;
     gap: .5rem;
 }
+
+/*
+ * Protected form-control audit
+ * --------------------------------------------------------------------------
+ * A number of legacy views supplied a Tailwind border colour utility without a
+ * border-width utility. That makes the field look borderless. Keep one shared,
+ * monochrome control treatment so every protected form remains visible even
+ * when an older Blade view omits `border`.
+ */
+#main-content input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='range']),
+#main-content select,
+#main-content textarea,
+.sg-app-shell-fallback-content input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='range']),
+.sg-app-shell-fallback-content select,
+.sg-app-shell-fallback-content textarea {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    border: 1px solid #9ca3af !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+}
+
+#main-content input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+#main-content select,
+.sg-app-shell-fallback-content input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+.sg-app-shell-fallback-content select {
+    min-height: 42px !important;
+}
+
+#main-content textarea,
+.sg-app-shell-fallback-content textarea {
+    min-height: 112px;
+    resize: vertical;
+}
+
+#main-content input::placeholder,
+#main-content textarea::placeholder,
+.sg-app-shell-fallback-content input::placeholder,
+.sg-app-shell-fallback-content textarea::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+#main-content input:focus,
+#main-content select:focus,
+#main-content textarea:focus,
+.sg-app-shell-fallback-content input:focus,
+.sg-app-shell-fallback-content select:focus,
+.sg-app-shell-fallback-content textarea:focus {
+    border-color: #111111 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(17, 17, 17, .10) !important;
+}
+
+#main-content input:disabled,
+#main-content select:disabled,
+#main-content textarea:disabled,
+#main-content input[readonly],
+#main-content textarea[readonly],
+.sg-app-shell-fallback-content input:disabled,
+.sg-app-shell-fallback-content select:disabled,
+.sg-app-shell-fallback-content textarea:disabled,
+.sg-app-shell-fallback-content input[readonly],
+.sg-app-shell-fallback-content textarea[readonly] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed;
+}
+
+/* Keep native file controls visible in legacy forms too. */
+#main-content input[type='file'],
+.sg-app-shell-fallback-content input[type='file'] {
+    min-height: 42px;
+    padding: .375rem !important;
+}
+
+/*
+ * Protected workspace fit audit
+ * --------------------------------------------------------------------------
+ * Prevent wide tables, media, forms, and nested grids from pushing the page
+ * beyond the content column. Desktop form pages that were unnecessarily narrow
+ * are allowed to use a larger portion of the available workspace.
+ */
+#main-content,
+.sg-app-shell-fallback-content,
+.sg-app-shell-fallback-content main {
+    min-width: 0 !important;
+    width: 100%;
+    max-width: 100%;
+}
+
+#main-content {
+    overflow-x: clip;
+}
+
+#main-content form,
+#main-content fieldset,
+#main-content table,
+#main-content img,
+#main-content video,
+#main-content iframe,
+#main-content pre,
+.sg-app-shell-fallback-content form,
+.sg-app-shell-fallback-content fieldset,
+.sg-app-shell-fallback-content table,
+.sg-app-shell-fallback-content img,
+.sg-app-shell-fallback-content video,
+.sg-app-shell-fallback-content iframe,
+.sg-app-shell-fallback-content pre {
+    max-width: 100%;
+}
+
+#main-content .overflow-x-auto,
+.sg-app-shell-fallback-content .overflow-x-auto {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+}
+
+#main-content table,
+.sg-app-shell-fallback-content table {
+    width: 100%;
+}
+
+#main-content td,
+#main-content th,
+.sg-app-shell-fallback-content td,
+.sg-app-shell-fallback-content th {
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 1024px) {
+    /* Wider create/edit/profile forms; ordinary text-only prose widths remain unchanged. */
+    #main-content .mx-auto.max-w-2xl:has(form),
+    #main-content .mx-auto.max-w-3xl:has(form),
+    #main-content .mx-auto.max-w-4xl:has(form),
+    .sg-app-shell-fallback-content .mx-auto.max-w-2xl:has(form),
+    .sg-app-shell-fallback-content .mx-auto.max-w-3xl:has(form),
+    .sg-app-shell-fallback-content .mx-auto.max-w-4xl:has(form) {
+        width: 100% !important;
+        max-width: 64rem !important;
+    }
+}
