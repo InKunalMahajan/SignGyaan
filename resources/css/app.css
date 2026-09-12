@@ -12,19 +12,17 @@
 @layer base {
     :root {
         color-scheme: light;
-        --sg-bg: #f7f8fa;
+        --sg-bg: #f7f7f7;
         --sg-surface: #ffffff;
-        --sg-surface-soft: #f9fafb;
+        --sg-surface-soft: #f3f4f6;
         --sg-border: #e5e7eb;
         --sg-border-strong: #d1d5db;
-        --sg-text: #111827;
+        --sg-text: #111111;
         --sg-muted: #6b7280;
-        --sg-primary: #2563eb;
-        --sg-primary-hover: #1d4ed8;
-        --sg-primary-soft: #eff6ff;
-        --sg-danger: #b91c1c;
-        --sg-success: #047857;
-        --sg-radius: 12px;
+        --sg-primary: #111111;
+        --sg-primary-hover: #000000;
+        --sg-primary-soft: #f3f4f6;
+        --sg-radius: 10px;
     }
 
     html {
@@ -65,7 +63,7 @@
     }
 
     :focus-visible {
-        outline: 3px solid rgba(37, 99, 235, .22);
+        outline: 2px solid #111111;
         outline-offset: 2px;
     }
 }
@@ -74,22 +72,22 @@
     .sg-card {
         @apply border bg-white;
         border-radius: var(--sg-radius);
-        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
     }
 
     .sg-btn-primary {
         @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white;
-        border-radius: 10px;
-        background: var(--sg-primary);
+        border-radius: 8px;
+        background: #111111;
     }
 
     .sg-btn-primary:hover {
-        background: var(--sg-primary-hover);
+        background: #000000;
     }
 
     .sg-btn-secondary {
-        @apply inline-flex items-center justify-center border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50;
-        border-radius: 10px;
+        @apply inline-flex items-center justify-center border bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 hover:bg-gray-50;
+        border-radius: 8px;
     }
 
     .sg-muted {
@@ -99,69 +97,174 @@
 
 /*
  |--------------------------------------------------------------------------
- | SignGyaan Professional Minimal Light Theme
+ | SignGyaan Strict Monochrome Theme
  |--------------------------------------------------------------------------
- | Normalize older Blade screens so every role uses the same calm,
- | professional visual language without rewriting each feature.
+ | White + gray + black only. Existing role screens may still contain old
+ | Tailwind colour utility names in Blade, so this shared layer neutralizes
+ | them without changing routes, controllers, models, or feature behaviour.
  */
 
 body {
-    background: #f7f8fa !important;
-    color: #111827 !important;
+    background: #f7f7f7 !important;
+    color: #111111 !important;
 }
 
-/* Large decorative gradients become simple white surfaces. */
+/* Remove every decorative gradient and convert it to a neutral surface. */
 [class*='bg-gradient-to-'] {
     background-image: none !important;
     background-color: #ffffff !important;
-    color: #111827 !important;
-    border: 1px solid #e5e7eb !important;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+    color: #111111 !important;
+    border-color: #e5e7eb !important;
+    box-shadow: none !important;
 }
 
+[class*='bg-gradient-to-'].text-white,
 [class*='bg-gradient-to-'] .text-white,
-[class*='bg-gradient-to-'] [class*='text-blue-50'],
-[class*='bg-gradient-to-'] [class*='text-cyan-50'],
-[class*='bg-gradient-to-'] [class*='text-indigo-50'] {
-    color: #374151 !important;
+[class*='bg-gradient-to-'] [class*='text-blue-'],
+[class*='bg-gradient-to-'] [class*='text-cyan-'],
+[class*='bg-gradient-to-'] [class*='text-indigo-'],
+[class*='bg-gradient-to-'] [class*='text-purple-'] {
+    color: #111111 !important;
 }
 
-/* Keep the compact SignGyaan mark as a clear flat brand accent. */
+/* Compact SG brand mark: black and white only. */
 span.size-11[class*='bg-gradient-to-'],
-span[class*='size-11'][class*='bg-gradient-to-'] {
-    background: #2563eb !important;
+span[class*='size-11'][class*='bg-gradient-to-'],
+span.size-12[class*='bg-gradient-to-'],
+span[class*='size-12'][class*='bg-gradient-to-'] {
+    background: #111111 !important;
     color: #ffffff !important;
     border: 0 !important;
     box-shadow: none !important;
 }
 
-/* Reduce oversized rounding and strong shadows across legacy screens. */
-.rounded-3xl {
-    border-radius: 14px !important;
+/* Neutralize all old coloured backgrounds used throughout legacy Blade pages. */
+[class*='bg-blue-'],
+[class*='bg-cyan-'],
+[class*='bg-indigo-'],
+[class*='bg-purple-'],
+[class*='bg-violet-'],
+[class*='bg-emerald-'],
+[class*='bg-green-'],
+[class*='bg-teal-'],
+[class*='bg-red-'],
+[class*='bg-rose-'],
+[class*='bg-orange-'],
+[class*='bg-amber-'],
+[class*='bg-yellow-'] {
+    background-color: #f3f4f6 !important;
+    color: #111111 !important;
 }
 
-.rounded-2xl {
-    border-radius: 12px !important;
+/* Primary actions and active navigation become black, regardless of old colour class. */
+button[class*='bg-blue-'],
+button[class*='bg-cyan-'],
+button[class*='bg-indigo-'],
+button[class*='bg-purple-'],
+button[class*='bg-emerald-'],
+button[class*='bg-green-'],
+a[class*='bg-blue-'],
+a[class*='bg-cyan-'],
+a[class*='bg-indigo-'],
+a[class*='bg-purple-'],
+a[class*='bg-emerald-'],
+a[class*='bg-green-'] {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+    border-color: #111111 !important;
 }
 
-.rounded-xl {
-    border-radius: 10px !important;
+button[class*='bg-blue-']:hover,
+button[class*='bg-cyan-']:hover,
+button[class*='bg-indigo-']:hover,
+button[class*='bg-purple-']:hover,
+button[class*='bg-emerald-']:hover,
+button[class*='bg-green-']:hover,
+a[class*='bg-blue-']:hover,
+a[class*='bg-cyan-']:hover,
+a[class*='bg-indigo-']:hover,
+a[class*='bg-purple-']:hover,
+a[class*='bg-emerald-']:hover,
+a[class*='bg-green-']:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
 }
 
-.shadow-lg,
-.shadow-xl,
-.shadow-2xl {
-    box-shadow: 0 1px 3px rgba(15, 23, 42, .08) !important;
+/* Destructive actions stay monochrome: outlined gray instead of red. */
+button[class*='bg-red-'],
+button[class*='bg-rose-'],
+a[class*='bg-red-'],
+a[class*='bg-rose-'] {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    border-color: #9ca3af !important;
 }
 
-.shadow-sm {
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+/* Convert all old coloured text utilities to neutral dark/muted text. */
+[class*='text-blue-'],
+[class*='text-cyan-'],
+[class*='text-indigo-'],
+[class*='text-purple-'],
+[class*='text-violet-'],
+[class*='text-emerald-'],
+[class*='text-green-'],
+[class*='text-teal-'],
+[class*='text-red-'],
+[class*='text-rose-'],
+[class*='text-orange-'],
+[class*='text-amber-'],
+[class*='text-yellow-'] {
+    color: #4b5563 !important;
 }
 
-/* Neutral page surfaces. */
+button[class*='bg-'] [class*='text-'],
+a[class*='bg-'] [class*='text-'] {
+    color: inherit !important;
+}
+
+/* Convert all old coloured borders to standard gray borders. */
+[class*='border-blue-'],
+[class*='border-cyan-'],
+[class*='border-indigo-'],
+[class*='border-purple-'],
+[class*='border-violet-'],
+[class*='border-emerald-'],
+[class*='border-green-'],
+[class*='border-teal-'],
+[class*='border-red-'],
+[class*='border-rose-'],
+[class*='border-orange-'],
+[class*='border-amber-'],
+[class*='border-yellow-'] {
+    border-color: #d1d5db !important;
+}
+
+/* Neutralize coloured ring variables used by focus utilities. */
+[class*='ring-blue-'],
+[class*='ring-cyan-'],
+[class*='ring-indigo-'],
+[class*='ring-purple-'],
+[class*='ring-emerald-'],
+[class*='ring-green-'],
+[class*='ring-red-'],
+[class*='ring-rose-'],
+[class*='ring-amber-'],
+[class*='focus:ring-blue-'],
+[class*='focus:ring-cyan-'],
+[class*='focus:ring-indigo-'],
+[class*='focus:ring-purple-'],
+[class*='focus:ring-emerald-'],
+[class*='focus:ring-green-'],
+[class*='focus:ring-red-'],
+[class*='focus:ring-rose-'],
+[class*='focus:ring-amber-'] {
+    --tw-ring-color: rgba(17, 17, 17, .16) !important;
+}
+
+/* Page surfaces. */
 .bg-slate-50,
 .bg-gray-50 {
-    background-color: #f7f8fa !important;
+    background-color: #f7f7f7 !important;
 }
 
 .bg-slate-100,
@@ -169,113 +272,96 @@ span[class*='size-11'][class*='bg-gradient-to-'] {
     background-color: #f3f4f6 !important;
 }
 
-/* Primary actions stay clear but restrained. */
-.bg-blue-700,
-.bg-blue-800,
-.bg-indigo-600,
-.bg-indigo-700,
-.bg-cyan-600 {
-    background-color: #2563eb !important;
+.bg-white {
+    background-color: #ffffff !important;
 }
 
-.hover\:bg-blue-800:hover,
-.hover\:bg-indigo-700:hover,
-.hover\:bg-indigo-800:hover {
-    background-color: #1d4ed8 !important;
+.bg-slate-900,
+.bg-gray-900,
+.bg-black {
+    background-color: #111111 !important;
 }
 
-/* Soft accent surfaces are consistent and quiet. */
-.bg-blue-50,
-.bg-indigo-50,
-.bg-cyan-50 {
-    background-color: #eff6ff !important;
+/* Smaller radius and almost-flat depth for a professional website feel. */
+.rounded-3xl {
+    border-radius: 12px !important;
 }
 
-.border-blue-100,
-.border-indigo-100,
-.border-cyan-100,
-.border-blue-200,
-.border-indigo-200,
-.border-cyan-200 {
-    border-color: #dbeafe !important;
+.rounded-2xl {
+    border-radius: 10px !important;
 }
 
-.text-blue-700,
-.text-blue-800,
-.text-indigo-600,
-.text-indigo-700,
-.text-cyan-700,
-.text-cyan-800 {
-    color: #1d4ed8 !important;
+.rounded-xl {
+    border-radius: 8px !important;
 }
 
-/* Forms look like a professional web application, not decorative cards. */
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04) !important;
+}
+
+/* Professional monochrome form controls. */
 input:not([type='checkbox']):not([type='radio']),
 select,
 textarea {
     border-color: #d1d5db !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     background: #ffffff !important;
+    color: #111111 !important;
     box-shadow: none !important;
 }
 
 input:not([type='checkbox']):not([type='radio']):focus,
 select:focus,
 textarea:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10) !important;
+    border-color: #111111 !important;
+    box-shadow: 0 0 0 3px rgba(17, 17, 17, .08) !important;
+    outline: none !important;
 }
 
-/* Tables and content containers stay crisp and readable. */
+input[type='checkbox'],
+input[type='radio'] {
+    accent-color: #111111;
+}
+
+/* Alerts and status badges use shade/weight instead of colour. */
+[role='alert'],
+[role='status'] {
+    border-color: #d1d5db !important;
+}
+
+[role='alert'] {
+    background: #f3f4f6 !important;
+    color: #111111 !important;
+}
+
+[role='status'] {
+    background: #f9fafb !important;
+    color: #111111 !important;
+}
+
 table {
     border-collapse: separate;
     border-spacing: 0;
 }
 
 thead {
-    background: #f9fafb;
+    background: #f3f4f6 !important;
 }
 
-/* Buttons should feel compact and purposeful. */
 button,
 [role='button'] {
     font-weight: 600;
 }
 
-/* Status colours remain semantic but less saturated. */
-.bg-emerald-50,
-.bg-emerald-100 {
-    background-color: #ecfdf5 !important;
-}
-
-.text-emerald-700,
-.text-emerald-800,
-.text-emerald-900 {
-    color: #047857 !important;
-}
-
-.bg-rose-50,
-.bg-rose-100 {
-    background-color: #fff1f2 !important;
-}
-
-.text-rose-700,
-.text-rose-800,
-.text-rose-900 {
-    color: #b91c1c !important;
-}
-
-.bg-amber-50,
-.bg-amber-100 {
-    background-color: #fffbeb !important;
-}
-
-/* Keep content widths comfortable on large desktop screens. */
 .max-w-7xl {
     max-width: 80rem !important;
 }
 
-/* Respect reduced motion for accessibility. */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
