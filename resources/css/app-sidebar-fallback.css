@@ -1,0 +1,162 @@
+/* Shared fallback sidebar for authenticated role pages that have not yet moved to a Blade role layout. */
+
+body.sg-app-shell-fallback {
+    min-height: 100vh;
+    background: #f7f7f7;
+}
+
+.sg-app-shell-fallback-root {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.sg-app-shell-fallback-content {
+    min-width: 0;
+    min-height: 100vh;
+}
+
+.sg-app-sidebar-fallback {
+    min-height: 100vh;
+    border-right: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 20px 16px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    z-index: 30;
+}
+
+.sg-app-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 18px;
+    color: #111111;
+    text-decoration: none;
+}
+
+.sg-app-sidebar-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: #111111;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    flex: 0 0 auto;
+}
+
+.sg-app-sidebar-brand-copy strong,
+.sg-app-sidebar-brand-copy span {
+    display: block;
+}
+
+.sg-app-sidebar-brand-copy strong {
+    font-size: 15px;
+    line-height: 1.15;
+}
+
+.sg-app-sidebar-brand-copy span {
+    margin-top: 2px;
+    color: #6b7280;
+    font-size: 11px;
+}
+
+.sg-app-sidebar-label {
+    margin: 0 8px 8px;
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.sg-app-sidebar-nav {
+    display: grid;
+    gap: 4px;
+}
+
+.sg-app-sidebar-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sg-app-sidebar-nav a:hover {
+    background: #f3f4f6;
+    color: #111111;
+}
+
+.sg-app-sidebar-nav a[aria-current='page'] {
+    background: #111111;
+    color: #ffffff;
+}
+
+.sg-app-sidebar-footer {
+    margin-top: 22px;
+    padding: 14px 10px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.sg-app-sidebar-role {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+@media (max-width: 1023px) {
+    .sg-app-shell-fallback-root {
+        display: block;
+    }
+
+    .sg-app-sidebar-fallback {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 16px;
+    }
+
+    .sg-app-sidebar-brand {
+        padding: 0 0 10px;
+    }
+
+    .sg-app-sidebar-label,
+    .sg-app-sidebar-footer {
+        display: none;
+    }
+
+    .sg-app-sidebar-nav {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
+    }
+
+    .sg-app-sidebar-nav a {
+        min-width: max-content;
+        min-height: 36px;
+        padding: 8px 10px;
+    }
+}
