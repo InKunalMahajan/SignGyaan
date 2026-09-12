@@ -69,10 +69,10 @@ class AdminDashboardPhase10Test extends TestCase
             ->assertOk()
             ->assertSee('Admin Dashboard')
             ->assertSee('Platform overview')
-            ->assertSee('Users & roles')
+            ->assertSee('Users & roles', false)
             ->assertSee('Curriculum health')
             ->assertSee('Teaching operations')
-            ->assertSee('Assessment & mastery')
+            ->assertSee('Assessment & mastery', false)
             ->assertSee('Operational alerts')
             ->assertSee('Active classes without learners')
             ->assertSee('Active classes without courses');
@@ -95,11 +95,11 @@ class AdminDashboardPhase10Test extends TestCase
             ->assertOk()
             ->assertSee('Admin Dashboard')
             ->assertSee('Manage SignGyaan')
-            ->assertSee('Users & Roles')
+            ->assertSee('Users & Roles', false)
             ->assertSee('Academic Structure')
             ->assertSee('Course Content')
             ->assertSee('Teaching Management')
-            ->assertSee('Progress & Assessment');
+            ->assertSee('Progress & Assessment', false);
 
         $this->actingAs($learner)
             ->get(route('dashboard.role', 'admin'))
