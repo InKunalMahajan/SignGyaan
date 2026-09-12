@@ -1,0 +1,103 @@
+/* Professional protected app-shell audit.
+   One visual system for Dashboard, Admin, Teacher, Learner, Parent and fallback pages. */
+
+@media (min-width: 1024px) {
+    .sg-icon-sidebar-shell {
+        grid-template-columns: 72px minmax(0, 1fr) !important;
+    }
+
+    .sg-icon-sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        width: 72px !important;
+        min-width: 72px !important;
+        height: 100vh;
+        min-height: 100vh !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        border-right: 1px solid #e5e7eb !important;
+    }
+
+    .sg-icon-sidebar-link {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        border-radius: 12px !important;
+    }
+
+    .sg-sidebar-icon {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
+/* Shared header rhythm across all protected shells. */
+.sg-icon-sidebar-shell main#main-content > header,
+.sg-icon-sidebar-shell > div > header,
+.sg-app-header-fallback {
+    min-height: 72px;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+.sg-icon-sidebar-shell main#main-content > header > div,
+.sg-icon-sidebar-shell > div > header > div,
+.sg-app-header-fallback-inner {
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+}
+
+/* Keep page content and header aligned to the same 80rem professional grid. */
+.sg-icon-sidebar-shell main#main-content > header > div,
+.sg-icon-sidebar-shell > div > header > div,
+.sg-icon-sidebar-shell main#main-content > header + div,
+.sg-icon-sidebar-shell > div > main#main-content,
+.sg-app-header-fallback-inner,
+.sg-app-shell-fallback-content > main#main-content {
+    width: 100%;
+    max-width: 80rem !important;
+    margin-inline: auto !important;
+}
+
+/* Neutral, consistent active state regardless of original Blade classes. */
+.sg-icon-sidebar-link[aria-current='page'] {
+    background: #e5e7eb !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+}
+
+.sg-icon-sidebar-link:not([aria-current='page']):hover,
+.sg-icon-sidebar-link:not([aria-current='page']):focus-visible {
+    background: #f3f4f6 !important;
+    color: #111111 !important;
+}
+
+/* Account menu should align consistently at the far right of every header. */
+.sg-account-menu {
+    flex: 0 0 auto;
+}
+
+/* Prevent legacy sidebar/footer content from changing rail height or spacing. */
+@media (min-width: 1024px) {
+    .sg-icon-sidebar-account-card,
+    .sg-icon-sidebar .sg-app-sidebar-footer {
+        display: none !important;
+    }
+}
+
+/* Mobile/tablet keep readable horizontal navigation instead of forcing an icon rail. */
+@media (max-width: 1023px) {
+    .sg-icon-sidebar-shell {
+        display: block !important;
+    }
+
+    .sg-icon-sidebar {
+        width: 100% !important;
+        min-height: auto !important;
+        height: auto !important;
+        position: static !important;
+    }
+}

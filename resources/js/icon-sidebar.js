@@ -16,8 +16,81 @@ function sidebarIconSvg(label) {
     return `<svg class="sg-sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 }
 
+function protectedRoleFromPath(path = window.location.pathname) {
+    const dashboardMatch = path.match(/^\/dashboard\/(learner|teacher|parents|admin)(?:\/|$)/);
+    if (dashboardMatch) return dashboardMatch[1];
+
+    if (path.startsWith('/learner')) return 'learner';
+    if (path.startsWith('/teacher')) return 'teacher';
+    if (path.startsWith('/parents')) return 'parents';
+    if (path.startsWith('/admin')) return 'admin';
+
+    return null;
+}
+
+function roleNavigation(role) {
+    const dashboard = `/dashboard/${role}`;
+
+    const navigation = {
+        learner: [
+            ['Dashboard', dashboard, (path) => path === dashboard],
+            ['My Classes', '/learner/classes', (path) => path.startsWith('/learner/classes')],
+            ['My Profile', '/learner/profile', (path) => path.startsWith('/learner/profile')],
+            ['Parent Access', '/learner/parent-links', (path) => path.startsWith('/learner/parent-links')],
+            ['Explore Public', '/dashboard/guest', () => false],
+        ],
+        teacher: [
+            ['Dashboard', dashboard, (path) => path === dashboard],
+            ['My Classes', '/teacher/classes', (path) => path.startsWith('/teacher/classes')],
+            ['Course Content', '/teacher/courses', (path) => path.startsWith('/teacher/courses')],
+            ['My Profile', '/teacher/profile', (path) => path.startsWith('/teacher/profile')],
+            ['Explore Public', '/dashboard/guest', () => false],
+        ],
+        parents: [
+            ['Dashboard', dashboard, (path) => path === dashboard],
+            ['Parent Profile', '/parents/profile', (path) => path.startsWith('/parents/profile')],
+            ['Learner Progress', '/parents/profile', (path) => path.startsWith('/parents/learners')],
+            ['Explore Public', '/dashboard/guest', () => false],
+        ],
+        admin: [
+            ['Dashboard', dashboard, (path) => path === dashboard],
+            ['Users & Roles', '/admin/users', (path) => path.startsWith('/admin/users')],
+            ['Academic Structure', '/admin/curriculum', (path) => path === '/admin/curriculum' || /^\/admin\/curriculum\/(boards|classes|subjects)(?:\/|$)/.test(path)],
+            ['Course Content', '/admin/curriculum/content', (path) => path.startsWith('/admin/curriculum/content')],
+            ['Teaching Management', '/admin/teaching', (path) => path.startsWith('/admin/teaching')],
+            ['Progress & Assessment', '/admin/progress', (path) => path.startsWith('/admin/progress')],
+            ['Explore Public', '/dashboard/guest', () => false],
+        ],
+    };
+
+    return navigation[role] ?? [];
+}
+
+function syncProtectedSidebarNavigation(aside) {
+    const role = protectedRoleFromPath();
+    const items = roleNavigation(role);
+    const nav = aside.querySelector('nav');
+
+    if (!role || !items.length || !nav || aside.dataset.roleNavigationSynced === 'true') return;
+
+    const path = window.location.pathname;
+    const existingContainer = nav.querySelector(':scope > div');
+    const container = existingContainer || nav;
+
+    const links = items.map(([label, href, isActive]) => {
+        const current = isActive(path) ? ' aria-current="page"' : '';
+        const activeClass = isActive(path) ? ' bg-slate-950 text-white' : ' text-slate-700 hover:bg-slate-100';
+        return `<a href="${href}"${current} class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold${activeClass}">${label}</a>`;
+    }).join('');
+
+    container.innerHTML = links;
+    aside.dataset.roleNavigationSynced = 'true';
+}
+
 function enhanceIconSidebars() {
     document.querySelectorAll('aside').forEach((aside) => {
+        syncProtectedSidebarNavigation(aside);
+
         const navLinks = [...aside.querySelectorAll('nav a')];
         if (!navLinks.length || aside.dataset.iconSidebarReady === 'true') return;
 
@@ -55,9 +128,6 @@ function enhanceIconSidebars() {
 document.addEventListener('DOMContentLoaded', () => {
     enhanceIconSidebars();
 
-    // Fallback sidebars are inserted by app.js during DOMContentLoaded. Observe
-    // the shell so those dynamically-added protected pages receive the same
-    // compact icon rail as shared Blade layouts.
     const observer = new MutationObserver(() => enhanceIconSidebars());
     observer.observe(document.body, { childList: true, subtree: true });
 });
