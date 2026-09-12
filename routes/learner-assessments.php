@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Learner\AssessmentAnalyticsController;
 use App\Http\Controllers\Learner\AssessmentAttemptController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,6 +9,7 @@ Route::middleware(['web', 'auth', 'active', 'learner'])
     ->name('learner.')
     ->group(function (): void {
         Route::get('/assessments', [AssessmentAttemptController::class, 'index'])->name('assessments.index');
+        Route::get('/assessments/history', [AssessmentAnalyticsController::class, 'history'])->name('assessments.history');
         Route::post('/assessments/{assessment}/start', [AssessmentAttemptController::class, 'start'])->name('assessments.start');
         Route::get('/assessment-attempts/{attempt}', [AssessmentAttemptController::class, 'show'])->name('assessments.attempts.show');
         Route::put('/assessment-attempts/{attempt}/answers', [AssessmentAttemptController::class, 'save'])->name('assessments.attempts.save');
