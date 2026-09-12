@@ -101,6 +101,11 @@ class User extends Authenticatable
         return $this->hasMany(AssessmentAttempt::class, 'learner_id');
     }
 
+    public function knowledgeSources(): HasMany
+    {
+        return $this->hasMany(KnowledgeSource::class, 'owner_id');
+    }
+
     protected function casts(): array
     {
         return [
