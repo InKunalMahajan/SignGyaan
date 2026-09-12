@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\LearningClass;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Services\LearnerLearningPath;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,9 +19,10 @@ class LessonController extends Controller
         Request $request,
         LearningClass $class,
         Course $course,
-        Lesson $lesson
+        Lesson $lesson,
+        LearnerLearningPath $learningPath
     ): View {
-        $this->authorizeLessonAccess($request, $class, $course, $lesson);
+        $learningPath->assertLessonAccessible($request->user(), $class, $course, $lesson);
 
         $progress = LessonProgress::firstOrNew([
             'learner_id' => $request->user()->id,
@@ -35,7 +37,7 @@ class LessonController extends Controller
         $progress->last_viewed_at = now();
         $progress->save();
 
-        $lessons = $this->publishedLessonsForCourse($course);
+        $lessons = $learningPath->lessonsForCourse($request->user(), $class, $course);
         $lessonIds = $lessons->pluck('id');
         $currentIndex = $lessons->search(fn (Lesson $item) => $item->id === $lesson->id);
 
@@ -63,9 +65,10 @@ class LessonController extends Controller
         Request $request,
         LearningClass $class,
         Course $course,
-        Lesson $lesson
+        Lesson $lesson,
+        LearnerLearningPath $learningPath
     ): RedirectResponse {
-        $this->authorizeLessonAccess($request, $class, $course, $lesson);
+        $learningPath->assertLessonAccessible($request->user(), $class, $course, $lesson);
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(LessonProgress::STATUSES)],
@@ -89,7 +92,7 @@ class LessonController extends Controller
             return back()->with('status', 'Lesson moved back to in progress.');
         }
 
-        $lessons = $this->publishedLessonsForCourse($course);
+        $lessons = $learningPath->lessonsForCourse($request->user(), $class, $course);
         $lessonIds = $lessons->pluck('id');
         $completedLessonIds = $request->user()->lessonProgress()
             ->whereIn('lesson_id', $lessonIds)
@@ -127,50 +130,5 @@ class LessonController extends Controller
             ->with('status', $remaining > 0
                 ? "Lesson complete. {$remaining} lesson(s) remaining."
                 : 'Lesson complete.');
-    }
-
-    private function authorizeLessonAccess(
-        Request $request,
-        LearningClass $class,
-        Course $course,
-        Lesson $lesson
-    ): void {
-        abort_unless(
-            $request->user()->enrolledClasses()->whereKey($class->id)->exists(),
-            403
-        );
-
-        abort_unless(
-            $class->courses()
-                ->whereKey($course->id)
-                ->where('courses.is_active', true)
-                ->whereHas('subject', fn ($query) => $query->where('is_active', true))
-                ->exists(),
-            403
-        );
-
-        $lesson->loadMissing('unit');
-
-        abort_unless(
-            $lesson->unit?->course_id === $course->id
-                && $lesson->unit->is_active
-                && $lesson->isPublished(),
-            404
-        );
-    }
-
-    private function publishedLessonsForCourse(Course $course)
-    {
-        return Lesson::query()
-            ->select('lessons.*')
-            ->join('course_units', 'course_units.id', '=', 'lessons.course_unit_id')
-            ->where('course_units.course_id', $course->id)
-            ->where('course_units.is_active', true)
-            ->where('lessons.status', 'published')
-            ->orderBy('course_units.position')
-            ->orderBy('course_units.id')
-            ->orderBy('lessons.position')
-            ->orderBy('lessons.id')
-            ->get();
     }
 }
