@@ -23,32 +23,32 @@
             <div class="mt-6 grid gap-5 sm:grid-cols-2">
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-black text-slate-700">Full name</span>
-                    <input name="name" value="{{ old('name', $user->name) }}" required class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input name="name" value="{{ old('name', $user->name) }}" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-black text-slate-700">Email</span>
-                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <label class="block">
                     <span class="text-sm font-black text-slate-700">Phone</span>
-                    <input name="phone" value="{{ old('phone', $profile->phone) }}" maxlength="30" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input name="phone" value="{{ old('phone', $profile->phone) }}" maxlength="30" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <label class="block">
                     <span class="text-sm font-black text-slate-700">Designation</span>
-                    <input name="designation" value="{{ old('designation', $profile->designation) }}" maxlength="120" placeholder="Teacher / Lecturer / Trainer" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input name="designation" value="{{ old('designation', $profile->designation) }}" maxlength="120" placeholder="Teacher / Lecturer / Trainer" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-black text-slate-700">Qualification</span>
-                    <input name="qualification" value="{{ old('qualification', $profile->qualification) }}" maxlength="160" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input name="qualification" value="{{ old('qualification', $profile->qualification) }}" maxlength="160" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <label class="block">
                     <span class="text-sm font-black text-slate-700">Preferred language</span>
-                    <select name="preferred_language" required class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <select name="preferred_language" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                         @foreach ($languages as $value => $label)
                             <option value="{{ $value }}" @selected(old('preferred_language', $profile->preferred_language) === $value)>{{ $label }}</option>
                         @endforeach
@@ -57,7 +57,7 @@
 
                 <label class="block">
                     <span class="text-sm font-black text-slate-700">Communication mode</span>
-                    <select name="communication_mode" required class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <select name="communication_mode" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                         @foreach ($communicationModes as $value => $label)
                             <option value="{{ $value }}" @selected(old('communication_mode', $profile->communication_mode) === $value)>{{ $label }}</option>
                         @endforeach
@@ -66,7 +66,7 @@
 
                 <label class="block sm:col-span-2">
                     <span class="text-sm font-black text-slate-700">Short professional bio</span>
-                    <textarea name="bio" rows="5" maxlength="1000" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">{{ old('bio', $profile->bio) }}</textarea>
+                    <textarea name="bio" rows="5" maxlength="1000" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-300">{{ old('bio', $profile->bio) }}</textarea>
                 </label>
             </div>
 
@@ -89,15 +89,15 @@
 
                 <label class="mt-5 block">
                     <span class="text-sm font-black text-slate-700">Current password</span>
-                    <input type="password" name="current_password" required autocomplete="current-password" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input type="password" name="current_password" required autocomplete="current-password" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
                 <label class="mt-4 block">
                     <span class="text-sm font-black text-slate-700">New password</span>
-                    <input type="password" name="password" required autocomplete="new-password" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input type="password" name="password" required autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
                 <label class="mt-4 block">
                     <span class="text-sm font-black text-slate-700">Confirm new password</span>
-                    <input type="password" name="password_confirmation" required autocomplete="new-password" class="mt-2 w-full rounded-xl border-slate-300 focus:border-cyan-500 focus:ring-cyan-500">
+                    <input type="password" name="password_confirmation" required autocomplete="new-password" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-300">
                 </label>
 
                 <button type="submit" class="mt-5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-cyan-200">Change password</button>
