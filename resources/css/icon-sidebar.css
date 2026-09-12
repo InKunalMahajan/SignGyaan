@@ -1,3 +1,5 @@
+@import './app-container-fit.css';
+
 /* Compact monochrome app sidebar inspired by modern icon rails. */
 
 @media (min-width: 1024px) {
