@@ -8,7 +8,7 @@
         <div>
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Assessment System</p>
             <h1 class="mt-2 text-3xl font-black tracking-tight">Assessments</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create, review, and publish assessments for courses you own.</p>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create, review, publish, and score assessments for courses you own.</p>
         </div>
         <a href="{{ route('teacher.assessments.create') }}" class="sg-btn-primary">Create Assessment</a>
     </div>
@@ -25,6 +25,9 @@
                     <p class="mt-1 text-xs text-slate-500">{{ $assessment->attempts_count }} learner attempt(s)</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
+                    @if ($assessment->attempts_count > 0)
+                        <a href="{{ route('teacher.assessments.attempts.index', $assessment) }}" class="sg-btn-secondary">Review Attempts</a>
+                    @endif
                     <a href="{{ route('teacher.assessments.preview', $assessment) }}" class="sg-btn-secondary">Preview</a>
                     <a href="{{ route('teacher.assessments.edit', $assessment) }}" class="sg-btn-primary">Manage</a>
                 </div>

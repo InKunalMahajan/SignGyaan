@@ -36,7 +36,8 @@
                             <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><input type="radio" name="responses[{{ $question->id }}]" value="{{ $option }}" @checked(($saved['value'] ?? null) === $option)> <span>{{ $option }}</span></label>
                         @endforeach
                     @elseif ($question->type === 'matching')
-                        @foreach (($question->config['pairs'] ?? []) as $left => $right)
+                        @foreach (($question->config['pairs'] ?? []) as $pair)
+                            @php $left = $pair['left'] ?? ''; @endphp
                             <div class="grid gap-2 sm:grid-cols-2 sm:items-center">
                                 <div class="rounded-xl bg-slate-100 px-3 py-2 font-semibold">{{ $left }}</div>
                                 <input class="rounded-xl border border-slate-300 px-3 py-2" name="responses[{{ $question->id }}][{{ $left }}]" value="{{ $saved['pairs'][$left] ?? '' }}" aria-label="Match for {{ $left }}">

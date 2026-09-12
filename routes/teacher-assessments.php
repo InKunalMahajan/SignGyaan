@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Teacher\AssessmentController;
+use App\Http\Controllers\Teacher\AssessmentReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active', 'teacher'])
@@ -15,6 +16,9 @@ Route::middleware(['auth', 'active', 'teacher'])
         Route::get('/assessments/{assessment}/preview', [AssessmentController::class, 'preview'])->name('assessments.preview');
         Route::patch('/assessments/{assessment}/publish', [AssessmentController::class, 'publish'])->name('assessments.publish');
         Route::patch('/assessments/{assessment}/archive', [AssessmentController::class, 'archive'])->name('assessments.archive');
+        Route::get('/assessments/{assessment}/attempts', [AssessmentReviewController::class, 'index'])->name('assessments.attempts.index');
+        Route::get('/assessment-attempts/{attempt}/review', [AssessmentReviewController::class, 'show'])->name('assessments.attempts.review');
+        Route::patch('/assessment-attempts/{attempt}/review', [AssessmentReviewController::class, 'update'])->name('assessments.attempts.update');
 
         Route::post('/assessments/{assessment}/questions', [AssessmentController::class, 'storeQuestion'])->name('assessments.questions.store');
         Route::put('/assessments/{assessment}/questions/{question}', [AssessmentController::class, 'updateQuestion'])->name('assessments.questions.update');

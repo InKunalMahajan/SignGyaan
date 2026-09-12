@@ -14,6 +14,7 @@
             @php
                 $latest = optional($attempts->get($assessment->id))->first();
                 $active = optional($attempts->get($assessment->id))->firstWhere('status', 'in_progress');
+                $submitted = $latest && $latest->isSubmitted();
             @endphp
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div class="flex items-start justify-between gap-3">
@@ -31,12 +32,17 @@
                 @if ($latest)
                     <p class="mt-4 text-sm font-semibold text-slate-600">Latest status: {{ str($latest->status)->replace('_', ' ')->title() }}</p>
                 @endif
-                <form method="POST" action="{{ route('learner.assessments.start', $assessment) }}" class="mt-5">
-                    @csrf
-                    <button class="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white hover:bg-slate-800">
-                        {{ $active ? 'Resume Attempt' : 'Start Attempt' }}
-                    </button>
-                </form>
+                <div class="mt-5 grid gap-2">
+                    @if ($submitted)
+                        <a href="{{ route('learner.assessments.attempts.result', $latest) }}" class="w-full rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-black text-white">View Result</a>
+                    @endif
+                    <form method="POST" action="{{ route('learner.assessments.start', $assessment) }}">
+                        @csrf
+                        <button class="w-full rounded-xl {{ $submitted ? 'border border-slate-300 bg-white text-slate-950' : 'bg-slate-950 text-white' }} px-4 py-3 text-sm font-black">
+                            {{ $active ? 'Resume Attempt' : ($submitted ? 'Start New Attempt' : 'Start Attempt') }}
+                        </button>
+                    </form>
+                </div>
             </section>
         @empty
             <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600 md:col-span-2 xl:col-span-3">No published assessments are available in your active courses yet.</div>

@@ -13,4 +13,5 @@ Route::middleware(['web', 'auth', 'active', 'learner'])
         Route::put('/assessment-attempts/{attempt}/answers', [AssessmentAttemptController::class, 'save'])->name('assessments.attempts.save');
         Route::get('/assessment-attempts/{attempt}/review', [AssessmentAttemptController::class, 'review'])->name('assessments.attempts.review');
         Route::post('/assessment-attempts/{attempt}/submit', [AssessmentAttemptController::class, 'submit'])->name('assessments.attempts.submit');
+        Route::get('/assessment-attempts/{attempt}/result', [AssessmentAttemptController::class, 'result'])->name('assessments.attempts.result');
     });
