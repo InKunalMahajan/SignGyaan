@@ -3,7 +3,7 @@
 use App\Http\Controllers\Teacher\AssessmentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth', 'active', 'teacher'])
+Route::middleware(['auth', 'active', 'teacher'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function (): void {
