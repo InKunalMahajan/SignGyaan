@@ -1,0 +1,230 @@
+/* Phase 13 — Accessibility
+   Shared WCAG-oriented improvements for SignGyaan without changing feature behavior. */
+
+.sg-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.sg-skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 10000;
+    transform: translateY(-180%);
+    border: 2px solid #111111;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111111;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sg-skip-link:focus {
+    transform: translateY(0);
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid #111111 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #ffffff !important;
+}
+
+button,
+input:not([type='hidden']):not([type='checkbox']):not([type='radio']),
+select,
+textarea,
+summary,
+[role='button'] {
+    min-height: 44px;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+    min-width: 20px;
+    min-height: 20px;
+}
+
+[aria-invalid='true'] {
+    border: 2px solid #111111 !important;
+    box-shadow: inset 4px 0 0 #111111 !important;
+}
+
+[role='alert']::before {
+    content: 'Important: ';
+    font-weight: 700;
+}
+
+[aria-current='page'] {
+    font-weight: 700;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+}
+
+a:not([class*='btn']):focus-visible,
+a:not([class*='btn']):hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+table caption.sg-sr-only {
+    position: absolute !important;
+}
+
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+.sg-a11y-panel {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 9990;
+    font-size: 0.9375rem;
+}
+
+.sg-a11y-panel > summary {
+    cursor: pointer;
+    list-style: none;
+    border: 1px solid #6b7280;
+    border-radius: 9999px;
+    background: #ffffff;
+    color: #111111;
+    padding: 0.65rem 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sg-a11y-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+.sg-a11y-panel__menu {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
+    width: min(18rem, calc(100vw - 2rem));
+    border: 1px solid #6b7280;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #111111;
+    padding: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.sg-a11y-panel__title {
+    margin: 0 0 0.75rem;
+    font-weight: 800;
+}
+
+.sg-a11y-panel__menu label {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.sg-a11y-panel__menu button {
+    width: 100%;
+    margin-top: 0.75rem;
+    border: 1px solid #6b7280;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111111;
+    padding: 0.6rem 0.75rem;
+    font-weight: 700;
+}
+
+.sg-a11y-panel__note {
+    margin: 0.75rem 0 0;
+    color: #4b5563;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.sg-a11y-large-text {
+    font-size: 112.5%;
+}
+
+.sg-a11y-large-text body {
+    line-height: 1.65;
+}
+
+.sg-a11y-high-contrast body {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+.sg-a11y-high-contrast :where(.sg-card, section, article, input, select, textarea, button, summary) {
+    border-color: #000000 !important;
+}
+
+.sg-a11y-high-contrast :where(.text-gray-400, .text-gray-500, .text-gray-600, .text-slate-400, .text-slate-500, .text-slate-600) {
+    color: #222222 !important;
+}
+
+.sg-a11y-reduce-motion *,
+.sg-a11y-reduce-motion *::before,
+.sg-a11y-reduce-motion *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-contrast: more) {
+    :where(input, select, textarea, button, summary, .sg-card) {
+        border-color: #000000 !important;
+    }
+
+    :where(.text-gray-500, .text-gray-600, .text-slate-500, .text-slate-600) {
+        color: #222222 !important;
+    }
+}
+
+@media (forced-colors: active) {
+    .sg-skip-link,
+    .sg-a11y-panel > summary,
+    .sg-a11y-panel__menu,
+    .sg-a11y-panel__menu button {
+        border: 1px solid CanvasText;
+        background: Canvas;
+        color: CanvasText;
+        forced-color-adjust: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .sg-a11y-panel {
+        right: 0.75rem;
+        bottom: 0.75rem;
+    }
+}
+
+@media print {
+    .sg-skip-link,
+    .sg-a11y-panel {
+        display: none !important;
+    }
+}
