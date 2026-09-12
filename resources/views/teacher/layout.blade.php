@@ -30,6 +30,7 @@
                     <a href="{{ route('teacher.courses.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('teacher.courses.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Course Content</a>
                     <a href="{{ route('teacher.assessments.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('teacher.assessments.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Assessments</a>
                     <a href="{{ route('teacher.progress.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('teacher.progress.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Learner Progress</a>
+                    <a href="{{ route('teacher.ai.index') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('teacher.ai.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">AI Assistant</a>
                     <a href="{{ route('teacher.profile.show') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold {{ request()->routeIs('teacher.profile.*') ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-slate-100' }}">My profile</a>
                     <a href="{{ route('dashboard.guest') }}" class="flex min-w-fit items-center rounded-xl px-3 py-3 text-sm font-bold text-slate-700 hover:bg-slate-100">Explore public</a>
                 </div>
