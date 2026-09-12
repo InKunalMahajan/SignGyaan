@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\LearningClass;
 use App\Services\LearnerDashboardData;
+use App\Services\LearnerLearningPath;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -36,30 +37,12 @@ class ClassController extends Controller
         ]);
     }
 
-    public function show(Request $request, LearningClass $class): View
-    {
-        $this->authorizeEnrollment($request, $class);
-
-        $class->load([
-            'teacher.teacherProfile',
-            'courses' => fn ($query) => $query
-                ->where('courses.is_active', true)
-                ->whereHas('subject', fn ($subjectQuery) => $subjectQuery->where('is_active', true))
-                ->with([
-                    'subject',
-                    'units' => fn ($unitQuery) => $unitQuery
-                        ->where('is_active', true)
-                        ->with([
-                            'lessons' => fn ($lessonQuery) => $lessonQuery
-                                ->where('status', 'published')
-                                ->orderBy('position')
-                                ->orderBy('id'),
-                        ])
-                        ->orderBy('position')
-                        ->orderBy('id'),
-                ])
-                ->orderBy('title'),
-        ]);
+    public function show(
+        Request $request,
+        LearningClass $class,
+        LearnerLearningPath $learningPath
+    ): View {
+        $class = $learningPath->loadClassFor($request->user(), $class);
 
         $allLessonIds = $class->courses
             ->flatMap(fn ($course) => $course->units)
@@ -133,33 +116,13 @@ class ClassController extends Controller
         ]);
     }
 
-    public function course(Request $request, LearningClass $class, Course $course): View
-    {
-        $this->authorizeEnrollment($request, $class);
-
-        abort_unless(
-            $class->courses()
-                ->whereKey($course->id)
-                ->where('courses.is_active', true)
-                ->exists(),
-            403
-        );
-
-        $course->load([
-            'subject',
-            'units' => fn ($query) => $query
-                ->where('is_active', true)
-                ->with([
-                    'lessons' => fn ($lessonQuery) => $lessonQuery
-                        ->where('status', 'published')
-                        ->orderBy('position')
-                        ->orderBy('id'),
-                ])
-                ->orderBy('position')
-                ->orderBy('id'),
-        ]);
-
-        abort_unless($course->subject?->is_active, 404);
+    public function course(
+        Request $request,
+        LearningClass $class,
+        Course $course,
+        LearnerLearningPath $learningPath
+    ): View {
+        $course = $learningPath->loadCourseFor($request->user(), $class, $course);
 
         $lessons = $course->units->flatMap(fn ($unit) => $unit->lessons)->values();
         $lessonIds = $lessons->pluck('id');
@@ -227,13 +190,5 @@ class ClassController extends Controller
             'isCourseCompleted' => $publishedLessonCount > 0
                 && $completedLessonCount === $publishedLessonCount,
         ]);
-    }
-
-    private function authorizeEnrollment(Request $request, LearningClass $class): void
-    {
-        abort_unless(
-            $request->user()->enrolledClasses()->whereKey($class->id)->exists(),
-            403
-        );
     }
 }
