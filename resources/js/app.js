@@ -305,7 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
     installFallbackAppHeader();
     enhanceHeaderAccountMenu();
 
-    if (!window.location.pathname.includes('/dashboard/learner')) {
+    const path = window.location.pathname;
+    const usesLiveDashboardData = path.includes('/dashboard/learner') || path.includes('/dashboard/admin');
+
+    if (!usesLiveDashboardData) {
         return;
     }
 

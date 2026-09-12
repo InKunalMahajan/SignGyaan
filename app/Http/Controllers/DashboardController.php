@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -115,12 +119,8 @@ class DashboardController extends Controller
                 'eyebrow' => 'Platform Management',
                 'title' => 'Manage SignGyaan from one clear control centre.',
                 'description' => 'Oversee users, roles, learning content, courses, reports, publishing, and platform settings.',
-                'primary_action' => 'Manage platform',
-                'stats' => [
-                    ['label' => 'Total users', 'value' => '1,284', 'helper' => '42 new this month'],
-                    ['label' => 'Published lessons', 'value' => '216', 'helper' => '18 drafts'],
-                    ['label' => 'Active courses', 'value' => '24', 'helper' => '8 subjects'],
-                ],
+                'primary_action' => 'Manage users & roles',
+                'stats' => [],
                 'modules' => [
                     ['title' => 'Users & Roles', 'description' => 'Manage learner, parent, teacher, and admin access.', 'tag' => 'Access'],
                     ['title' => 'Subjects & Courses', 'description' => 'Manage the Subjects → Courses → Units → Lessons structure.', 'tag' => 'Curriculum'],
@@ -129,11 +129,7 @@ class DashboardController extends Controller
                     ['title' => 'Announcements', 'description' => 'Publish platform-wide notices and learning updates.', 'tag' => 'Communication'],
                     ['title' => 'Settings', 'description' => 'Configure accessibility, platform, and account settings.', 'tag' => 'System'],
                 ],
-                'updates' => [
-                    ['title' => '18 lessons awaiting review', 'meta' => 'Content workflow'],
-                    ['title' => '42 new users this month', 'meta' => 'User growth'],
-                    ['title' => 'Platform accessibility check', 'meta' => 'No critical issues in preview'],
-                ],
+                'updates' => [],
             ],
             'guest' => [
                 'label' => 'Guest',
@@ -161,6 +157,29 @@ class DashboardController extends Controller
                 ],
             ],
         ];
+
+        if ($role === 'admin') {
+            $totalUsers = User::query()->count();
+            $newUsersThisMonth = User::query()
+                ->where('created_at', '>=', now()->startOfMonth())
+                ->count();
+            $publishedLessons = Lesson::query()->where('status', 'published')->count();
+            $draftLessons = Lesson::query()->where('status', 'draft')->count();
+            $activeCourses = Course::query()->where('is_active', true)->count();
+            $activeSubjects = Subject::query()->where('is_active', true)->count();
+
+            $dashboards['admin']['stats'] = [
+                ['label' => 'Total users', 'value' => number_format($totalUsers), 'helper' => number_format($newUsersThisMonth).' new this month'],
+                ['label' => 'Published lessons', 'value' => number_format($publishedLessons), 'helper' => number_format($draftLessons).' drafts'],
+                ['label' => 'Active courses', 'value' => number_format($activeCourses), 'helper' => number_format($activeSubjects).' active subjects'],
+            ];
+
+            $dashboards['admin']['updates'] = [
+                ['title' => number_format($draftLessons).' lesson drafts', 'meta' => 'Current content workflow'],
+                ['title' => number_format($newUsersThisMonth).' new users this month', 'meta' => 'Current user growth'],
+                ['title' => number_format($activeCourses).' active courses', 'meta' => number_format($activeSubjects).' active subjects'],
+            ];
+        }
 
         return view('dashboard', [
             'role' => $role,
