@@ -93,6 +93,39 @@
     .sg-muted {
         color: var(--sg-muted);
     }
+
+    .sg-shape-ring {
+        width: 72px;
+        height: 72px;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        background: transparent;
+        pointer-events: none;
+    }
+
+    .sg-shape-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+        background: #111111;
+        pointer-events: none;
+    }
+
+    .sg-shape-square {
+        width: 52px;
+        height: 52px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        transform: rotate(8deg);
+        pointer-events: none;
+    }
+
+    .sg-shape-grid {
+        background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+        background-size: 18px 18px;
+        pointer-events: none;
+    }
 }
 
 /*
@@ -109,7 +142,6 @@ body {
     color: #111111 !important;
 }
 
-/* Remove every decorative gradient and convert it to a neutral surface. */
 [class*='bg-gradient-to-'] {
     background-image: none !important;
     background-color: #ffffff !important;
@@ -127,7 +159,6 @@ body {
     color: #111111 !important;
 }
 
-/* Compact SG brand mark: black and white only. */
 span.size-11[class*='bg-gradient-to-'],
 span[class*='size-11'][class*='bg-gradient-to-'],
 span.size-12[class*='bg-gradient-to-'],
@@ -138,7 +169,6 @@ span[class*='size-12'][class*='bg-gradient-to-'] {
     box-shadow: none !important;
 }
 
-/* Neutralize all old coloured backgrounds used throughout legacy Blade pages. */
 [class*='bg-blue-'],
 [class*='bg-cyan-'],
 [class*='bg-indigo-'],
@@ -156,7 +186,6 @@ span[class*='size-12'][class*='bg-gradient-to-'] {
     color: #111111 !important;
 }
 
-/* Primary actions and active navigation become black, regardless of old colour class. */
 button[class*='bg-blue-'],
 button[class*='bg-cyan-'],
 button[class*='bg-indigo-'],
@@ -190,7 +219,6 @@ a[class*='bg-green-']:hover {
     color: #ffffff !important;
 }
 
-/* Destructive actions stay monochrome: outlined gray instead of red. */
 button[class*='bg-red-'],
 button[class*='bg-rose-'],
 a[class*='bg-red-'],
@@ -200,7 +228,6 @@ a[class*='bg-rose-'] {
     border-color: #9ca3af !important;
 }
 
-/* Convert all old coloured text utilities to neutral dark/muted text. */
 [class*='text-blue-'],
 [class*='text-cyan-'],
 [class*='text-indigo-'],
@@ -222,7 +249,6 @@ a[class*='bg-'] [class*='text-'] {
     color: inherit !important;
 }
 
-/* Convert all old coloured borders to standard gray borders. */
 [class*='border-blue-'],
 [class*='border-cyan-'],
 [class*='border-indigo-'],
@@ -239,7 +265,6 @@ a[class*='bg-'] [class*='text-'] {
     border-color: #d1d5db !important;
 }
 
-/* Neutralize coloured ring variables used by focus utilities. */
 [class*='ring-blue-'],
 [class*='ring-cyan-'],
 [class*='ring-indigo-'],
@@ -261,7 +286,6 @@ a[class*='bg-'] [class*='text-'] {
     --tw-ring-color: rgba(17, 17, 17, .16) !important;
 }
 
-/* Page surfaces. */
 .bg-slate-50,
 .bg-gray-50 {
     background-color: #f7f7f7 !important;
@@ -282,7 +306,6 @@ a[class*='bg-'] [class*='text-'] {
     background-color: #111111 !important;
 }
 
-/* Smaller radius and almost-flat depth for a professional website feel. */
 .rounded-3xl {
     border-radius: 12px !important;
 }
@@ -304,7 +327,6 @@ a[class*='bg-'] [class*='text-'] {
     box-shadow: 0 1px 2px rgba(0, 0, 0, .04) !important;
 }
 
-/* Professional monochrome form controls. */
 input:not([type='checkbox']):not([type='radio']),
 select,
 textarea {
@@ -328,7 +350,6 @@ input[type='radio'] {
     accent-color: #111111;
 }
 
-/* Alerts and status badges use shade/weight instead of colour. */
 [role='alert'],
 [role='status'] {
     border-color: #d1d5db !important;
@@ -360,6 +381,45 @@ button,
 
 .max-w-7xl {
     max-width: 80rem !important;
+}
+
+/* Subtle automatic shapes on desktop page headers. */
+@media (min-width: 768px) {
+    main > section:first-child,
+    main > div > section:first-child {
+        position: relative;
+        overflow: hidden;
+    }
+
+    main > section:first-child::before,
+    main > div > section:first-child::before {
+        content: '';
+        position: absolute;
+        width: 78px;
+        height: 78px;
+        right: 18px;
+        top: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 9999px;
+        pointer-events: none;
+        opacity: .7;
+    }
+
+    main > section:first-child::after,
+    main > div > section:first-child::after {
+        content: '';
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        right: 78px;
+        top: 60px;
+        border: 1px solid #111111;
+        border-radius: 6px;
+        transform: rotate(10deg);
+        background: #ffffff;
+        pointer-events: none;
+        opacity: .8;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
