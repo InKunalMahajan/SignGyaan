@@ -85,6 +85,19 @@
     color: #ffffff !important;
 }
 
+/*
+ * When an outlined utility action sits beside a filled form action (for example
+ * Apply + Reset or Save + Cancel), match the primary button's height and padding.
+ * This keeps paired controls visually balanced while table/card utility buttons
+ * remain compact.
+ */
+form .sg-action-primary ~ .sg-action-compact,
+form .sg-action-primary + .sg-action-compact {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 .875rem !important;
+}
+
 .sg-action-primary:disabled,
 .sg-action-secondary:disabled,
 .sg-action-compact:disabled,
