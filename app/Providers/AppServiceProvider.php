@@ -30,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
         Route::middleware('web')
             ->group(base_path('routes/mastery.php'));
 
+        Route::middleware('web')
+            ->group(base_path('routes/teacher-ai.php'));
+
         View::composer('dashboard', function (BladeView $view): void {
             $data = $view->getData();
             $role = $data['role'] ?? null;
