@@ -70,4 +70,25 @@ class ProtectedHeaderConsistencyTest extends TestCase
         $this->assertStringContainsString('padding-right: 40px', $contents);
         $this->assertStringNotContainsString('max-width: 80rem', $contents);
     }
+
+    public function test_all_role_dashboards_share_the_same_protected_shell_geometry(): void
+    {
+        $dashboard = file_get_contents(base_path('resources/views/dashboard.blade.php'));
+        $shell = file_get_contents(base_path('resources/css/protected-app-shell.css'));
+
+        // Learner, Teacher, Parent and Admin dashboards all render through one shared view.
+        $this->assertStringContainsString("\$dashboard['label']", $dashboard);
+        $this->assertStringContainsString("\$dashboard['eyebrow']", $dashboard);
+        $this->assertStringContainsString("\$role === 'learner'", $dashboard);
+        $this->assertStringContainsString("\$role === 'teacher'", $dashboard);
+        $this->assertStringContainsString("\$role === 'parents'", $dashboard);
+        $this->assertStringContainsString("\$role === 'admin'", $dashboard);
+
+        // Header and first dashboard content container must share one full-width gutter system.
+        $this->assertStringContainsString('main#main-content > header + div', $shell);
+        $this->assertStringContainsString('padding-left: 1.25rem !important', $shell);
+        $this->assertStringContainsString('padding-left: 2rem !important', $shell);
+        $this->assertStringContainsString('padding-left: 2.5rem !important', $shell);
+        $this->assertStringContainsString('max-width: none !important', $shell);
+    }
 }
