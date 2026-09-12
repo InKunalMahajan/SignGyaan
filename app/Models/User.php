@@ -86,6 +86,11 @@ class User extends Authenticatable
         return $this->hasMany(LessonProgress::class, 'learner_id');
     }
 
+    public function courseMasteries(): HasMany
+    {
+        return $this->hasMany(CourseMastery::class, 'learner_id');
+    }
+
     public function createdAssessments(): HasMany
     {
         return $this->hasMany(Assessment::class, 'created_by');
