@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\AssessmentAttempt;
 use App\Models\Course;
 use App\Models\CourseMastery;
 use App\Models\Lesson;
@@ -12,6 +11,10 @@ use Illuminate\Support\Collection;
 
 class MasteryService
 {
+    public function __construct(private AssessmentAnalyticsService $assessmentAnalytics)
+    {
+    }
+
     public function calculateFor(User $learner, Course $course): CourseMastery
     {
         $lessons = $this->publishedLessons($course);
@@ -28,16 +31,15 @@ class MasteryService
             ? round(($lessonCompleted / $lessonTotal) * 100, 2)
             : 0.0;
 
-        $attempts = AssessmentAttempt::query()
-            ->where('learner_id', $learner->id)
-            ->where('status', 'completed')
-            ->whereHas('assessment', fn ($query) => $query->where('course_id', $course->id))
-            ->get();
+        $signals = $this->assessmentAnalytics
+            ->masterySignalsForLearner($learner)
+            ->where('course_id', $course->id)
+            ->values();
 
         $assessmentPercentage = null;
-        if ($attempts->isNotEmpty()) {
-            $earned = $attempts->sum(fn ($attempt) => (float) ($attempt->earned_marks ?? 0));
-            $possible = $attempts->sum(fn ($attempt) => (float) $attempt->total_marks_snapshot);
+        if ($signals->isNotEmpty()) {
+            $earned = $signals->sum(fn ($signal) => (float) ($signal['earned_marks'] ?? 0));
+            $possible = $signals->sum(fn ($signal) => (float) ($signal['total_marks'] ?? 0));
             $assessmentPercentage = $possible > 0 ? round(($earned / $possible) * 100, 2) : 0.0;
         }
 
@@ -51,7 +53,7 @@ class MasteryService
                 'lessons_completed' => $lessonCompleted,
                 'lessons_total' => $lessonTotal,
                 'lesson_completion_percentage' => $lessonPercentage,
-                'assessments_completed' => $attempts->count(),
+                'assessments_completed' => $signals->count(),
                 'assessment_percentage' => $assessmentPercentage,
                 'mastery_score' => $masteryScore,
                 'mastery_level' => $this->levelFor($masteryScore),
@@ -106,7 +108,7 @@ class MasteryService
         return [
             'mastery' => $mastery,
             'chapters' => $chapters,
-            'recommendations' => $this->recommendations($learner, $course, $chapters, $mastery),
+            'recommendations' => $this->recommendations($chapters, $mastery),
         ];
     }
 
@@ -144,7 +146,7 @@ class MasteryService
             ->get();
     }
 
-    private function recommendations(User $learner, Course $course, Collection $chapters, CourseMastery $mastery): array
+    private function recommendations(Collection $chapters, CourseMastery $mastery): array
     {
         $items = [];
         $firstIncomplete = $chapters
