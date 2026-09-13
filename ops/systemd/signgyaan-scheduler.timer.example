@@ -1,0 +1,10 @@
+[Unit]
+Description=Run SignGyaan Laravel Scheduler every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+Unit=signgyaan-scheduler.service
+
+[Install]
+WantedBy=timers.target
