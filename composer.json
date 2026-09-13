@@ -53,6 +53,11 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "test:ci": [
+            "@php artisan optimize:clear --ansi",
+            "@php artisan test",
+            "npm run build"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php scripts/patch-laravel-ai-windows-hrtime.php",

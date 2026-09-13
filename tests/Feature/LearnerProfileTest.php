@@ -16,33 +16,24 @@ class LearnerProfileTest extends TestCase
 
     public function test_guest_is_redirected_from_learner_profile(): void
     {
-        $this->get('/learner/profile')
-            ->assertRedirect('/login');
+        $this->get('/learner/profile')->assertRedirect('/login');
     }
 
     public function test_non_learner_cannot_open_learner_profile(): void
     {
-        $teacher = User::factory()->create([
-            'role' => 'teacher',
-            'is_active' => true,
-        ]);
+        $teacher = User::factory()->create(['role' => 'teacher', 'is_active' => true]);
 
-        $this->actingAs($teacher)
-            ->get('/learner/profile')
-            ->assertForbidden();
+        $this->actingAs($teacher)->get('/learner/profile')->assertForbidden();
     }
 
     public function test_learner_can_open_profile_and_defaults_are_created(): void
     {
-        $learner = User::factory()->create([
-            'role' => 'learner',
-            'is_active' => true,
-        ]);
+        $learner = User::factory()->create(['role' => 'learner', 'is_active' => true]);
 
         $this->actingAs($learner)
             ->get('/learner/profile')
             ->assertOk()
-            ->assertSee('Learner Profile & Settings');
+            ->assertSee('Learner Profile & Settings', false);
 
         $this->assertDatabaseHas('learner_profiles', [
             'user_id' => $learner->id,
@@ -141,10 +132,7 @@ class LearnerProfileTest extends TestCase
     {
         Storage::fake('public');
 
-        $learner = User::factory()->create([
-            'role' => 'learner',
-            'is_active' => true,
-        ]);
+        $learner = User::factory()->create(['role' => 'learner', 'is_active' => true]);
 
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nPAAAAAASUVORK5CYII=');
         $avatar = UploadedFile::fake()->createWithContent('avatar.png', $png);
