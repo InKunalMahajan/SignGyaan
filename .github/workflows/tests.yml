@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   test:
-    name: PHP 8.4 / Node 20
+    name: PHP 8.4 / Node 24
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -33,20 +33,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: npm
+          node-version: '24'
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Prepare environment
         run: |
           cp .env.example .env
           php artisan key:generate
           php artisan optimize:clear
+
+      - name: Compile Blade views
+        run: php artisan view:cache
 
       - name: Build frontend
         run: npm run build
