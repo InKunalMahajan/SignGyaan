@@ -26,7 +26,7 @@ class LearnerDashboardLiveDataTest extends TestCase
             ->assertSee('Enrolled courses')
             ->assertSee('Lessons completed')
             ->assertSee('Lessons in progress')
-            ->assertSee('No learning activity yet')
+            ->assertSee('No active courses yet.')
             ->assertDontSee('Average quiz score')
             ->assertDontSee('82%');
     }
