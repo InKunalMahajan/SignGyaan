@@ -39,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
         Route::middleware('web')
             ->group(base_path('routes/search.php'));
 
+        Route::middleware('web')
+            ->group(base_path('routes/reports.php'));
+
         View::composer('dashboard', function (BladeView $view): void {
             $data = $view->getData();
             $role = $data['role'] ?? null;
