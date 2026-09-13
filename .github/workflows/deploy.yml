@@ -1,0 +1,144 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to confirm production deployment'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '24'
+
+jobs:
+  verify:
+    if: ${{ inputs.confirm == 'DEPLOY' }}
+    name: Verify release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_sqlite, sqlite3, curl, openssl, fileinfo, zip
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm install --no-audit --no-fund
+
+      - name: Prepare test environment
+        run: |
+          cp .env.example .env
+          touch database/database.sqlite
+          echo "CACHE_STORE=array" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "QUEUE_CONNECTION=sync" >> .env
+          php artisan key:generate
+          php artisan optimize:clear
+
+      - name: Validate deployment scripts
+        run: |
+          bash -n scripts/deploy-production.sh
+          bash -n scripts/rollback-production.sh
+
+      - name: Run tests and build
+        run: |
+          php artisan test
+          npm run build
+          composer audit
+          npm audit --audit-level=high
+
+      - name: Build production artifact
+        run: |
+          composer install --no-dev --classmap-authoritative --no-interaction --prefer-dist --no-progress
+          rm -f .env database/database.sqlite
+          rm -rf node_modules tests
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            -czf release.tar.gz .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signgyaan-${{ github.sha }}
+          path: release.tar.gz
+          retention-days: 7
+
+  deploy:
+    name: Deploy production
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    steps:
+      - name: Checkout deployment scripts
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download verified artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: signgyaan-${{ github.sha }}
+
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Transfer release
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH/incoming'"
+          scp release.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/incoming/${GITHUB_SHA}.tar.gz"
+
+      - name: Activate release
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "APP_ROOT='$DEPLOY_PATH' RELEASE_ARCHIVE='$DEPLOY_PATH/incoming/${GITHUB_SHA}.tar.gz' RELEASE_ID='${GITHUB_SHA}' bash -s" \
+            < scripts/deploy-production.sh
+
+      - name: Production health check
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+        run: |
+          test -n "$DEPLOY_URL"
+          curl --fail --show-error --silent --retry 6 --retry-delay 5 "$DEPLOY_URL/up"
+          echo "Production health check passed: $DEPLOY_URL/up"
