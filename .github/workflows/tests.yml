@@ -44,6 +44,7 @@ jobs:
       - name: Prepare environment
         run: |
           cp .env.example .env
+          touch database/database.sqlite
           php artisan key:generate
           php artisan optimize:clear
 
