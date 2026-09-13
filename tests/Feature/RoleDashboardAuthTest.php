@@ -72,7 +72,7 @@ class RoleDashboardAuthTest extends TestCase
         $this->actingAs($parent)
             ->get(route('dashboard.role', ['role' => 'parents']))
             ->assertOk()
-            ->assertSee('Parents Dashboard');
+            ->assertSee('Parent Dashboard');
     }
 
     public function test_user_cannot_open_another_role_dashboard(): void
