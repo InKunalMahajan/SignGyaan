@@ -108,7 +108,10 @@
             @else
                 <div class="space-y-5">
                     @foreach ($course->units as $unit)
-                        @php($chapter = $unitProgress->get($unit->id))
+                        @php
+                            $chapter = $unitProgress->get($unit->id);
+                        @endphp
+
                         <article class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                             <div class="border-b border-slate-100 bg-slate-50 p-5 sm:p-6">
                                 <div class="flex flex-wrap items-start justify-between gap-4">
@@ -138,6 +141,7 @@
                                             $lessonProgress = $progressByLesson->get($lesson->id);
                                             $lessonStatus = $lessonProgress?->status ?? 'not_started';
                                         @endphp
+
                                         <article class="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
                                             <div class="min-w-0 flex-1">
                                                 <div class="flex flex-wrap items-center gap-2">
