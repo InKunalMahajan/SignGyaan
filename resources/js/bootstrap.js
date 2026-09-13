@@ -1,6 +1,7 @@
 import axios from 'axios';
 import './accessibility';
 import './search';
+import './reports';
 import '../css/accessibility.css';
 import '../css/search.css';
 
