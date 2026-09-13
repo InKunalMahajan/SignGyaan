@@ -1,0 +1,10 @@
+[Unit]
+Description=SignGyaan Laravel Scheduler
+After=network.target mysql.service
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/signgyaan/current
+ExecStart=/usr/bin/php artisan schedule:run
