@@ -51,6 +51,11 @@ jobs:
           php artisan key:generate
           php artisan optimize:clear
 
+      - name: Validate deployment scripts
+        run: |
+          bash -n scripts/deploy-production.sh
+          bash -n scripts/rollback-production.sh
+
       - name: Compile Blade views
         run: php artisan view:cache
 
