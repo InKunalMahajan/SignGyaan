@@ -45,6 +45,9 @@ jobs:
         run: |
           cp .env.example .env
           touch database/database.sqlite
+          echo "CACHE_STORE=array" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "QUEUE_CONNECTION=sync" >> .env
           php artisan key:generate
           php artisan optimize:clear
 
