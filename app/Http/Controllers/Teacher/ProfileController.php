@@ -73,12 +73,14 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
         ]);
 
         $request->user()->update([
             'password' => $validated['password'],
         ]);
+
+        $request->session()->regenerate();
 
         return back()->with('status', 'Password changed successfully.');
     }
