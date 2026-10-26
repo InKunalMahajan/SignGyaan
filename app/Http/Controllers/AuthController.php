@@ -27,7 +27,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $rateLimitKey = 'login:'.hash('sha256', Str::lower($credentials['email']).'|'.$request->ip());
+        // Normalize typed email without weakening password or active-account checks.
+        $credentials['email'] = Str::lower(trim($credentials['email']));
+
+        $rateLimitKey = 'login:'.hash('sha256', $credentials['email'].'|'.$request->ip());
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
             abort(429, 'Too many login attempts. Please try again later.');
