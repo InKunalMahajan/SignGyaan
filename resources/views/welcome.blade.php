@@ -7,56 +7,57 @@
 
     <title>{{ config('app.name', 'SignGyaan') }}</title>
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 
     <style>
-        body { margin: 0; font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+        body { margin: 0; font-family: 'Google Sans Flex', 'Inter', ui-sans-serif, system-ui, sans-serif; background: #faf8ff; color: #24123f; }
         * { box-sizing: border-box; }
         a { text-decoration: none; }
         .shell { min-height: 100vh; }
         .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
-        .nav { display: flex; align-items: center; justify-content: space-between; min-height: 72px; gap: 24px; border-bottom: 1px solid #e2e8f0; }
-        .brand { display: flex; align-items: center; gap: 12px; color: #0f172a; font-weight: 700; font-size: 20px; }
-        .brand-mark { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: #4f46e5; color: white; font-weight: 700; }
+        .nav { display: flex; align-items: center; justify-content: space-between; min-height: 72px; gap: 24px; border-bottom: 1px solid #e8dff4; }
+        .brand { display: flex; align-items: center; gap: 12px; color: #24123f; font-weight: 700; font-size: 20px; }
+        .brand-mark { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: #7041b6; color: white; font-weight: 700; }
         .nav-actions { display: flex; align-items: center; gap: 10px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border-radius: 11px; font-size: 14px; font-weight: 600; transition: .2s ease; }
-        .btn-primary { background: #4f46e5; color: white; }
-        .btn-primary:hover { background: #4338ca; }
-        .btn-secondary { background: white; color: #334155; border: 1px solid #e2e8f0; }
-        .btn-secondary:hover { background: #f8fafc; }
+        .btn-primary { background: #7041b6; color: white; }
+        .btn-primary:hover { background: #58309a; }
+        .btn-secondary { background: white; color: #334155; border: 1px solid #e8dff4; }
+        .btn-secondary:hover { background: #faf8ff; }
         .hero { display: grid; grid-template-columns: 1.08fr .92fr; gap: 56px; align-items: center; padding: 92px 0 80px; }
-        .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 999px; background: white; color: #475569; font-size: 13px; font-weight: 600; }
+        .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e8dff4; border-radius: 999px; background: white; color: #475569; font-size: 13px; font-weight: 600; }
         h1 { margin: 20px 0 18px; max-width: 760px; font-size: clamp(42px, 7vw, 72px); line-height: 1.02; letter-spacing: -.045em; }
         .lead { max-width: 650px; margin: 0; color: #64748b; font-size: 18px; line-height: 1.75; }
         .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
         .hero-note { margin-top: 18px; color: #94a3b8; font-size: 13px; }
-        .preview { background: white; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 20px 60px rgba(15, 23, 42, .08); padding: 18px; }
+        .preview { background: white; border: 1px solid #e8dff4; border-radius: 24px; box-shadow: 0 20px 60px rgba(15, 23, 42, .08); padding: 18px; }
         .preview-top { display: flex; align-items: center; justify-content: space-between; padding: 2px 2px 16px; }
         .preview-title { font-size: 14px; font-weight: 700; }
         .status { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: #64748b; }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-        .panel { border: 1px solid #e2e8f0; border-radius: 18px; padding: 20px; background: #f8fafc; }
-        .metric { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #e2e8f0; }
+        .panel { border: 1px solid #e8dff4; border-radius: 18px; padding: 20px; background: #faf8ff; }
+        .metric { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #e8dff4; }
         .metric:last-child { border-bottom: 0; }
         .metric-label { color: #64748b; font-size: 13px; }
         .metric-value { font-size: 16px; font-weight: 700; }
-        .progress { width: 100%; height: 8px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin-top: 14px; }
-        .progress > span { display: block; width: 68%; height: 100%; background: #4f46e5; border-radius: inherit; }
+        .progress { width: 100%; height: 8px; border-radius: 999px; background: #e8dff4; overflow: hidden; margin-top: 14px; }
+        .progress > span { display: block; width: 68%; height: 100%; background: #7041b6; border-radius: inherit; }
         .features { padding: 0 0 88px; }
         .section-head { max-width: 700px; margin-bottom: 28px; }
         .section-head h2 { margin: 0 0 10px; font-size: 32px; letter-spacing: -.025em; }
         .section-head p { margin: 0; color: #64748b; line-height: 1.7; }
         .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .feature { padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: white; }
-        .feature-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #eef2ff; color: #4f46e5; font-weight: 700; margin-bottom: 18px; }
+        .feature { padding: 24px; border: 1px solid #e8dff4; border-radius: 18px; background: white; }
+        .feature-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #f0e9fa; color: #7041b6; font-weight: 700; margin-bottom: 18px; }
         .feature h3 { margin: 0 0 8px; font-size: 17px; }
         .feature p { margin: 0; color: #64748b; line-height: 1.65; font-size: 14px; }
-        footer { border-top: 1px solid #e2e8f0; padding: 24px 0 34px; color: #94a3b8; font-size: 13px; }
+        footer { border-top: 1px solid #e8dff4; padding: 24px 0 34px; color: #94a3b8; font-size: 13px; }
         .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
         @media (max-width: 820px) {
             .hero { grid-template-columns: 1fr; padding: 64px 0; gap: 36px; }
