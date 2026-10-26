@@ -13,7 +13,7 @@
         width: 72px;
         min-width: 72px;
         padding: 14px 10px !important;
-        border-right: 1px solid #e5e7eb;
+        border-right: 1px solid #e8dff4;
         background: #ffffff;
         overflow: visible;
     }
@@ -33,7 +33,7 @@
         display: grid !important;
         place-items: center;
         border-radius: 12px;
-        background: #111111;
+        background: #7041b6;
         color: #ffffff;
         overflow: hidden;
     }
@@ -57,7 +57,7 @@
         border-radius: 12px !important;
         display: grid;
         place-items: center;
-        background: #111111 !important;
+        background: #7041b6 !important;
         color: #ffffff !important;
         font-size: 11px !important;
         font-weight: 800;
@@ -91,7 +91,7 @@
         display: grid !important;
         place-items: center !important;
         border-radius: 12px !important;
-        color: #525252 !important;
+        color: #685f77 !important;
         background: transparent !important;
         box-shadow: none !important;
         transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
@@ -99,16 +99,16 @@
 
     .sg-icon-sidebar-link:hover,
     .sg-icon-sidebar-link:focus-visible {
-        background: #f3f4f6 !important;
-        color: #111111 !important;
+        background: #f0e9fa !important;
+        color: #7041b6 !important;
         outline: none !important;
     }
 
     .sg-icon-sidebar-link[aria-current='page'],
     .sg-icon-sidebar-link.bg-slate-950,
     .sg-icon-sidebar-link.bg-blue-700 {
-        background: #e5e7eb !important;
-        color: #111111 !important;
+        background: #e8dff4 !important;
+        color: #7041b6 !important;
         box-shadow: none !important;
     }
 
@@ -127,9 +127,9 @@
         max-width: 220px;
         white-space: nowrap;
         padding: 7px 9px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e8dff4;
         border-radius: 8px;
-        background: #111111;
+        background: #7041b6;
         color: #ffffff;
         font-size: 12px;
         font-weight: 700;
