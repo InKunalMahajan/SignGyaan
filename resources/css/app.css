@@ -6,22 +6,22 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Google Sans Flex', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 @layer base {
     :root {
         color-scheme: light;
-        --sg-bg: #f7f7f7;
+        --sg-bg: #faf8ff;
         --sg-surface: #ffffff;
-        --sg-surface-soft: #f3f4f6;
-        --sg-border: #e5e7eb;
+        --sg-surface-soft: #f4effb;
+        --sg-border: #e8dff4;
         --sg-border-strong: #d1d5db;
-        --sg-text: #111111;
-        --sg-muted: #6b7280;
-        --sg-primary: #111111;
-        --sg-primary-hover: #000000;
-        --sg-primary-soft: #f3f4f6;
+        --sg-text: #24123f;
+        --sg-muted: #685f77;
+        --sg-primary: #7041b6;
+        --sg-primary-hover: #58309a;
+        --sg-primary-soft: #f0e9fa;
         --sg-radius: 10px;
     }
 
@@ -128,307 +128,18 @@
     }
 }
 
-/*
- |--------------------------------------------------------------------------
- | SignGyaan Strict Monochrome Theme
- |--------------------------------------------------------------------------
- | White + gray + black only. Existing role screens may still contain old
- | Tailwind colour utility names in Blade, so this shared layer neutralizes
- | them without changing routes, controllers, models, or feature behaviour.
- */
-
-body {
-    background: #f7f7f7 !important;
-    color: #111111 !important;
-}
-
-[class*='bg-gradient-to-'] {
-    background-image: none !important;
-    background-color: #ffffff !important;
-    color: #111111 !important;
-    border-color: #e5e7eb !important;
-    box-shadow: none !important;
-}
-
-[class*='bg-gradient-to-'].text-white,
-[class*='bg-gradient-to-'] .text-white,
-[class*='bg-gradient-to-'] [class*='text-blue-'],
-[class*='bg-gradient-to-'] [class*='text-cyan-'],
-[class*='bg-gradient-to-'] [class*='text-indigo-'],
-[class*='bg-gradient-to-'] [class*='text-purple-'] {
-    color: #111111 !important;
-}
-
-span.size-11[class*='bg-gradient-to-'],
-span[class*='size-11'][class*='bg-gradient-to-'],
-span.size-12[class*='bg-gradient-to-'],
-span[class*='size-12'][class*='bg-gradient-to-'] {
-    background: #111111 !important;
-    color: #ffffff !important;
-    border: 0 !important;
-    box-shadow: none !important;
-}
-
-[class*='bg-blue-'],
-[class*='bg-cyan-'],
-[class*='bg-indigo-'],
-[class*='bg-purple-'],
-[class*='bg-violet-'],
-[class*='bg-emerald-'],
-[class*='bg-green-'],
-[class*='bg-teal-'],
-[class*='bg-red-'],
-[class*='bg-rose-'],
-[class*='bg-orange-'],
-[class*='bg-amber-'],
-[class*='bg-yellow-'] {
-    background-color: #f3f4f6 !important;
-    color: #111111 !important;
-}
-
-button[class*='bg-blue-'],
-button[class*='bg-cyan-'],
-button[class*='bg-indigo-'],
-button[class*='bg-purple-'],
-button[class*='bg-emerald-'],
-button[class*='bg-green-'],
-a[class*='bg-blue-'],
-a[class*='bg-cyan-'],
-a[class*='bg-indigo-'],
-a[class*='bg-purple-'],
-a[class*='bg-emerald-'],
-a[class*='bg-green-'] {
-    background-color: #111111 !important;
-    color: #ffffff !important;
-    border-color: #111111 !important;
-}
-
-button[class*='bg-blue-']:hover,
-button[class*='bg-cyan-']:hover,
-button[class*='bg-indigo-']:hover,
-button[class*='bg-purple-']:hover,
-button[class*='bg-emerald-']:hover,
-button[class*='bg-green-']:hover,
-a[class*='bg-blue-']:hover,
-a[class*='bg-cyan-']:hover,
-a[class*='bg-indigo-']:hover,
-a[class*='bg-purple-']:hover,
-a[class*='bg-emerald-']:hover,
-a[class*='bg-green-']:hover {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-}
-
-button[class*='bg-red-'],
-button[class*='bg-rose-'],
-a[class*='bg-red-'],
-a[class*='bg-rose-'] {
-    background-color: #ffffff !important;
-    color: #111111 !important;
-    border-color: #9ca3af !important;
-}
-
-[class*='text-blue-'],
-[class*='text-cyan-'],
-[class*='text-indigo-'],
-[class*='text-purple-'],
-[class*='text-violet-'],
-[class*='text-emerald-'],
-[class*='text-green-'],
-[class*='text-teal-'],
-[class*='text-red-'],
-[class*='text-rose-'],
-[class*='text-orange-'],
-[class*='text-amber-'],
-[class*='text-yellow-'] {
-    color: #4b5563 !important;
-}
-
-button[class*='bg-'] [class*='text-'],
-a[class*='bg-'] [class*='text-'] {
-    color: inherit !important;
-}
-
-[class*='border-blue-'],
-[class*='border-cyan-'],
-[class*='border-indigo-'],
-[class*='border-purple-'],
-[class*='border-violet-'],
-[class*='border-emerald-'],
-[class*='border-green-'],
-[class*='border-teal-'],
-[class*='border-red-'],
-[class*='border-rose-'],
-[class*='border-orange-'],
-[class*='border-amber-'],
-[class*='border-yellow-'] {
-    border-color: #d1d5db !important;
-}
-
-[class*='ring-blue-'],
-[class*='ring-cyan-'],
-[class*='ring-indigo-'],
-[class*='ring-purple-'],
-[class*='ring-emerald-'],
-[class*='ring-green-'],
-[class*='ring-red-'],
-[class*='ring-rose-'],
-[class*='ring-amber-'],
-[class*='focus:ring-blue-'],
-[class*='focus:ring-cyan-'],
-[class*='focus:ring-indigo-'],
-[class*='focus:ring-purple-'],
-[class*='focus:ring-emerald-'],
-[class*='focus:ring-green-'],
-[class*='focus:ring-red-'],
-[class*='focus:ring-rose-'],
-[class*='focus:ring-amber-'] {
-    --tw-ring-color: rgba(17, 17, 17, .16) !important;
-}
-
-.bg-slate-50,
-.bg-gray-50 {
-    background-color: #f7f7f7 !important;
-}
-
-.bg-slate-100,
-.bg-gray-100 {
-    background-color: #f3f4f6 !important;
-}
-
-.bg-white {
-    background-color: #ffffff !important;
-}
-
-.bg-slate-900,
-.bg-gray-900,
-.bg-black {
-    background-color: #111111 !important;
-}
-
-.rounded-3xl {
-    border-radius: 12px !important;
-}
-
-.rounded-2xl {
-    border-radius: 10px !important;
-}
-
-.rounded-xl {
-    border-radius: 8px !important;
-}
-
-.shadow-sm,
-.shadow,
-.shadow-md,
-.shadow-lg,
-.shadow-xl,
-.shadow-2xl {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .04) !important;
-}
-
-input:not([type='checkbox']):not([type='radio']),
-select,
-textarea {
-    border-color: #d1d5db !important;
-    border-radius: 8px !important;
-    background: #ffffff !important;
-    color: #111111 !important;
-    box-shadow: none !important;
-}
-
-input:not([type='checkbox']):not([type='radio']):focus,
-select:focus,
-textarea:focus {
-    border-color: #111111 !important;
-    box-shadow: 0 0 0 3px rgba(17, 17, 17, .08) !important;
-    outline: none !important;
-}
-
-input[type='checkbox'],
-input[type='radio'] {
-    accent-color: #111111;
-}
-
-[role='alert'],
-[role='status'] {
-    border-color: #d1d5db !important;
-}
-
-[role='alert'] {
-    background: #f3f4f6 !important;
-    color: #111111 !important;
-}
-
-[role='status'] {
-    background: #f9fafb !important;
-    color: #111111 !important;
-}
-
-table {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-thead {
-    background: #f3f4f6 !important;
-}
-
-button,
-[role='button'] {
-    font-weight: 600;
-}
-
-.max-w-7xl {
-    max-width: 80rem !important;
-}
-
-/* Subtle automatic shapes on desktop page headers. */
-@media (min-width: 768px) {
-    main > section:first-child,
-    main > div > section:first-child {
-        position: relative;
-        overflow: hidden;
-    }
-
-    main > section:first-child::before,
-    main > div > section:first-child::before {
-        content: '';
-        position: absolute;
-        width: 78px;
-        height: 78px;
-        right: 18px;
-        top: 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 9999px;
-        pointer-events: none;
-        opacity: .7;
-    }
-
-    main > section:first-child::after,
-    main > div > section:first-child::after {
-        content: '';
-        position: absolute;
-        width: 28px;
-        height: 28px;
-        right: 78px;
-        top: 60px;
-        border: 1px solid #111111;
-        border-radius: 6px;
-        transform: rotate(10deg);
-        background: #ffffff;
-        pointer-events: none;
-        opacity: .8;
-    }
-}
-
+/* SignGyaan purple brand, modern font and consistent outlined icons. */
+:root,body {font-family:'Google Sans Flex','Inter',ui-sans-serif,system-ui,sans-serif;}
+body {background:var(--sg-bg);color:var(--sg-text);}
+:focus-visible {outline-color:var(--sg-primary);}
+.sg-btn-primary {background:var(--sg-primary);}
+.sg-btn-primary:hover {background:var(--sg-primary-hover);}
+.sg-btn-secondary {border-color:var(--sg-border);color:var(--sg-primary);}
+.sg-btn-secondary:hover {background:var(--sg-primary-soft);}
+.sg-shape-dot {background:var(--sg-primary);}
+.sg-shape-ring,.sg-shape-square {border-color:var(--sg-border);}
+.sg-sidebar-icon,svg.lucide {stroke-width:1.9;}
+input[type=checkbox],input[type=radio] {accent-color:var(--sg-primary);}
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition-duration: .01ms !important;
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-    }
+ *,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important;}
 }
